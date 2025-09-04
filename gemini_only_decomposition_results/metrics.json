@@ -1,0 +1,19 @@
+{
+  "corrected_metrics": {
+    "cmod": 0.6957612536775557,
+    "cid": 1.0,
+    "domain_independence": 0.7131142750379343
+  },
+  "summary": {
+    "total_services": 4,
+    "total_classes": 24,
+    "cmod_percentage": 69.57612536775557,
+    "cid_percentage": 100.0,
+    "di_percentage": 71.31142750379344
+  },
+  "detailed_analysis": {
+    "cmod_description": "Code Modularity: 0.696 (69.6%)",
+    "cid_description": "Cyclic Independence: 1.000 (100.0%)",
+    "di_description": "Domain Independence: 0.713 (71.3%)"
+  }
+}
