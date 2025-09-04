@@ -1,0 +1,1293 @@
+{
+  "metadata" : {
+    "totalClasses" : 24,
+    "relationshipCounts" : {
+      "EXTENDS" : 4,
+      "CALLS" : 12,
+      "USES" : 48,
+      "CREATES" : 6
+    },
+    "relationshipTotalOccurrences" : {
+      "EXTENDS" : 4,
+      "CALLS" : 49,
+      "USES" : 164,
+      "CREATES" : 10
+    }
+  },
+  "classes" : {
+    "org.mybatis.jpetstore.domain.Account" : {
+      "methods" : [ {
+        "signature" : "public java.lang.String getUsername()"
+      }, {
+        "signature" : "public void setUsername(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getPassword()"
+      }, {
+        "signature" : "public void setPassword(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getEmail()"
+      }, {
+        "signature" : "public void setEmail(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getFirstName()"
+      }, {
+        "signature" : "public void setFirstName(java.lang.String)",
+        "annotations" : [ "@Validate(required = true, on = { \"newAccount\", \"editAccount\" })" ]
+      }, {
+        "signature" : "public java.lang.String getLastName()"
+      }, {
+        "signature" : "public void setLastName(java.lang.String)",
+        "annotations" : [ "@Validate(required = true, on = { \"newAccount\", \"editAccount\" })" ]
+      }, {
+        "signature" : "public java.lang.String getStatus()"
+      }, {
+        "signature" : "public void setStatus(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAddress1()"
+      }, {
+        "signature" : "public void setAddress1(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAddress2()"
+      }, {
+        "signature" : "public void setAddress2(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCity()"
+      }, {
+        "signature" : "public void setCity(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getState()"
+      }, {
+        "signature" : "public void setState(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getZip()"
+      }, {
+        "signature" : "public void setZip(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCountry()"
+      }, {
+        "signature" : "public void setCountry(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getPhone()"
+      }, {
+        "signature" : "public void setPhone(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getFavouriteCategoryId()"
+      }, {
+        "signature" : "public void setFavouriteCategoryId(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getLanguagePreference()"
+      }, {
+        "signature" : "public void setLanguagePreference(java.lang.String)"
+      }, {
+        "signature" : "public boolean isListOption()"
+      }, {
+        "signature" : "public void setListOption(boolean)"
+      }, {
+        "signature" : "public boolean isBannerOption()"
+      }, {
+        "signature" : "public void setBannerOption(boolean)"
+      }, {
+        "signature" : "public java.lang.String getBannerName()"
+      }, {
+        "signature" : "public void setBannerName(java.lang.String)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private String username"
+      }, {
+        "declaration" : "private String password"
+      }, {
+        "declaration" : "private String email"
+      }, {
+        "declaration" : "private String firstName"
+      }, {
+        "declaration" : "private String lastName"
+      }, {
+        "declaration" : "private String status"
+      }, {
+        "declaration" : "private String address1"
+      }, {
+        "declaration" : "private String address2"
+      }, {
+        "declaration" : "private String city"
+      }, {
+        "declaration" : "private String state"
+      }, {
+        "declaration" : "private String zip"
+      }, {
+        "declaration" : "private String country"
+      }, {
+        "declaration" : "private String phone"
+      }, {
+        "declaration" : "private String favouriteCategoryId"
+      }, {
+        "declaration" : "private String languagePreference"
+      }, {
+        "declaration" : "private boolean listOption"
+      }, {
+        "declaration" : "private boolean bannerOption"
+      }, {
+        "declaration" : "private String bannerName"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.AccountService" : 16,
+          "org.mybatis.jpetstore.domain.Order" : 1,
+          "org.mybatis.jpetstore.mapper.AccountMapper" : 8,
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 4
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.Cart" : {
+      "methods" : [ {
+        "signature" : "public null getCartItems()"
+      }, {
+        "signature" : "public null getCartItemList()"
+      }, {
+        "signature" : "public int getNumberOfItems()"
+      }, {
+        "signature" : "public null getAllCartItems()"
+      }, {
+        "signature" : "public boolean containsItemId(java.lang.String)"
+      }, {
+        "signature" : "public void addItem(org.mybatis.jpetstore.domain.Item, boolean)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Item removeItemById(java.lang.String)"
+      }, {
+        "signature" : "public void incrementQuantityByItemId(java.lang.String)"
+      }, {
+        "signature" : "public void setQuantityByItemId(java.lang.String, int)"
+      }, {
+        "signature" : "public java.math.BigDecimal getSubTotal()"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private final Map<String,CartItem> itemMap"
+      }, {
+        "declaration" : "private final List<CartItem> itemList"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.domain.Order" : 1,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 5
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.domain.Item" : 2,
+          "org.mybatis.jpetstore.domain.CartItem" : 7
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Item" : 4,
+          "org.mybatis.jpetstore.domain.CartItem" : 13
+        },
+        "CREATES" : {
+          "org.mybatis.jpetstore.domain.CartItem" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.CartItem" : {
+      "methods" : [ {
+        "signature" : "public boolean isInStock()"
+      }, {
+        "signature" : "public void setInStock(boolean)"
+      }, {
+        "signature" : "public java.math.BigDecimal getTotal()"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Item getItem()"
+      }, {
+        "signature" : "public void setItem(org.mybatis.jpetstore.domain.Item)"
+      }, {
+        "signature" : "public int getQuantity()"
+      }, {
+        "signature" : "public void setQuantity(int)"
+      }, {
+        "signature" : "public void incrementQuantity()"
+      }, {
+        "signature" : "private void calculateTotal()"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private Item item"
+      }, {
+        "declaration" : "private int quantity"
+      }, {
+        "declaration" : "private boolean inStock"
+      }, {
+        "declaration" : "private BigDecimal total"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.domain.Order" : 6,
+          "org.mybatis.jpetstore.domain.Cart" : 13,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 3,
+          "org.mybatis.jpetstore.domain.LineItem" : 1
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Item" : 3
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.Category" : {
+      "methods" : [ {
+        "signature" : "public java.lang.String getCategoryId()"
+      }, {
+        "signature" : "public void setCategoryId(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getName()"
+      }, {
+        "signature" : "public void setName(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getDescription()"
+      }, {
+        "signature" : "public void setDescription(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String toString()",
+        "annotations" : [ "@Override" ]
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private String categoryId"
+      }, {
+        "declaration" : "private String name"
+      }, {
+        "declaration" : "private String description"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 1,
+          "org.mybatis.jpetstore.mapper.CategoryMapper" : 1,
+          "org.mybatis.jpetstore.web.actions.CatalogActionBean" : 4
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.Item" : {
+      "methods" : [ {
+        "signature" : "public java.lang.String getItemId()"
+      }, {
+        "signature" : "public void setItemId(java.lang.String)"
+      }, {
+        "signature" : "public int getQuantity()"
+      }, {
+        "signature" : "public void setQuantity(int)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Product getProduct()"
+      }, {
+        "signature" : "public void setProduct(org.mybatis.jpetstore.domain.Product)"
+      }, {
+        "signature" : "public int getSupplierId()"
+      }, {
+        "signature" : "public void setSupplierId(int)"
+      }, {
+        "signature" : "public java.math.BigDecimal getListPrice()"
+      }, {
+        "signature" : "public void setListPrice(java.math.BigDecimal)"
+      }, {
+        "signature" : "public java.math.BigDecimal getUnitCost()"
+      }, {
+        "signature" : "public void setUnitCost(java.math.BigDecimal)"
+      }, {
+        "signature" : "public java.lang.String getStatus()"
+      }, {
+        "signature" : "public void setStatus(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAttribute1()"
+      }, {
+        "signature" : "public void setAttribute1(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAttribute2()"
+      }, {
+        "signature" : "public void setAttribute2(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAttribute3()"
+      }, {
+        "signature" : "public void setAttribute3(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAttribute4()"
+      }, {
+        "signature" : "public void setAttribute4(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getAttribute5()"
+      }, {
+        "signature" : "public void setAttribute5(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String toString()",
+        "annotations" : [ "@Override" ]
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private String itemId"
+      }, {
+        "declaration" : "private String productId"
+      }, {
+        "declaration" : "private BigDecimal listPrice"
+      }, {
+        "declaration" : "private BigDecimal unitCost"
+      }, {
+        "declaration" : "private int supplierId"
+      }, {
+        "declaration" : "private String status"
+      }, {
+        "declaration" : "private String attribute1"
+      }, {
+        "declaration" : "private String attribute2"
+      }, {
+        "declaration" : "private String attribute3"
+      }, {
+        "declaration" : "private String attribute4"
+      }, {
+        "declaration" : "private String attribute5"
+      }, {
+        "declaration" : "private Product product"
+      }, {
+        "declaration" : "private int quantity"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 1,
+          "org.mybatis.jpetstore.service.OrderService" : 3,
+          "org.mybatis.jpetstore.domain.CartItem" : 3,
+          "org.mybatis.jpetstore.web.actions.CatalogActionBean" : 4,
+          "org.mybatis.jpetstore.domain.Cart" : 4,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 4,
+          "org.mybatis.jpetstore.domain.LineItem" : 3,
+          "org.mybatis.jpetstore.mapper.ItemMapper" : 1
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Product" : 3
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.LineItem" : {
+      "methods" : [ {
+        "signature" : "public int getOrderId()"
+      }, {
+        "signature" : "public void setOrderId(int)"
+      }, {
+        "signature" : "public int getLineNumber()"
+      }, {
+        "signature" : "public void setLineNumber(int)"
+      }, {
+        "signature" : "public java.lang.String getItemId()"
+      }, {
+        "signature" : "public void setItemId(java.lang.String)"
+      }, {
+        "signature" : "public java.math.BigDecimal getUnitPrice()"
+      }, {
+        "signature" : "public void setUnitPrice(java.math.BigDecimal)"
+      }, {
+        "signature" : "public java.math.BigDecimal getTotal()"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Item getItem()"
+      }, {
+        "signature" : "public void setItem(org.mybatis.jpetstore.domain.Item)"
+      }, {
+        "signature" : "public int getQuantity()"
+      }, {
+        "signature" : "public void setQuantity(int)"
+      }, {
+        "signature" : "private void calculateTotal()"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.LineItem LineItem()"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.LineItem LineItem(int, org.mybatis.jpetstore.domain.CartItem)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private int orderId"
+      }, {
+        "declaration" : "private int lineNumber"
+      }, {
+        "declaration" : "private int quantity"
+      }, {
+        "declaration" : "private String itemId"
+      }, {
+        "declaration" : "private BigDecimal unitPrice"
+      }, {
+        "declaration" : "private Item item"
+      }, {
+        "declaration" : "private BigDecimal total"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.mapper.LineItemMapper" : 1,
+          "org.mybatis.jpetstore.domain.Order" : 8
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.domain.CartItem" : 4
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Item" : 3,
+          "org.mybatis.jpetstore.domain.CartItem" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.Order" : {
+      "methods" : [ {
+        "signature" : "public int getOrderId()"
+      }, {
+        "signature" : "public void setOrderId(int)"
+      }, {
+        "signature" : "public java.lang.String getUsername()"
+      }, {
+        "signature" : "public void setUsername(java.lang.String)"
+      }, {
+        "signature" : "public java.util.Date getOrderDate()"
+      }, {
+        "signature" : "public void setOrderDate(java.util.Date)"
+      }, {
+        "signature" : "public java.lang.String getShipAddress1()"
+      }, {
+        "signature" : "public void setShipAddress1(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipAddress2()"
+      }, {
+        "signature" : "public void setShipAddress2(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipCity()"
+      }, {
+        "signature" : "public void setShipCity(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipState()"
+      }, {
+        "signature" : "public void setShipState(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipZip()"
+      }, {
+        "signature" : "public void setShipZip(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipCountry()"
+      }, {
+        "signature" : "public void setShipCountry(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillAddress1()"
+      }, {
+        "signature" : "public void setBillAddress1(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillAddress2()"
+      }, {
+        "signature" : "public void setBillAddress2(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillCity()"
+      }, {
+        "signature" : "public void setBillCity(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillState()"
+      }, {
+        "signature" : "public void setBillState(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillZip()"
+      }, {
+        "signature" : "public void setBillZip(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillCountry()"
+      }, {
+        "signature" : "public void setBillCountry(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCourier()"
+      }, {
+        "signature" : "public void setCourier(java.lang.String)"
+      }, {
+        "signature" : "public java.math.BigDecimal getTotalPrice()"
+      }, {
+        "signature" : "public void setTotalPrice(java.math.BigDecimal)"
+      }, {
+        "signature" : "public java.lang.String getBillToFirstName()"
+      }, {
+        "signature" : "public void setBillToFirstName(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getBillToLastName()"
+      }, {
+        "signature" : "public void setBillToLastName(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipToFirstName()"
+      }, {
+        "signature" : "public void setShipToFirstName(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getShipToLastName()"
+      }, {
+        "signature" : "public void setShipToLastName(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCreditCard()"
+      }, {
+        "signature" : "public void setCreditCard(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getExpiryDate()"
+      }, {
+        "signature" : "public void setExpiryDate(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCardType()"
+      }, {
+        "signature" : "public void setCardType(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getLocale()"
+      }, {
+        "signature" : "public void setLocale(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getStatus()"
+      }, {
+        "signature" : "public void setStatus(java.lang.String)"
+      }, {
+        "signature" : "public void setLineItems(null)"
+      }, {
+        "signature" : "public null getLineItems()"
+      }, {
+        "signature" : "public void initOrder(org.mybatis.jpetstore.domain.Account, org.mybatis.jpetstore.domain.Cart)"
+      }, {
+        "signature" : "public void addLineItem(org.mybatis.jpetstore.domain.CartItem)"
+      }, {
+        "signature" : "public void addLineItem(org.mybatis.jpetstore.domain.LineItem)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private int orderId"
+      }, {
+        "declaration" : "private String username"
+      }, {
+        "declaration" : "private Date orderDate"
+      }, {
+        "declaration" : "private String shipAddress1"
+      }, {
+        "declaration" : "private String shipAddress2"
+      }, {
+        "declaration" : "private String shipCity"
+      }, {
+        "declaration" : "private String shipState"
+      }, {
+        "declaration" : "private String shipZip"
+      }, {
+        "declaration" : "private String shipCountry"
+      }, {
+        "declaration" : "private String billAddress1"
+      }, {
+        "declaration" : "private String billAddress2"
+      }, {
+        "declaration" : "private String billCity"
+      }, {
+        "declaration" : "private String billState"
+      }, {
+        "declaration" : "private String billZip"
+      }, {
+        "declaration" : "private String billCountry"
+      }, {
+        "declaration" : "private String courier"
+      }, {
+        "declaration" : "private BigDecimal totalPrice"
+      }, {
+        "declaration" : "private String billToFirstName"
+      }, {
+        "declaration" : "private String billToLastName"
+      }, {
+        "declaration" : "private String shipToFirstName"
+      }, {
+        "declaration" : "private String shipToLastName"
+      }, {
+        "declaration" : "private String creditCard"
+      }, {
+        "declaration" : "private String expiryDate"
+      }, {
+        "declaration" : "private String cardType"
+      }, {
+        "declaration" : "private String locale"
+      }, {
+        "declaration" : "private String status"
+      }, {
+        "declaration" : "private List<LineItem> lineItems"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.mapper.OrderMapper" : 3,
+          "org.mybatis.jpetstore.service.OrderService" : 8,
+          "org.mybatis.jpetstore.web.actions.OrderActionBean" : 6
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.domain.Account" : 17,
+          "org.mybatis.jpetstore.domain.Cart" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Account" : 1,
+          "org.mybatis.jpetstore.domain.CartItem" : 6,
+          "org.mybatis.jpetstore.domain.Cart" : 1,
+          "org.mybatis.jpetstore.domain.LineItem" : 8
+        },
+        "CREATES" : {
+          "org.mybatis.jpetstore.domain.LineItem" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.Product" : {
+      "methods" : [ {
+        "signature" : "public java.lang.String getProductId()"
+      }, {
+        "signature" : "public void setProductId(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCategoryId()"
+      }, {
+        "signature" : "public void setCategoryId(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getName()"
+      }, {
+        "signature" : "public void setName(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getDescription()"
+      }, {
+        "signature" : "public void setDescription(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String toString()",
+        "annotations" : [ "@Override" ]
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private String productId"
+      }, {
+        "declaration" : "private String categoryId"
+      }, {
+        "declaration" : "private String name"
+      }, {
+        "declaration" : "private String description"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 2,
+          "org.mybatis.jpetstore.mapper.ProductMapper" : 1,
+          "org.mybatis.jpetstore.domain.Item" : 3,
+          "org.mybatis.jpetstore.web.actions.CatalogActionBean" : 4,
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.domain.Sequence" : {
+      "methods" : [ {
+        "signature" : "public java.lang.String getName()"
+      }, {
+        "signature" : "public void setName(java.lang.String)"
+      }, {
+        "signature" : "public int getNextId()"
+      }, {
+        "signature" : "public void setNextId(int)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Sequence Sequence()"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Sequence Sequence(java.lang.String, int)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private String name"
+      }, {
+        "declaration" : "private int nextId"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.OrderService" : 6,
+          "org.mybatis.jpetstore.mapper.SequenceMapper" : 3
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.AccountMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Account getAccountByUsername(java.lang.String)"
+      }, {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Account getAccountByUsernameAndPassword(java.lang.String, java.lang.String)"
+      }, {
+        "signature" : "public abstract void insertAccount(org.mybatis.jpetstore.domain.Account)"
+      }, {
+        "signature" : "public abstract void insertProfile(org.mybatis.jpetstore.domain.Account)"
+      }, {
+        "signature" : "public abstract void insertSignon(org.mybatis.jpetstore.domain.Account)"
+      }, {
+        "signature" : "public abstract void updateAccount(org.mybatis.jpetstore.domain.Account)"
+      }, {
+        "signature" : "public abstract void updateProfile(org.mybatis.jpetstore.domain.Account)"
+      }, {
+        "signature" : "public abstract void updateSignon(org.mybatis.jpetstore.domain.Account)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.AccountService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Account" : 8
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.CategoryMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract null getCategoryList()"
+      }, {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Category getCategory(java.lang.String)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Category" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.ItemMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract void updateInventoryQuantity(null)"
+      }, {
+        "signature" : "public abstract int getInventoryQuantity(java.lang.String)"
+      }, {
+        "signature" : "public abstract null getItemListByProduct(java.lang.String)"
+      }, {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Item getItem(java.lang.String)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 2,
+          "org.mybatis.jpetstore.service.OrderService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Item" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.LineItemMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract null getLineItemsByOrderId(int)"
+      }, {
+        "signature" : "public abstract void insertLineItem(org.mybatis.jpetstore.domain.LineItem)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.OrderService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.LineItem" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.OrderMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract null getOrdersByUsername(java.lang.String)"
+      }, {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Order getOrder(int)"
+      }, {
+        "signature" : "public abstract void insertOrder(org.mybatis.jpetstore.domain.Order)"
+      }, {
+        "signature" : "public abstract void insertOrderStatus(org.mybatis.jpetstore.domain.Order)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.OrderService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Order" : 3
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.ProductMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract null getProductListByCategory(java.lang.String)"
+      }, {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Product getProduct(java.lang.String)"
+      }, {
+        "signature" : "public abstract null searchProductList(java.lang.String)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Product" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.mapper.SequenceMapper" : {
+      "methods" : [ {
+        "signature" : "public abstract org.mybatis.jpetstore.domain.Sequence getSequence(org.mybatis.jpetstore.domain.Sequence)"
+      }, {
+        "signature" : "public abstract void updateSequence(org.mybatis.jpetstore.domain.Sequence)"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.service.OrderService" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Sequence" : 3
+        }
+      }
+    },
+    "org.mybatis.jpetstore.service.AccountService" : {
+      "annotations" : [ "@Service" ],
+      "methods" : [ {
+        "signature" : "public org.mybatis.jpetstore.domain.Account getAccount(java.lang.String)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Account getAccount(java.lang.String, java.lang.String)"
+      }, {
+        "signature" : "public void insertAccount(org.mybatis.jpetstore.domain.Account)",
+        "annotations" : [ "@Transactional" ]
+      }, {
+        "signature" : "public void updateAccount(org.mybatis.jpetstore.domain.Account)",
+        "annotations" : [ "@Transactional" ]
+      }, {
+        "signature" : "public org.mybatis.jpetstore.service.AccountService AccountService(org.mybatis.jpetstore.mapper.AccountMapper)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private final AccountMapper accountMapper"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 1
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.domain.Account" : 1
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Account" : 16,
+          "org.mybatis.jpetstore.mapper.AccountMapper" : 2
+        }
+      }
+    },
+    "org.mybatis.jpetstore.service.CatalogService" : {
+      "annotations" : [ "@Service" ],
+      "methods" : [ {
+        "signature" : "public null getCategoryList()"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Category getCategory(java.lang.String)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Product getProduct(java.lang.String)"
+      }, {
+        "signature" : "public null getProductListByCategory(java.lang.String)"
+      }, {
+        "signature" : "public null searchProductList(java.lang.String)"
+      }, {
+        "signature" : "public null getItemListByProduct(java.lang.String)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Item getItem(java.lang.String)"
+      }, {
+        "signature" : "public boolean isItemInStock(java.lang.String)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.service.CatalogService CatalogService(org.mybatis.jpetstore.mapper.CategoryMapper, org.mybatis.jpetstore.mapper.ItemMapper, org.mybatis.jpetstore.mapper.ProductMapper)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private final CategoryMapper categoryMapper"
+      }, {
+        "declaration" : "private final ItemMapper itemMapper"
+      }, {
+        "declaration" : "private final ProductMapper productMapper"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.web.actions.CatalogActionBean" : 1,
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 1,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 1
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.domain.Category" : 1,
+          "org.mybatis.jpetstore.mapper.ProductMapper" : 2,
+          "org.mybatis.jpetstore.domain.Item" : 1,
+          "org.mybatis.jpetstore.mapper.CategoryMapper" : 2,
+          "org.mybatis.jpetstore.mapper.ItemMapper" : 2,
+          "org.mybatis.jpetstore.domain.Product" : 2
+        }
+      }
+    },
+    "org.mybatis.jpetstore.service.OrderService" : {
+      "annotations" : [ "@Service" ],
+      "methods" : [ {
+        "signature" : "public void insertOrder(org.mybatis.jpetstore.domain.Order)",
+        "annotations" : [ "@Transactional" ]
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Order getOrder(int)",
+        "annotations" : [ "@Transactional" ]
+      }, {
+        "signature" : "public null getOrdersByUsername(java.lang.String)"
+      }, {
+        "signature" : "public int getNextId(java.lang.String)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.service.OrderService OrderService(org.mybatis.jpetstore.mapper.ItemMapper, org.mybatis.jpetstore.mapper.OrderMapper, org.mybatis.jpetstore.mapper.SequenceMapper, org.mybatis.jpetstore.mapper.LineItemMapper)"
+      } ],
+      "fields" : [ {
+        "declaration" : "private final ItemMapper itemMapper"
+      }, {
+        "declaration" : "private final OrderMapper orderMapper"
+      }, {
+        "declaration" : "private final SequenceMapper sequenceMapper"
+      }, {
+        "declaration" : "private final LineItemMapper lineItemMapper"
+      } ],
+      "relationships" : {
+        "USED_BY" : {
+          "org.mybatis.jpetstore.web.actions.OrderActionBean" : 1
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.domain.Sequence" : 2,
+          "org.mybatis.jpetstore.domain.Item" : 1,
+          "org.mybatis.jpetstore.domain.Order" : 6
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.mapper.OrderMapper" : 2,
+          "org.mybatis.jpetstore.domain.Sequence" : 6,
+          "org.mybatis.jpetstore.mapper.LineItemMapper" : 2,
+          "org.mybatis.jpetstore.domain.Item" : 3,
+          "org.mybatis.jpetstore.domain.Order" : 8,
+          "org.mybatis.jpetstore.mapper.SequenceMapper" : 2,
+          "org.mybatis.jpetstore.mapper.ItemMapper" : 2
+        },
+        "CREATES" : {
+          "org.mybatis.jpetstore.domain.Sequence" : 2
+        }
+      }
+    },
+    "org.mybatis.jpetstore.web.actions.AbstractActionBean" : {
+      "methods" : [ {
+        "signature" : "protected void setMessage(java.lang.String)"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ActionBeanContext getContext()",
+        "annotations" : [ "@Override" ]
+      }, {
+        "signature" : "public void setContext(net.sourceforge.stripes.action.ActionBeanContext)",
+        "annotations" : [ "@Override" ]
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "protected static final String ERROR"
+      }, {
+        "declaration" : "protected ActionBeanContext context"
+      } ],
+      "relationships" : {
+        "EXTENDED_BY" : {
+          "org.mybatis.jpetstore.web.actions.OrderActionBean" : 1,
+          "org.mybatis.jpetstore.web.actions.CatalogActionBean" : 1,
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 1,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 1
+        }
+      }
+    },
+    "org.mybatis.jpetstore.web.actions.AccountActionBean" : {
+      "annotations" : [ "@SessionScope" ],
+      "methods" : [ {
+        "signature" : "public org.mybatis.jpetstore.domain.Account getAccount()"
+      }, {
+        "signature" : "public java.lang.String getUsername()"
+      }, {
+        "signature" : "public void setUsername(java.lang.String)",
+        "annotations" : [ "@Validate(required = true, on = { \"signon\", \"newAccount\", \"editAccount\" })" ]
+      }, {
+        "signature" : "public java.lang.String getPassword()"
+      }, {
+        "signature" : "public void setPassword(java.lang.String)",
+        "annotations" : [ "@Validate(required = true, on = { \"signon\", \"newAccount\", \"editAccount\" })" ]
+      }, {
+        "signature" : "public null getMyList()"
+      }, {
+        "signature" : "public void setMyList(null)"
+      }, {
+        "signature" : "public null getLanguages()"
+      }, {
+        "signature" : "public null getCategories()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution newAccountForm()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution newAccount()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution editAccountForm()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution editAccount()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution signonForm()",
+        "annotations" : [ "@DefaultHandler" ]
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution signon()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution signoff()"
+      }, {
+        "signature" : "public boolean isAuthenticated()"
+      }, {
+        "signature" : "public void clear()"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private static final String NEW_ACCOUNT"
+      }, {
+        "declaration" : "private static final String EDIT_ACCOUNT"
+      }, {
+        "declaration" : "private static final String SIGNON"
+      }, {
+        "declaration" : "private static final List<String> LANGUAGE_LIST"
+      }, {
+        "declaration" : "private static final List<String> CATEGORY_LIST"
+      }, {
+        "declaration" : "private AccountService accountService",
+        "annotations" : [ "@SpringBean" ]
+      }, {
+        "declaration" : "private CatalogService catalogService",
+        "annotations" : [ "@SpringBean" ]
+      }, {
+        "declaration" : "private Account account"
+      }, {
+        "declaration" : "private List<Product> myList"
+      }, {
+        "declaration" : "private boolean authenticated"
+      } ],
+      "relationships" : {
+        "EXTENDS" : {
+          "org.mybatis.jpetstore.web.actions.AbstractActionBean" : 1
+        },
+        "USED_BY" : {
+          "org.mybatis.jpetstore.web.actions.OrderActionBean" : 6
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 1,
+          "org.mybatis.jpetstore.domain.Account" : 4,
+          "org.mybatis.jpetstore.service.AccountService" : 1,
+          "org.mybatis.jpetstore.domain.Product" : 1
+        },
+        "CREATES" : {
+          "org.mybatis.jpetstore.domain.Account" : 2
+        }
+      }
+    },
+    "org.mybatis.jpetstore.web.actions.CartActionBean" : {
+      "annotations" : [ "@SessionScope" ],
+      "methods" : [ {
+        "signature" : "public org.mybatis.jpetstore.domain.Cart getCart()"
+      }, {
+        "signature" : "public void setCart(org.mybatis.jpetstore.domain.Cart)"
+      }, {
+        "signature" : "public void setWorkingItemId(java.lang.String)"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution addItemToCart()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution removeItemFromCart()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution updateCartQuantities()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution viewCart()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution checkOut()"
+      }, {
+        "signature" : "public void clear()"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private static final String VIEW_CART"
+      }, {
+        "declaration" : "private static final String CHECK_OUT"
+      }, {
+        "declaration" : "private CatalogService catalogService",
+        "annotations" : [ "@SpringBean" ]
+      }, {
+        "declaration" : "private Cart cart"
+      }, {
+        "declaration" : "private String workingItemId"
+      } ],
+      "relationships" : {
+        "EXTENDS" : {
+          "org.mybatis.jpetstore.web.actions.AbstractActionBean" : 1
+        },
+        "USED_BY" : {
+          "org.mybatis.jpetstore.web.actions.OrderActionBean" : 4
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.domain.CartItem" : 1
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 1,
+          "org.mybatis.jpetstore.domain.Item" : 4,
+          "org.mybatis.jpetstore.domain.CartItem" : 3,
+          "org.mybatis.jpetstore.domain.Cart" : 5
+        },
+        "CREATES" : {
+          "org.mybatis.jpetstore.domain.Cart" : 2
+        }
+      }
+    },
+    "org.mybatis.jpetstore.web.actions.CatalogActionBean" : {
+      "annotations" : [ "@SessionScope" ],
+      "methods" : [ {
+        "signature" : "public java.lang.String getKeyword()"
+      }, {
+        "signature" : "public void setKeyword(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getCategoryId()"
+      }, {
+        "signature" : "public void setCategoryId(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getProductId()"
+      }, {
+        "signature" : "public void setProductId(java.lang.String)"
+      }, {
+        "signature" : "public java.lang.String getItemId()"
+      }, {
+        "signature" : "public void setItemId(java.lang.String)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Category getCategory()"
+      }, {
+        "signature" : "public void setCategory(org.mybatis.jpetstore.domain.Category)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Product getProduct()"
+      }, {
+        "signature" : "public void setProduct(org.mybatis.jpetstore.domain.Product)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Item getItem()"
+      }, {
+        "signature" : "public void setItem(org.mybatis.jpetstore.domain.Item)"
+      }, {
+        "signature" : "public null getCategoryList()"
+      }, {
+        "signature" : "public void setCategoryList(null)"
+      }, {
+        "signature" : "public null getProductList()"
+      }, {
+        "signature" : "public void setProductList(null)"
+      }, {
+        "signature" : "public null getItemList()"
+      }, {
+        "signature" : "public void setItemList(null)"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution viewMain()",
+        "annotations" : [ "@DefaultHandler" ]
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution viewCategory()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution viewProduct()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution viewItem()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.ForwardResolution searchProducts()"
+      }, {
+        "signature" : "public void clear()"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private static final String MAIN"
+      }, {
+        "declaration" : "private static final String VIEW_CATEGORY"
+      }, {
+        "declaration" : "private static final String VIEW_PRODUCT"
+      }, {
+        "declaration" : "private static final String VIEW_ITEM"
+      }, {
+        "declaration" : "private static final String SEARCH_PRODUCTS"
+      }, {
+        "declaration" : "private CatalogService catalogService",
+        "annotations" : [ "@SpringBean" ]
+      }, {
+        "declaration" : "private String keyword"
+      }, {
+        "declaration" : "private String categoryId"
+      }, {
+        "declaration" : "private Category category"
+      }, {
+        "declaration" : "private List<Category> categoryList"
+      }, {
+        "declaration" : "private String productId"
+      }, {
+        "declaration" : "private Product product"
+      }, {
+        "declaration" : "private List<Product> productList"
+      }, {
+        "declaration" : "private String itemId"
+      }, {
+        "declaration" : "private Item item"
+      }, {
+        "declaration" : "private List<Item> itemList"
+      } ],
+      "relationships" : {
+        "EXTENDS" : {
+          "org.mybatis.jpetstore.web.actions.AbstractActionBean" : 1
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.service.CatalogService" : 1,
+          "org.mybatis.jpetstore.domain.Category" : 4,
+          "org.mybatis.jpetstore.domain.Item" : 4,
+          "org.mybatis.jpetstore.domain.Product" : 4
+        }
+      }
+    },
+    "org.mybatis.jpetstore.web.actions.OrderActionBean" : {
+      "annotations" : [ "@SessionScope" ],
+      "methods" : [ {
+        "signature" : "public int getOrderId()"
+      }, {
+        "signature" : "public void setOrderId(int)"
+      }, {
+        "signature" : "public org.mybatis.jpetstore.domain.Order getOrder()"
+      }, {
+        "signature" : "public void setOrder(org.mybatis.jpetstore.domain.Order)"
+      }, {
+        "signature" : "public boolean isShippingAddressRequired()"
+      }, {
+        "signature" : "public void setShippingAddressRequired(boolean)"
+      }, {
+        "signature" : "public boolean isConfirmed()"
+      }, {
+        "signature" : "public void setConfirmed(boolean)"
+      }, {
+        "signature" : "public null getCreditCardTypes()"
+      }, {
+        "signature" : "public null getOrderList()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution listOrders()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution newOrderForm()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution newOrder()"
+      }, {
+        "signature" : "public net.sourceforge.stripes.action.Resolution viewOrder()"
+      }, {
+        "signature" : "public void clear()"
+      } ],
+      "fields" : [ {
+        "declaration" : "private static final long serialVersionUID"
+      }, {
+        "declaration" : "private static final String CONFIRM_ORDER"
+      }, {
+        "declaration" : "private static final String LIST_ORDERS"
+      }, {
+        "declaration" : "private static final String NEW_ORDER"
+      }, {
+        "declaration" : "private static final String SHIPPING"
+      }, {
+        "declaration" : "private static final String VIEW_ORDER"
+      }, {
+        "declaration" : "private static final List<String> CARD_TYPE_LIST"
+      }, {
+        "declaration" : "private OrderService orderService",
+        "annotations" : [ "@SpringBean" ]
+      }, {
+        "declaration" : "private Order order"
+      }, {
+        "declaration" : "private boolean shippingAddressRequired"
+      }, {
+        "declaration" : "private boolean confirmed"
+      }, {
+        "declaration" : "private List<Order> orderList"
+      } ],
+      "relationships" : {
+        "EXTENDS" : {
+          "org.mybatis.jpetstore.web.actions.AbstractActionBean" : 1
+        },
+        "CALLS" : {
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 4,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 2
+        },
+        "USES" : {
+          "org.mybatis.jpetstore.service.OrderService" : 1,
+          "org.mybatis.jpetstore.domain.Order" : 6,
+          "org.mybatis.jpetstore.web.actions.AccountActionBean" : 6,
+          "org.mybatis.jpetstore.web.actions.CartActionBean" : 4
+        },
+        "CREATES" : {
+          "org.mybatis.jpetstore.domain.Order" : 2
+        }
+      }
+    }
+  }
+}
