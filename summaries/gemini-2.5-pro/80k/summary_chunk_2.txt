@@ -1,0 +1,132 @@
+This document provides a comprehensive architectural summary of the JPetStore 6 application, focusing on details relevant to microservice decomposition analysis.
+
+### 1. Overall Architecture & Key Frameworks
+
+The JPetStore 6 application is a monolithic, multi-layered web application built using a classic Model-View-Controller (MVC) pattern.
+
+*   **Architectural Pattern:** 3-tier MVC architecture.
+    *   **Presentation Layer:** Handles user interaction and rendering.
+    *   **Service (Logic) Layer:** Encapsulates business logic and orchestrates data operations.
+    *   **Persistence (Data Access) Layer:** Manages data interaction with the database.
+*   **Key Frameworks:**
+    *   **Spring Framework (v4):** Used for Dependency Injection (DI), component scanning, and declarative transaction management. It forms the core of the application's backend.
+    *   **MyBatis (v3) with MyBatis-Spring:** Provides the data mapping and persistence layer, connecting Java objects to SQL statements.
+    *   **Stripes Framework:** A Java web framework used for the presentation layer (MVC's Controller and View components). It handles request dispatching and UI logic.
+*   **Application Type:** Standard Java web application packaged as a WAR file, designed to run on any Servlet 2.5 / JSP 2.1 compliant server (e.g., Tomcat, Jetty, Wildfly).
+
+### 2. Component Names and Responsibilities
+
+The application is structured into distinct packages, each with a clear responsibility.
+
+#### 2.1. Presentation Layer (`org.mybatis.jpetstore.web`)
+
+*   **Component Type:** Stripes `ActionBean`s (similar to Spring MVC Controllers).
+*   **Responsibility:** Handle incoming HTTP requests, interact with the service layer to perform business operations, and forward to JSP pages for rendering the response.
+*   **Key Components:**
+    *   `AccountActionBean`: Manages user authentication (sign-on), registration (new account), and profile updates (edit account). Holds session state for the logged-in user.
+    *   `CatalogActionBean`: Handles all catalog browsing functionality, including viewing categories, products, items, and searching.
+    *   `CartActionBean`: Manages the user's shopping cart. Logic includes adding/removing items, updating quantities, and viewing the cart.
+    *   `OrderActionBean`: Manages the order placement workflow, including viewing past orders, creating new orders, and confirming them.
+*   **Dependencies:** ActionBeans depend on Service layer components, which are injected by Stripes' `SpringInterceptor` using the `@SpringBean` annotation.
+
+#### 2.2. Service (Logic) Layer (`org.mybatis.jpetstore.service`)
+
+*   **Component Type:** Spring Services (`@Service`).
+*   **Responsibility:** Implements the core business logic. Acts as a transactional boundary and decouples the presentation layer from the persistence layer.
+*   **Key Components:**
+    *   `AccountService`: Provides methods for user account management (`insertAccount`, `updateAccount`, `getAccount`). It orchestrates writes to the `account`, `profile`, and `signon` tables.
+    *   `CatalogService`: Provides methods for accessing the product catalog (`getCategoryList`, `getProductListByCategory`, `getItem`, `searchProductList`). It acts as a facade over the various catalog-related mappers.
+    *   `OrderService`: Manages order processing. Its `insertOrder` method is a key transactional operation that updates inventory, creates an order, and saves line items. It also handles generating unique order IDs.
+*   **Dependencies:** Services depend on Mapper interfaces, which are injected by Spring using `@Autowired`.
+
+#### 2.3. Persistence Layer (`org.mybatis.jpetstore.mapper`)
+
+*   **Component Type:** MyBatis Mapper interfaces and corresponding XML files.
+*   **Responsibility:** Defines and executes SQL statements to interact with the database. These interfaces are the sole point of contact with the database. No JDBC or MyBatis API calls are made in the service layer.
+*   **Key Components (Interfaces):**
+    *   `AccountMapper`: Handles CRUD operations for `Account`, `Profile`, and `Signon` data.
+    *   `CategoryMapper`: Fetches product category data.
+    *   `ProductMapper`: Fetches product data, including searching.
+    *   `ItemMapper`: Fetches item-specific data (variants of products) and manages inventory levels.
+    *   `OrderMapper`: Handles CRUD operations for `Order` and `OrderStatus` data.
+    *   `LineItemMapper`: Handles CRUD operations for `LineItem` data (items within an order).
+    *   `SequenceMapper`: Manages a sequence table to generate unique IDs (e.g., for orders).
+
+#### 2.4. Domain Model (`org.mybatis.jpetstore.domain`)
+
+*   **Component Type:** Plain Old Java Objects (POJOs).
+*   **Responsibility:** Represent the core business entities of the application.
+*   **Key Components:**
+    *   `Account`: Represents a user's account information.
+    *   `Product`, `Category`, `Item`: Represent the product catalog hierarchy.
+    *   `Cart`, `CartItem`: Represent the in-memory shopping cart. `Cart` contains business logic for item management and subtotal calculation.
+    *   `Order`, `LineItem`: Represent a customer's order and its contents. `Order` contains logic to initialize itself from an `Account` and `Cart`.
+
+### 3. API Endpoints and Interfaces
+
+*   **External API:** The application exposes a web UI, not a REST API. Endpoints are defined by the Stripes framework, mapping URLs ending in `*.action` to methods within the `ActionBean` classes. For example, a request to `viewCategory.action` would be handled by a method like `viewCategory()` in one of the `ActionBean`s.
+*   **Internal Interfaces:**
+    *   **Service Interfaces:** While the sample implementation uses concrete service classes, these define the contract between the presentation and logic layers.
+    *   **Mapper Interfaces:** These are the primary internal interfaces, defining the contract for all database operations. The implementation is provided by MyBatis at runtime based on the corresponding XML mapping files.
+
+### 4. Database Schema and Data Models
+
+The database schema is defined in `jpetstore-hsqldb-schema.sql` and populated by `jpetstore-hsqldb-dataload.sql`. The tests confirm the existence and relationships of the following tables:
+
+*   **`SIGNON`**: User credentials (`USERNAME`, `PASSWORD`).
+*   **`ACCOUNT`**: User personal information (`USERID`, `EMAIL`, `FIRSTNAME`, `LASTNAME`, address details).
+*   **`PROFILE`**: User preferences (`USERID`, `LANGPREF`, `FAVCATEGORY`).
+*   **`CATEGORY`**: Product categories (`CATID`, `NAME`, `DESCN`).
+*   **`PRODUCT`**: Products within a category (`PRODUCTID`, `CATEGORY`, `NAME`, `DESCN`).
+*   **`ITEM`**: Specific items/variants of a product (`ITEMID`, `PRODUCTID`, `LISTPRICE`, attributes).
+*   **`INVENTORY`**: Stock quantity for items (`ITEMID`, `QTY`).
+*   **`ORDERS`**: Order header information (`ORDERID`, `USERID`, shipping/billing details, `TOTALPRICE`).
+*   **`ORDERSTATUS`**: Status of an order (`ORDERID`, `STATUS`, `TIMESTAMP`).
+*   **`LINEITEM`**: Individual items within an order (`ORDERID`, `LINENUM`, `ITEMID`, `QUANTITY`, `UNITPRICE`).
+*   **`SEQUENCE`**: Used for generating primary keys (`NAME`, `NEXTID`).
+
+### 5. Service Dependencies and Communication Patterns
+
+*   **Pattern:** Dependency Injection is used throughout. Communication is strictly layered.
+*   **Flow:**
+    1.  A user request hits a URL (`*.action`).
+    2.  The Stripes `DispatcherServlet` routes the request to the appropriate `ActionBean`.
+    3.  The `ActionBean` calls methods on a Service class (injected via `@SpringBean`).
+    4.  The Service class executes business logic. For data operations, it calls methods on one or more Mapper interfaces (injected via `@Autowired`).
+    5.  Spring's transaction manager (`@Transactional`) wraps the service method call, ensuring atomicity for database operations spanning multiple mappers (e.g., `OrderService.insertOrder`).
+    6.  MyBatis executes the SQL defined in the Mapper XML, maps the results to Domain objects, and returns them up the call stack.
+    7.  The `ActionBean` receives the result, sets data in the request scope, and forwards to a JSP for rendering.
+
+*   **Key Dependency Graph (Service -> Mappers):**
+    *   `AccountService` -> `AccountMapper`
+    *   `CatalogService` -> `CategoryMapper`, `ProductMapper`, `ItemMapper`
+    *   `OrderService` -> `OrderMapper`, `LineItemMapper`, `ItemMapper`, `SequenceMapper`
+
+### 6. Key Business Logic and Algorithms
+
+*   **User Registration:** (`AccountService.insertAccount`) A single operation that creates records in `ACCOUNT`, `PROFILE`, and `SIGNON` tables.
+*   **Product Search:** (`CatalogService.searchProductList`) The logic splits the search string by spaces and performs a separate database query (with `LIKE`) for each token, combining the results.
+*   **Order Placement:** (`OrderService.insertOrder`) This is the most critical transactional method.
+    1.  Gets the next unique order ID from the `SEQUENCE` table (`getNextId`).
+    2.  Iterates through `LineItem`s in the `Order` object.
+    3.  For each `LineItem`, it calls `ItemMapper.updateInventoryQuantity` to decrement the stock level.
+    4.  Calls `OrderMapper.insertOrder` to save the main order details.
+    5.  Calls `OrderMapper.insertOrderStatus` to set the initial order status.
+    6.  Iterates through `LineItem`s again to call `LineItemMapper.insertLineItem` to save them.
+    *   The entire method is wrapped in a Spring `@Transactional` annotation, ensuring that all these database updates succeed or fail together.
+*   **Shopping Cart Management:** (`Cart` domain object) All cart logic (add, remove, update, calculate total) is handled in-memory within the `Cart` object, which is stored in the user's HTTP session.
+
+### 7. Configuration and Deployment Details
+
+*   **Configuration Files:**
+    *   `web.xml`: Configures the Stripes `StripesFilter` and `DispatcherServlet` to handle `*.action` requests. It also configures the Spring `ContextLoaderListener`, which bootstraps the Spring Application Context. It uses an `Interceptor` (`SpringInterceptor`) to enable DI into Stripes `ActionBean`s.
+    *   `applicationContext.xml`: The core Spring configuration file.
+        *   `<context:component-scan>` enables annotation-based configuration for services in `org.mybatis.jpetstore.service`.
+        *   `<jdbc:embedded-database>` configures an in-memory HSQLDB for the demo, running schema and data load scripts on startup.
+        *   `<bean id="transactionManager">` defines the `DataSourceTransactionManager` for declarative transactions.
+        *   `<bean id="sqlSessionFactory">` configures the MyBatis `SqlSessionFactoryBean`, linking it to the `dataSource` and setting the package for type aliases (`org.mybatis.jpetstore.domain`).
+        *   `<mybatis:scan>` tells MyBatis-Spring to scan for Mapper interfaces in `org.mybatis.jpetstore.mapper`.
+*   **Deployment:**
+    *   The application is built using Maven.
+    *   The CI/CD pipelines (`.github/workflows/`) automate testing, code analysis (CodeQL, SonarCloud), coverage reporting (Coveralls), and deployment to Sonatype (Maven Central).
+    *   The `support.yaml` workflow demonstrates that the application is tested for deployment across a variety of standard Java application servers (Tomcat, Wildfly, Jetty, etc.), confirming its nature as a standard WAR deployment.

@@ -1,0 +1,118 @@
+An architectural summary of this codebase chunk is provided below, focusing on details relevant to microservice decomposition analysis.
+
+### 1. Architectural Overview
+
+This chunk reveals a classic **3-tier monolithic architecture** built using a combination of Java frameworks. The design follows a standard Model-View-Controller (MVC) pattern with clear separation of concerns between presentation, business logic, and data access. The application is a traditional web application, rendering server-side JSPs.
+
+### 2. Architectural Patterns & Frameworks
+
+*   **Overall Pattern:** 3-Tier Layered Architecture (Presentation, Service/Logic, Persistence).
+*   **Web/MVC Framework:** **Stripes**. It is used for handling user requests (`*.action` URLs), managing presentation logic in `ActionBean` components, and rendering views (JSPs).
+*   **IoC/DI Framework:** **Spring Framework 4**. It is used for dependency injection, managing the lifecycle of service and persistence components, and providing declarative transaction management.
+*   **Persistence Framework:** **MyBatis 3**. It is used as the data access layer, mapping Java methods (in `Mapper` interfaces) to SQL statements defined in XML files. This is an implementation of the **Data Mapper** pattern.
+*   **Transaction Management:** **Spring's Declarative Transactions** are used via the `@Transactional` annotation on service methods, ensuring atomicity for business operations like placing an order.
+*   **Testing Frameworks:** **JUnit 5** for test structure and **Selenide** for high-level, end-to-end browser integration testing.
+
+### 3. Components and Responsibilities
+
+The application's code is logically structured into distinct packages, each with a clear responsibility:
+
+*   **Presentation Layer (`org.mybatis.jpetstore.web.actions`, `*.jsp`)**
+    *   **`ViewOrder.jsp`:** A server-side view responsible for rendering the complete details of a single customer order. It displays payment info, billing/shipping addresses, and a list of line items.
+    *   **`ActionBean`s (Implicit):** The JSP is driven by a Stripes `ActionBean` (e.g., `OrderActionBean`) which fetches the `Order` data from the service layer and makes it available to the view. `ActionBean`s handle user input and orchestrate calls to the service layer.
+
+*   **Business Logic/Service Layer (`org.mybatis.jpetstore.service`)**
+    *   **`OrderService` (from documentation):** Encapsulates the core business logic for order management. Its key responsibility is processing new orders. This involves updating inventory, creating the order record, and saving line items within a single database transaction.
+    *   **`CatalogService` (from documentation):** Manages logic related to the product catalog, such as fetching products and categories.
+
+*   **Domain Model Layer (`org.mybatis.jpetstore.domain`)**
+    *   **`Order`:** A rich domain object representing a customer's order. It contains customer details, addresses, payment information, and a list of `LineItem`s.
+    *   **`LineItem`:** Represents a single item within an order, including the item ID, quantity, and unit price.
+    *   **`Cart`:** A stateful, in-memory object (likely session-scoped) that manages the user's shopping cart. It is responsible for adding, removing, and updating quantities of items and calculating the subtotal. It serves as a temporary data structure before an `Order` is created.
+    *   **`CartItem`:** An item within the `Cart`, containing a reference to the `Item`, quantity, and total cost for that line.
+
+*   **Persistence Layer (`org.mybatis.jpetstore.mapper`)**
+    *   **`OrderMapper` (Interface & XML):** Defines the contract for all database operations related to the `ORDERS` and `ORDERSTATUS` tables. Methods include `getOrder`, `insertOrder`, `getOrdersByUsername`, etc.
+    *   **`ItemMapper` (Interface & XML):** Defines database operations for inventory, specifically `updateInventoryQuantity`.
+    *   **`LineItemMapper` (Interface & XML):** Defines database operations for order line items, such as `insertLineItem`.
+
+*   **Testing Components**
+    *   **`ScreenTransitionIT.java`:** An integration test suite that defines and verifies critical end-to-end user workflows, acting as executable documentation for the application's features.
+    *   **`CartTest.java`:** A unit test class that validates the internal business logic of the `Cart` domain object.
+
+### 4. API Endpoints and Interfaces
+
+#### Web (HTTP) Endpoints
+
+The application exposes a set of user-facing web endpoints handled by Stripes `ActionBean`s. These are discovered through the integration tests (`ScreenTransitionIT.java`):
+
+*   **Order Management:**
+    *   `GET /actions/Order.action?newOrderForm=`: Displays the checkout/order form.
+    *   `POST /actions/Order.action?newOrder=`: Submits and creates a new order.
+    *   `GET /actions/Order.action?listOrders=`: Lists orders for the current user.
+    *   `GET /actions/Order.action?viewOrder=&orderId={id}`: Displays the details of a specific order.
+*   **Account Management:**
+    *   `POST /actions/Account.action?signon=`: Handles user login.
+    *   `GET /actions/Account.action?editAccountForm=`: Displays the user's account profile form.
+    *   `POST /actions/Account.action?editAccount=`: Updates the user's account profile.
+    *   `GET /actions/Account.action?newAccountForm=`: Displays the user registration form.
+    *   `POST /actions.Account.action?newAccount=`: Creates a new user account.
+*   **Cart Management:**
+    *   `GET /actions/Cart.action?addItemToCart=&workingItemId={id}`: Adds an item to the shopping cart.
+    *   `POST /actions/Cart.action?updateCartQuantities=`: Updates the quantities of items in the cart.
+    *   `GET /actions/Cart.action?removeItemFromCart=&cartItem={id}`: Removes an item from the cart.
+*   **Catalog Browsing:**
+    *   `GET /actions/Catalog.action`: Main catalog page.
+    *   `POST /actions/Catalog.action?searchProducts=`: Searches for products.
+    *   `GET /actions/Catalog.action?viewCategory=&categoryId={id}`: Views a specific category.
+    *   `GET /actions/Catalog.action?viewItem=&itemId={id}`: Views a specific item.
+
+#### Java Interfaces (Persistence Layer Contracts)
+
+*   `org.mybatis.jpetstore.mapper.OrderMapper`:
+    *   `Order getOrder(int orderId)`
+    *   `List<Order> getOrdersByUsername(String username)`
+    *   `void insertOrder(Order order)`
+    *   `void insertOrderStatus(Order order)`
+
+### 5. Database Schemas and Data Models
+
+#### Data Models
+
+*   **`Order`**:
+    *   `orderId`, `orderDate`, `cardType`, `creditCard`, `expiryDate`, `courier`, `status`, `totalPrice`, `username`.
+    *   Billing Address Fields: `billToFirstName`, `billToLastName`, `billAddress1`, etc.
+    *   Shipping Address Fields: `shipToFirstName`, `shipToLastName`, `shipAddress1`, etc.
+    *   `List<LineItem> lineItems`.
+*   **`LineItem`**:
+    *   `item` (contains `itemId`, product details).
+    *   `quantity`, `unitPrice`, `total`.
+*   **`Cart`**:
+    *   `Map<String, CartItem> itemMap`.
+*   **`CartItem`**:
+    *   `Item item`, `int quantity`, `boolean inStock`, `BigDecimal total`.
+
+#### Database Schema (Inferred from JSP and Mapper XML)
+
+*   **`ORDERS` Table**:
+    *   Columns: `ORDERID`, `USERID`, `ORDERDATE`, `SHIPADDR1`, `SHIPCITY`, `BILLADDR1`, `BILLCITY`, `COURIER`, `TOTALPRICE`, `CREDITCARD`, `EXPRDATE`, `CARDTYPE`, etc. (A denormalized structure containing shipping, billing, and payment info).
+*   **`ORDERSTATUS` Table**:
+    *   Columns: `ORDERID`, `STATUS`. (Joined with `ORDERS` to get the full order details).
+*   **`LINEITEM` Table (Implicit)**: Stores individual items for each order, linking back to the `ORDERS` table.
+*   **`ITEM` Table (Implicit)**: Stores inventory information, including quantity on hand.
+
+### 6. Service Dependencies and Communication Patterns
+
+*   **Intra-process Communication:** All communication is in-process via Java method calls.
+*   **Dependency Injection:** Spring manages dependencies. `@SpringBean` (Stripes annotation) injects services into `ActionBean`s. `@Autowired` (Spring annotation) injects mappers into services.
+*   **Service-to-Persistence:** The `OrderService` directly invokes methods on `OrderMapper`, `LineItemMapper`, and `ItemMapper`.
+*   **Cross-Domain Coupling:** There is a critical, synchronous coupling between the **Order** and **Inventory/Catalog** domains inside the `OrderService.insertOrder` method. It calls `itemMapper.updateInventoryQuantity()` for each line item within the same transaction as creating the order. A failure to update inventory will cause the entire order placement to fail and roll back. This tight coupling is a key consideration for decomposition.
+*   **Transactional Boundaries:** The `@Transactional` annotation on `OrderService.insertOrder` defines the scope of the business transaction, encompassing writes to the `ITEM`, `ORDERS`, `ORDERSTATUS`, and `LINEITEM` tables.
+
+### 7. Configuration and Deployment Details
+
+*   **Configuration Files:**
+    *   `web.xml`: Bootstraps both the Stripes servlet/filter and the Spring `ContextLoaderListener`. It integrates Stripes with Spring via the `SpringInterceptor`.
+    *   `applicationContext.xml`: Configures Spring context. Defines the data source, transaction manager, and component/mapper scanning paths (`org.mybatis.jpetstore.service`, `org.mybatis.jpetstore.mapper`).
+*   **Database Configuration:** The application is configured to run against an in-memory **HSQLDB** for demonstration and testing, created and populated by scripts (`jpetstore-hsqldb-schema.sql`, `jpetstore-hsqldb-dataload.sql`) at startup.
+*   **Deployment:** Deployed as a standard WAR file. Integration tests assume it runs at `http://localhost:8080/jpetstore`.

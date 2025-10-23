@@ -1,0 +1,154 @@
+An architectural summary of the JPetStore codebase chunk (Part 2 of 4) is provided below, focusing on details critical for microservice decomposition analysis.
+
+### 1. Overall Architecture & Frameworks
+
+This codebase chunk represents a classic monolithic web application following a layered architecture.
+
+*   **Presentation Layer (MVC):**
+    *   **Framework:** [Stripes](http://stripes.sourceforge.net/) is used as the action-based MVC framework.
+    *   **View:** JavaServer Pages (JSP) with JSTL and Stripes custom tags (`<stripes:form>`, `<stripes:link>`, etc.).
+    *   **Controller:** Stripes `ActionBean` classes (inferred from JSPs and `web.xml`, e.g., `AccountActionBean`, `CatalogActionBean`).
+*   **Service/Business Logic Layer:**
+    *   **Framework:** [Spring Framework](https://spring.io/). It manages dependency injection, component scanning, and declarative transaction management.
+    *   **Components:** The application is configured to scan for services in the `org.mybatis.jpetstore.service` package.
+*   **Persistence Layer:**
+    *   **Framework:** [MyBatis 3](https://mybatis.org/mybatis-3/). It maps Java objects to SQL queries defined in XML mapper files. Spring-MyBatis integration is used to manage `SqlSessionFactory` and inject mappers.
+*   **Database:**
+    *   **Type:** An embedded [HSQLDB](http://hsqldb.org/) is used, configured via Spring JDBC. The database is initialized with a schema and seed data on application startup.
+
+### 2. Configuration and Deployment Details
+
+Configuration is managed through standard Java EE (`web.xml`) and Spring (`applicationContext.xml`) descriptors.
+
+*   **`web.xml` (Deployment Descriptor):**
+    *   **Entry Point:** All user requests ending in `*.action` are intercepted by the `StripesFilter` and routed to the `StripesDispatcher` servlet.
+    *   **Controller Discovery:** Stripes is configured to find `ActionBean` classes within the `org.mybatis.jpetstore.web` package.
+    *   **Spring Integration:** The `ContextLoaderListener` is used to bootstrap the Spring `ApplicationContext` from `/WEB-INF/applicationContext.xml`. Stripes is configured to integrate with Spring for dependency injection into `ActionBean`s.
+    *   **Localization:** The `javax.servlet.jsp.jstl.fmt.localizationContext` is set to `StripesResources`, indicating a properties file for internationalization (though the file is currently empty).
+
+*   **`applicationContext.xml` (Spring Configuration):**
+    *   **Database Setup:** An embedded HSQLDB data source (`dataSource`) is defined. On startup, it executes `jpetstore-hsqldb-schema.sql` (to create tables) and `jpetstore-hsqldb-dataload.sql` (to populate data).
+    *   **Transaction Management:** A `DataSourceTransactionManager` is configured. Declarative transaction management is enabled via `<tx:annotation-driven />`, meaning service methods can be annotated with `@Transactional`.
+    *   **MyBatis Integration:**
+        *   A `SqlSessionFactoryBean` is created, linking the `dataSource` to MyBatis.
+        *   The `<mybatis:scan>` directive automatically discovers and registers mapper interfaces from the `org.mybatis.jpetstore.mapper` package as Spring beans.
+    *   **Service Layer Scanning:** Spring's component scanner (`<context:component-scan>`) is configured to find and register beans (e.g., `@Service`, `@Component`) in the `org.mybatis.jpetstore.service` package.
+
+### 3. Database Schema and Data Models
+
+The database schema defines the core domains of the application. The tables strongly suggest potential bounded contexts for microservice decomposition.
+
+#### Domain: Account & Profile
+*   **`SIGNON`**: Stores user credentials.
+    *   `username` (PK), `password`.
+*   **`ACCOUNT`**: Core user information and address.
+    *   `userid` (PK), `email`, `firstname`, `lastname`, `status`, `addr1`, `addr2`, `city`, `state`, `zip`, `country`, `phone`.
+*   **`PROFILE`**: User preferences.
+    *   `userid` (PK), `langpref`, `favcategory`, `mylistopt`, `banneropt`.
+*   **`BANNERDATA`**: Stores banner HTML for a user's favorite category.
+    *   `favcategory` (PK), `bannername`.
+
+#### Domain: Catalog & Inventory
+*   **`CATEGORY`**: Top-level product categories (e.g., 'FISH', 'DOGS').
+    *   `catid` (PK), `name`, `descn`.
+*   **`PRODUCT`**: A specific type of product within a category (e.g., 'Angelfish').
+    *   `productid` (PK), `category` (FK to `CATEGORY`), `name`, `descn`.
+*   **`ITEM`**: A specific, sellable instance of a product (e.g., 'Large Angelfish').
+    *   `itemid` (PK), `productid` (FK to `PRODUCT`), `listprice`, `unitcost`, `supplier` (FK to `SUPPLIER`), `status`, `attr1-5`.
+*   **`INVENTORY`**: Stock levels for each item.
+    *   `itemid` (PK), `qty`.
+*   **`SUPPLIER`**: Supplier information.
+    *   `suppid` (PK), `name`, `status`, address fields.
+
+#### Domain: Order
+*   **`ORDERS`**: Header information for a customer order. Contains billing, shipping, and payment details.
+    *   `orderid` (PK), `userid`, `orderdate`, shipping address fields, billing address fields, `totalprice`, credit card details.
+*   **`LINEITEM`**: Individual items within an order.
+    *   `orderid`, `linenum` (Composite PK), `itemid`, `quantity`, `unitprice`.
+*   **`ORDERSTATUS`**: The status of an order.
+    *   `orderid`, `linenum` (Composite PK), `timestamp`, `status`.
+
+#### Utility
+*   **`SEQUENCE`**: A simple table to generate sequential numbers (e.g., for `orderid`).
+    *   `name` (PK), `nextid`.
+
+### 4. Component Responsibilities & Data Access Interfaces
+
+#### Persistence Layer (MyBatis Mappers)
+The mappers define the direct database interface for each domain.
+
+*   **`AccountMapper`**: Manages all data related to users, profiles, and sign-on.
+    *   `getAccountByUsername(username)`
+    *   `getAccountByUsernameAndPassword(username, password)`
+    *   `insertAccount(Account)`, `insertProfile(Account)`, `insertSignon(Account)`
+    *   `updateAccount(Account)`, `updateProfile(Account)`, `updateSignon(Account)`
+*   **`CategoryMapper`**: Manages product categories.
+    *   `getCategoryList()`
+    *   `getCategory(categoryId)`
+*   **`ProductMapper`**: Manages products.
+    *   `getProductListByCategory(categoryId)`
+    *   `getProduct(productId)`
+    *   `searchProductList(keywords)`
+*   **`ItemMapper`**: Manages specific items and their inventory.
+    *   `getItemListByProduct(productId)`
+    *   `getItem(itemId)`
+    *   `getInventoryQuantity(itemId)`
+    *   `updateInventoryQuantity(Map<String, Object>)`
+*   **`OrderMapper`**: Manages orders and their status.
+    *   `getOrdersByUsername(username)`
+    *   `getOrder(orderId)`
+    *   `insertOrder(Order)`
+    *   `insertOrderStatus(Order)`
+*   **`LineItemMapper`**: Manages line items within an order.
+    *   `getLineItemsByOrderId(orderId)`
+    *   `insertLineItem(LineItem)`
+*   **`SequenceMapper`**: Provides sequential numbers.
+    *   `getSequence(Sequence)`
+    *   `updateSequence(Sequence)`
+
+### 5. API Endpoints and Web Interfaces
+
+The application's "API" is defined by the events handled by Stripes `ActionBean`s, triggered from JSPs.
+
+| Action Bean (Inferred) | Event Name | Description & Associated JSP(s) |
+| :--- | :--- | :--- |
+| **`CatalogActionBean`** | `(default)` | Displays the main catalog page. (`Main.jsp`) |
+| | `viewCategory` | Displays all products in a given category. (`Category.jsp`) |
+| | `viewProduct` | Displays all items for a given product. (`Product.jsp`) |
+| | `viewItem` | Displays the details of a single item. (`Item.jsp`) |
+| | `searchProducts` | Searches for products by keyword and displays results. (`SearchProducts.jsp`) |
+| **`AccountActionBean`** | `signonForm` | Displays the login page. (`SignonForm.jsp`) |
+| | `signon` | Processes user login from `SignonForm.jsp`. |
+| | `signoff` | Logs the user out. |
+| | `newAccountForm`| Displays the user registration page. (`NewAccountForm.jsp`) |
+| | `newAccount` | Processes user registration from `NewAccountForm.jsp`. |
+| | `editAccountForm`| Displays the form to edit user details. (`EditAccountForm.jsp`) |
+| | `editAccount` | Processes account updates from `EditAccountForm.jsp`. |
+| **`CartActionBean`** | `viewCart` | Displays the current shopping cart. (`Cart.jsp`) |
+| | `addItemToCart`| Adds a specified `workingItemId` to the cart. |
+| | `removeItemFromCart`| Removes a specified `workingItemId` from the cart. |
+| | `updateCartQuantities`| Updates quantities for all items in the cart. |
+| **`OrderActionBean`** | `listOrders` | Displays a list of the current user's past orders. (`ListOrders.jsp`) |
+| | `newOrderForm` | Displays the initial checkout page for payment/billing info. (`NewOrderForm.jsp`, `Checkout.jsp`) |
+| | `newOrder` | Processes the order. A multi-step event: first it confirms billing/shipping (`ConfirmOrder.jsp`), then with `confirmed=true` it finalizes the order. |
+| | `viewOrder` | Displays the details of a specific past order. |
+
+### 6. Key Business Logic & Communication Patterns
+
+*   **Communication Flow:** User interaction in a JSP (`*.jsp`) triggers an event on an `ActionBean` (`*.action`). The `ActionBean` calls a business `Service`, which in turn uses one or more `Mappers` to interact with the database.
+*   **State Management:** User authentication and the shopping cart are managed in the HTTP Session (`sessionScope`). This is a critical stateful component of the monolith.
+*   **Catalog Browsing:** A hierarchical navigation path: `Category -> Product -> Item`.
+*   **Search:** A simple keyword-based product search on the `PRODUCT` table's `name` column.
+*   **Checkout Process:** A multi-step workflow:
+    1.  User initiates checkout from the cart.
+    2.  Application checks if the user is authenticated; if not, redirects to the sign-on page.
+    3.  User provides payment and billing information (`NewOrderForm.jsp`).
+    4.  User can optionally provide a separate shipping address (`ShippingForm.jsp`).
+    5.  User is shown a final confirmation page with all details (`ConfirmOrder.jsp`).
+    6.  On final confirmation, the `OrderActionBean`'s `newOrder` event is called, which (presumably via an `OrderService`) will:
+        *   Get the next order ID from the `SEQUENCE` table.
+        *   Insert the order into the `ORDERS` and `ORDERSTATUS` tables.
+        *   Insert each cart item into the `LINEITEM` table.
+        *   Update inventory quantities in the `INVENTORY` table for each line item.
+        *   Clear the user's shopping cart.
+    This process is a single, likely transactional, operation.
