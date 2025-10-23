@@ -1,8 +1,0 @@
-| Component Name | Responsibility | Interfaces (key endpoints or methods) | Depends On | Technologies |
-| :--- | :--- | :--- | :--- | :--- |
-| **Domain** | Represents the core data structures and business objects of the application. | `Account.java`, `Product.java`, `Order.java`, `Cart.java`, `Item.java` | - | POJO |
-| **Persistence (Mappers)** | Handles all database interactions, mapping SQL queries from XML files to Java objects. | `AccountMapper.java`, `ProductMapper.java`, `OrderMapper.java` | Domain, Database | MyBatis, Spring |
-| **Service Layer** | Implements core business logic, orchestrates data access, and manages transactions. | `AccountService.java`, `CatalogService.java`, `OrderService.java` | Persistence (Mappers), Domain | Spring Framework (DI, Transactions) |
-| **Web Layer (Actions)** | Manages user interaction, handles HTTP requests, and coordinates with the service layer. Manages session state. | `AccountActionBean.java`, `CatalogActionBean.java`, `CartActionBean.java`, `OrderActionBean.java` | Service Layer, Domain | Stripes Framework |
-| **Web UI (Views)** | Renders the user interface and displays data to the user. | `SignonForm.jsp`, `Category.jsp`, `Cart.jsp`, `NewOrderForm.jsp` | Web Layer (Actions) | JSP, JSTL, Stripes Tags |
-| **Database** | Provides persistent storage for all application data, including users, products, and orders. | `jpetstore-hsqldb-schema.sql`, `jpetstore-hsqldb-data.sql` | - | HSQLDB |
