@@ -1,0 +1,3646 @@
+
+
+
+
+================================================
+FILE: src/site/xdoc/index.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>MyBatis-Spring | Sample Code</title>
+    <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
+  </properties>
+
+  <body>
+    <section name="Sample Code">
+      <p>
+      	JPetStore 6 is a full web application built on top of MyBatis 3,
+      	<a href="http://projects.spring.io/spring-framework/">Spring 4</a> and <a href="http://www.stripesframework.org/">Stripes</a>.
+        It is available for download in the
+        <a href="https://github.com/mybatis/jpetstore-6/releases">downloads</a>
+        section of MyBatis project site.
+        In this section we will walk through this sample to understand how is it built and learn how to run it.
+      </p>
+
+      <subsection name="Translations">
+        <p>Users can read this doc in following translations:</p>
+        <ul class="i18n">
+          <li class="es"><a href="./es/index.html">Español</a></li>
+          <li class="ja"><a href="./ja/index.html">日本語</a></li>
+          <li class="ko"><a href="./ko/index.html">한국어</a></li>
+        </ul>
+        <p>Do you want to read about MyBatis in your own native language? File an issue providing patches with your
+        mother tongue documentation!</p>
+      </subsection>
+
+      <subsection name="Purpose">
+      	<p>
+      	This new JPetStore comes with the same idea in mind than its predecessors: <strong>keep it simple</strong>.
+      	The purpose of JPetStore 6 is to demonstrate how to build a web application with very few classes and no advanced coding skills.
+      	You just need to know plain Java and SQL.
+      	</p>
+      	<p>
+      	The 6th version of JPetStore is the smallest of the family, 20% smaller than its predecessor.
+      	It uses just 24 java classes while keeping a good design and program structure.
+      	</p>
+      	<pre>
+eduardo@nomada ~ $ ./cloc-1.60.pl ~/git/jpetstore-6/src/main/
+      60 text files.
+      60 unique files.
+       3 files ignored.
+
+http://cloc.sourceforge.net v 1.60  T=0.28 s (209.8 files/s, 17722.9 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Java                            24            480            462           1429
+JSP                             20            148              0            984
+XML                              9             79            120            405
+CSS                              1             46              0            277
+SQL                              2             26             30            226
+HTML                             2             44              0            143
+-------------------------------------------------------------------------------
+SUM:                            58            823            612           3464
+-------------------------------------------------------------------------------
+      	</pre>
+      	<p>
+      	As we will see later on, you will find no code to deal with JDBC, to create objects or bind them or to handle transactions.
+      	What is more impressive is that you <strong>will not find any call to the MyBatis API</strong>.
+      	Although this sounds magical, you will see that the combination of MyBatis mappers and dependency injection lets you
+      	build applications without dependencies.
+      	</p>
+      </subsection>
+      <subsection name="Program Structure">
+      	<p> JPetStore 6 follows the typical maven project structure </p>
+<pre>/jpetstore                    <tt>&lt;-- Maven pom.xml goes here.</tt>
+  /src
+    /main
+      /java                   <tt>&lt;-- Java code goes here.</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /domain         <tt>&lt;-- Business domain objects go here.</tt>
+              /mapper         <tt>&lt;-- Mapper interfaces go here.</tt>
+              /service        <tt>&lt;-- Application logic goes here.</tt>
+              /web
+                /actions      <tt>&lt;-- Presentation logic (actions) goes here.</tt>
+      /resources              <tt>&lt;-- Non java files go here.</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /mapper         <tt>&lt;-- Mapper XML files go here.</tt>
+        /database
+      /webapp
+        /css
+        /images
+        /WEB-INF              <tt>&lt;-- web.xml and applicationContext.xml go here.</tt>
+          /jsp                <tt>&lt;-- JSP files go here.</tt>
+      </pre>
+      </subsection>
+
+      <subsection name="Configuration files">
+      <p>
+      Configuration files are read during application startup. Their purpose is to configure the three
+      frameworks composing the application: Stripes, Spring and MyBatis. We will need to configure just
+      two files: web.xml and applicationContext.xml.
+      </p>
+      <h4>web.xml</h4>
+      <p>
+      First of all we need to start Stripes, so we will follow the Stripes manual to do so. The manual says that
+      we should set up a dispatcher servlet and a filter, so let's go:
+      </p>
+<source><![CDATA[
+<filter>
+  <display-name>Stripes Filter</display-name>
+  <filter-name>StripesFilter</filter-name>
+  <filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+</filter>
+<filter-mapping>
+  <filter-name>StripesFilter</filter-name>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+<servlet>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+  <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <url-pattern>*.action</url-pattern>
+</servlet-mapping>
+]]></source>
+
+	<p>Stripes is able to search for ActionBean classes, for that purpose we must set up the
+	base package it should search in.</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  <init-param>
+    <param-name>ActionResolver.Packages</param-name>
+    <param-value>org.mybatis.jpetstore.web</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+	<p>We are done with Stripes. Let's move on to the Spring side. According to Spring's reference manual
+	we should add a Context listener to start up Spring. Let's add it:</p>
+
+<source><![CDATA[
+<listener>
+  <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+]]></source>
+
+	<p>By default Spring will use <code>/WEB-INF/applicationContext.xml</code> if we don't specify
+	a different file. The default is fine for us.
+	</p>
+
+	<p>Now we have to let Stripes know that it will be running with Spring. This way we will be able
+	to inject Spring beans directly into Stripes ActionBeans. For that purpose, following once
+	again the Stripes manual, we set up an interceptor as follows below:
+	</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  ...
+  <init-param>
+    <param-name>Interceptor.Classes</param-name>
+    <param-value>net.sourceforge.stripes.integration.spring.SpringInterceptor</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+      <p>We are done with web.xml. As you may have noticed, we have not set up any MyBatis 3 configuration yet.
+      That configuration goes into the Spring's applicationContext.xml that we will see in the following section.
+      </p>
+
+      <h4>applicationContext.xml</h4>
+      <p>As you already know, applicationContext.xml is the Spring's configuration file. Spring is a dependency
+      injection framework and it has to know which beans it must create and how to bind them together and that is
+      what applicationContext.xml file is for. Let's have a deeper look into it.
+      </p>
+      <p>
+      The first and easiest thing we have to do is let Spring know where are our service beans. We will let Spring
+      search them in our classpath so we just need to provide it the base package to search in:
+      </p>
+
+<source><![CDATA[
+<context:component-scan base-package="org.mybatis.jpetstore.service" />
+]]></source>
+
+	  <p>
+	  <span class="label important">NOTE</span> Spring's component scan feature is not able to find MyBatis mappers.
+	  A mapper is not a plain bean and Spring would not know how to instantiate it. We will see how to search for mappers soon.
+	  </p>
+
+	  <p>We will also need a <code>DataSource</code> and a <code>TransactionManager</code>. Given that this is a demo application
+	  we will use a test Spring <code>DataSource</code> that will create an HSQL in-memory database and load
+	  our database scripts into it and the standard Spring's <code>DataSourceTransactionManager</code>
+	  to handle transactions.
+	  </p>
+
+<source><![CDATA[
+<jdbc:embedded-database id="dataSource">
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-schema.sql"/>
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-dataload.sql"/>
+</jdbc:embedded-database>
+
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+	  <p>So far, all we have done is standard Stripes and Spring configuration and now it is time to
+	  move on to the MyBatis part. As you have learned in this manual to set up MyBatis with Spring you need
+	  at least two things: an <code>SqlSessionFactoryBean</code> and, at least, one mapper class.
+	  So let's go hands on. First define a <code>SqlSessionFactoryBean</code>:
+	  </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+      <p>And now we need to setup our mappers. For that purpose we will use the <code>MapperScannerConfigurer</code>
+      that works similar to Spring standard component scan. It will search our classpath for mapper classes
+      and register them to MyBatis. Similar to Spring's component scan we must configure the base
+      package to search in.
+      </p>
+
+<source><![CDATA[
+<mybatis:scan base-package="org.mybatis.jpetstore.mapper" />
+]]></source>
+
+      <p>To save some writing when building our mapper xml files we would want to be able to use short
+      aliases for beans. The <code>SqlSessionFactoryBean</code> has the capability to search for beans and
+      register their short names as aliases if we setup the <code>typeAliasPackage</code> property like
+      the following:
+      </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="typeAliasesPackage" value="org.mybatis.jpetstore.domain" />
+</bean>
+]]></source>
+
+		<p>Our application is now fully configured and ready to run. But before running it lets have a tour
+		through the code to see how it looks like.
+		</p>
+
+      </subsection>
+
+      <subsection name="Code tour">
+      <p>JPetStore 6 is a typical MVC application with three layers: presentation, logic and data access.
+      </p>
+      <h4>Presentation</h4>
+      <p>The presentation layer is composed by JSP files and Stripes ActionBeans. JSPs just use plain HTML,
+      JSTL tags and Stripes tags. Stripes ActionBeans are like Struts actions or Spring MVC controllers.
+      </p>
+      <p>Given that we have integrated Stripes with Spring, we can inject our services into our ActionsBeans so
+      you can just use them without caring about its creation or lookup.
+      Have a look at <code>CatalogActionBean</code>:
+      </p>
+
+<source><![CDATA[
+@SessionScope
+public class CatalogActionBean extends AbstractActionBean {
+  ...
+  @SpringBean
+  private transient CatalogService catalogService;
+  ...
+  public ForwardResolution viewCategory() {
+    if (categoryId != null) {
+      productList = catalogService.getProductListByCategory(categoryId);
+      category = catalogService.getCategory(categoryId);
+    }
+    return new ForwardResolution(VIEW_CATEGORY);
+  }
+  ...
+]]></source>
+
+	  <p>The <code>@SpringBean</code> annotation is an Stripes annotation that tells Stripes to
+	  look for that bean in Spring and inject it into this ActionBean.</p>
+
+      <h4>Logic</h4>
+      <p>Application logic is composed by plain Java beans that act as services and plain Java beans that
+      act as domain objects. This layer is in charge of filling domain objects with database data and
+      updating database data with the content of the domain objects. For this purpose this layer must be
+      transactional.
+      </p>
+      <p>Let's have a look at <code>OrderService</code> code to see how all this is achieved:
+      </p>
+
+<source><![CDATA[
+@Service
+public class OrderService {
+
+  @Autowired
+  private ItemMapper itemMapper;
+  @Autowired
+  private OrderMapper orderMapper;
+  @Autowired
+  private LineItemMapper lineItemMapper;
+
+  @Transactional
+  public void insertOrder(Order order) {
+    order.setOrderId(getNextId("ordernum"));
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      String itemId = lineItem.getItemId();
+      Integer increment = new Integer(lineItem.getQuantity());
+      Map<String, Object> param = new HashMap<String, Object>(2);
+      param.put("itemId", itemId);
+      param.put("increment", increment);
+      itemMapper.updateInventoryQuantity(param);
+    }
+
+    orderMapper.insertOrder(order);
+    orderMapper.insertOrderStatus(order);
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      lineItem.setOrderId(order.getOrderId());
+      lineItemMapper.insertLineItem(lineItem);
+    }
+  }
+]]></source>
+
+      <p>The first thing you will notice is that there is no JDBC code in the service,
+      nor it is any MyBatis code in it. You may think that we used the
+      DAO pattern and database access code is in the database layer, but as we will see later,
+      the database layer is built with MyBatis mappers, that are plain java
+      interfaces, and that is why <strong>you will not find any call to MyBatis API</strong>
+      in the whole application. It is just not needed.</p>
+
+      <p>The second thing you may have noticed is that there are no commits or rollbacks.
+      That is because it uses the declarative transaction demarcation feature of Spring that is
+      fully supported by MyBatis-Spring.
+      The Spring's <code>@Transactional</code> annotation indicates that this method is transactional,
+      that means that all <code>updateInventoryQuantity</code>, <code>insertOrder</code> and
+      <code>insertLineItem</code> mapper calls must end OK. If one of them fails any previous
+      update will be rolled back.</p>
+
+      <h4>Persistence</h4>
+      <p>The persistence layer is composed of MyBatis mappers. Mappers are just plain Java
+      interfaces and mapper XML files containing the SQL statements.
+      There is no custom Java code in this layer. When the
+      <code>getOrder</code> method is called on the <code>OrderMapper</code> interface,
+      MyBatis will execute the getOrder SQL statement in OrderMapper.xml file and
+      will populate the <code>Order</code> domain bean with retrieved data.
+      </p>
+
+<source><![CDATA[
+public interface OrderMapper {
+  List<Order> getOrdersByUsername(String username);
+  Order getOrder(int orderId);
+  void insertOrder(Order order);
+  void insertOrderStatus(Order order);
+}]]></source>
+
+<source><![CDATA[
+<mapper namespace="org.mybatis.jpetstore.mapper.OrderMapper">
+
+  <cache />
+
+  <select id="getOrder" resultType="Order">
+    SELECT
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.ORDERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+  </select>
+  ...
+</mapper>
+]]></source>
+
+      <p>
+      <span class="label important">NOTE</span>
+      You can easily add caching to your queries by adding a &lt;cache /&gt; element to your mapper xml file.
+      </p>
+
+      </subsection>
+
+      <subsection name="Running JPetStore">
+        <p>You may ask. Does all this work? Yes it does! Let's run it.</p>
+        <p>Let's assume you have a clean computer. These are the steps you should follow to
+           have the sample running under Tomcat:
+        </p>
+        <ul>
+          <li>See <a href="https://github.com/mybatis/jpetstore-6#running-with-tomcat" target="how-to-run">here</a></li>
+        </ul>
+        <p>
+          Now you are ready to play with it, experiment with your own changes or whatever you want.
+        </p>
+        <p>
+          And remember that if you find a bug or something that is missing or can be improved (for example the missing tests!),
+          fork the repo, change it, and open a pull request. Thanks in advance!!!
+        </p>
+        <p>
+        <span class="label important">NOTE</span>
+		JPetStore 6 should run in any Servlet 2.5 y JSP 2.1 compliant Java server. Eclipse is not needed
+		either, you can run the sample from your favorite IDE or the command line.
+        </p>
+      </subsection>
+
+    </section>
+  </body>
+</document>
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/ScreenTransitionIT.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore;
+
+import static com.codeborne.selenide.Browsers.CHROME;
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Configuration.baseUrl;
+import static com.codeborne.selenide.Configuration.browser;
+import static com.codeborne.selenide.Configuration.headless;
+import static com.codeborne.selenide.Configuration.timeout;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.title;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.junit5.ScreenShooterExtension;
+
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.openqa.selenium.By;
+
+/**
+ * Integration tests for screen transition.
+ *
+ * @author Kazuki Shimizu
+ */
+@ExtendWith(ScreenShooterExtension.class)
+class ScreenTransitionIT {
+
+  @BeforeAll
+  static void setupSelenide() {
+    browser = CHROME;
+    headless = true;
+    timeout = TimeUnit.SECONDS.toMillis(10);
+    baseUrl = "http://localhost:8080/jpetstore";
+  }
+
+  @AfterEach
+  void logout() {
+    SelenideElement element = $(By.linkText("Sign Out"));
+    if (element.exists()) {
+      element.click();
+    }
+  }
+
+  @Test
+  void testOrder() {
+
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+    $(By.cssSelector("#Content h2")).shouldBe(text("Welcome to JPetStore 6"));
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.name("username")).setValue("j2ee");
+    $(By.name("password")).setValue("j2ee");
+    $(By.name("signon")).click();
+    $(By.id("WelcomeContent")).shouldBe(text("Welcome ABC!"));
+
+    // Search items
+    $(By.name("keyword")).setValue("fish");
+    $(By.name("searchProducts")).click();
+    $$(By.cssSelector("#Catalog table tr")).shouldHave(size(4));
+
+    // Select item
+    $(By.linkText("Fresh Water fish from China")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Goldfish"));
+
+    // Add a item to the cart
+    $(By.linkText("Add to Cart")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Shopping Cart"));
+
+    // Add a item to the cart
+    $(By.cssSelector("#QuickLinks a:nth-of-type(5)")).click();
+    $(By.linkText("AV-CB-01")).click();
+    $(By.linkText("EST-18")).click();
+    $(By.linkText("Add to Cart")).click();
+    $(By.cssSelector("#Cart tr:nth-of-type(4) td")).shouldBe(text("Sub Total: $199.00"));
+
+    // Update quantity
+    $(By.name("EST-20")).setValue("10");
+    $(By.name("updateCartQuantities")).click();
+    $(By.cssSelector("#Catalog tr td:nth-of-type(7)")).shouldBe(text("$55.00"));
+    $(By.cssSelector("#Cart tr:nth-of-type(4) td")).shouldBe(text("Sub Total: $248.50"));
+
+    // Remove item
+    $(By.cssSelector("#Cart tr:nth-of-type(3) td:nth-of-type(8) a")).click();
+    $(By.cssSelector("#Cart tr:nth-of-type(3) td")).shouldBe(text("Sub Total: $55.00"));
+
+    // Checkout cart items
+    $(By.linkText("Proceed to Checkout")).click();
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Changing shipping address
+    $(By.name("shippingAddressRequired")).click();
+    $(By.name("newOrder")).click();
+    $(By.cssSelector("#Catalog tr th")).shouldBe(text("Shipping Address"));
+    $(By.name("order.shipAddress2")).setValue("MS UCUP02-207");
+
+    // Confirm order information
+    $(By.name("newOrder")).click();
+    $(By.cssSelector("#Catalog")).shouldBe(text("Please confirm the information below and then press continue..."));
+
+    // Submit order
+    $(By.linkText("Confirm")).click();
+    $(By.cssSelector(".messages li")).shouldBe(text("Thank you, your order has been submitted."));
+    String orderId = extractOrderId($(By.cssSelector("#Catalog table tr")).text());
+
+    // Show profile page
+    $(By.linkText("My Account")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+
+    // Show orders
+    $(By.linkText("My Orders")).click();
+    $(By.cssSelector("#Content h2")).shouldBe(text("My Orders"));
+
+    // Show order detail
+    $(By.linkText(orderId)).click();
+    assertThat(extractOrderId($(By.cssSelector("#Catalog table tr")).text())).isEqualTo(orderId);
+
+    // Sign out
+    $(By.linkText("Sign Out")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+  }
+
+  @Test
+  void testUpdateProfile() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.name("username")).setValue("j2ee");
+    $(By.name("password")).setValue("j2ee");
+    $(By.name("signon")).click();
+    $(By.id("WelcomeContent")).shouldBe(text("Welcome ABC!"));
+
+    // Show profile page
+    $(By.linkText("My Account")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+    $$(By.cssSelector("#Catalog table td")).get(1).shouldBe(text("j2ee"));
+
+    // Edit account
+    $(By.name("account.phone")).setValue("555-555-5556");
+    $(By.name("editAccount")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+    $$(By.cssSelector("#Catalog table td")).get(1).shouldBe(text("j2ee"));
+    $(By.name("account.phone")).shouldBe(value("555-555-5556"));
+  }
+
+  @Test
+  void testRegistrationUser() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.cssSelector("#Catalog p")).shouldBe(text("Please enter your username and password."));
+
+    // Move to use registration page
+    $(By.linkText("Register Now!")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+
+    // Create a new user
+    String userId = String.valueOf(System.currentTimeMillis());
+    $(By.name("username")).setValue(userId);
+    $(By.name("password")).setValue("password");
+    $(By.name("repeatedPassword")).setValue("password");
+    $(By.name("account.firstName")).setValue("Jon");
+    $(By.name("account.lastName")).setValue("MyBatis");
+    $(By.name("account.email")).setValue("jon.mybatis@test.com");
+    $(By.name("account.phone")).setValue("09012345678");
+    $(By.name("account.address1")).setValue("Address1");
+    $(By.name("account.address2")).setValue("Address2");
+    $(By.name("account.city")).setValue("Minato-Ku");
+    $(By.name("account.state")).setValue("Tokyo");
+    $(By.name("account.zip")).setValue("0001234");
+    $(By.name("account.country")).setValue("Japan");
+    $(By.name("account.languagePreference")).selectOption("japanese");
+    $(By.name("account.favouriteCategoryId")).selectOption("CATS");
+    $(By.name("account.listOption")).setSelected(true);
+    $(By.name("account.bannerOption")).setSelected(true);
+    $(By.name("newAccount")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.name("username")).setValue(userId);
+    $(By.name("password")).setValue("password");
+    $(By.name("signon")).click();
+    $(By.id("WelcomeContent")).shouldBe(text("Welcome Jon!"));
+
+  }
+
+  @Test
+  void testSelectItems() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to category
+    $(By.cssSelector("#SidebarContent a")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+
+    // Move to items
+    $(By.linkText("FI-SW-01")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Angelfish"));
+
+    // Move to item detail
+    $(By.linkText("EST-1")).click();
+    $$(By.cssSelector("#Catalog table tr td")).get(2).shouldBe(text("Large Angelfish"));
+
+    // Back to items
+    $(By.linkText("Return to FI-SW-01")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Angelfish"));
+
+    // Back to category
+    $(By.linkText("Return to FISH")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+
+    // Back to the top page
+    $(By.linkText("Return to Main Menu")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+  }
+
+  @Test
+  void testViewCart() {
+
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to cart
+    $(By.name("img_cart")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Shopping Cart"));
+
+  }
+
+  @Test
+  void testViewHelp() {
+
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to help
+    $(By.linkText("?")).click();
+    $(By.cssSelector("#Content h1")).shouldBe(text("JPetStore Demo"));
+
+  }
+
+  @Test
+  void testSidebarContentOnTopPage() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Fish category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Dogs category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(2)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Dogs"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Cats category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(3)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Reptiles category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(4)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Reptiles"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Birds category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+    $(By.linkText("Return to Main Menu")).click();
+  }
+
+  @Test
+  void testQuickLinks() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Fish category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+
+    // Move to Dogs category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(2)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Dogs"));
+
+    // Move to Reptiles category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(3)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Reptiles"));
+
+    // Move to Cats category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(4)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+
+    // Move to Birds category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+  }
+
+  @Test
+  void testMainImageContentOnTopPage() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Birds category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Fish category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(2)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Dogs category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(3)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Dogs"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Reptiles category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(4)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Reptiles"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Cats category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Birds category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(6)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+    $(By.linkText("Return to Main Menu")).click();
+  }
+
+  @Test
+  void testLogoContent() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Birds category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+
+    // Move to top by clicking logo
+    $(By.cssSelector("#LogoContent a")).click();
+
+    // Move to Cats category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+  }
+
+  private static String extractOrderId(String target) {
+    Matcher matcher = Pattern.compile("Order #(\\d{4}) .*").matcher(target);
+    String orderId = "";
+    if (matcher.find()) {
+      orderId = matcher.group(1);
+    }
+    return orderId;
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/domain/CartTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.Iterator;
+
+import org.junit.jupiter.api.Test;
+
+class CartTest {
+
+  @Test
+  void addItemWhenIsInStockIsTrue() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+
+    // when
+    cart.addItem(item, true);
+    cart.addItem(item, true);
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isTrue();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(2);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("4.10"));
+    assertThat(cart.containsItemId("I01")).isTrue();
+    assertThat(cart.getNumberOfItems()).isEqualTo(1);
+    {
+      Iterator<CartItem> cartItems = cart.getCartItems();
+      assertThat(cartItems.next()).isNotNull();
+      assertThat(cartItems.hasNext()).isFalse();
+    }
+    {
+      Iterator<CartItem> cartItems = cart.getAllCartItems();
+      assertThat(cartItems.next()).isNotNull();
+      assertThat(cartItems.hasNext()).isFalse();
+    }
+  }
+
+  @Test
+  void addItemWhenIsInStockIsFalse() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+
+    // when
+    cart.addItem(item, false);
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isFalse();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(1);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("2.05"));
+  }
+
+  @Test
+  void removeItemByIdWhenItemNotFound() {
+    // given
+    Cart cart = new Cart();
+
+    // when
+    Item item = cart.removeItemById("I01");
+
+    // then
+    assertThat(item).isNull();
+    assertThat(cart.containsItemId("I01")).isFalse();
+    assertThat(cart.getNumberOfItems()).isEqualTo(0);
+    assertThat(cart.getCartItems().hasNext()).isFalse();
+    assertThat(cart.getAllCartItems().hasNext()).isFalse();
+  }
+
+  @Test
+  void removeItemByIdWhenItemFound() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+
+    // when
+    Item removedItem = cart.removeItemById("I01");
+
+    // then
+    assertThat(removedItem).isSameAs(item);
+    assertThat(cart.getCartItemList()).isEmpty();
+  }
+
+  @Test
+  void incrementQuantityByItemId() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+
+    // when
+    cart.incrementQuantityByItemId("I01");
+    cart.incrementQuantityByItemId("I01");
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isTrue();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(3);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("6.15"));
+  }
+
+  @Test
+  void setQuantityByItemId() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+
+    // when
+    cart.setQuantityByItemId("I01", 10);
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isTrue();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(10);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("20.50"));
+  }
+
+  @Test
+  void getSubTotalWhenItemIsEmpty() {
+    // given
+    Cart cart = new Cart();
+
+    // when
+    BigDecimal subTotal = cart.getSubTotal();
+
+    // then
+    assertThat(subTotal).isEqualTo(BigDecimal.ZERO);
+
+  }
+
+  @Test
+  void getSubTotalWhenItemIsExist() {
+    // given
+    Cart cart = new Cart();
+    {
+      Item item = new Item();
+      item.setItemId("I01");
+      item.setListPrice(new BigDecimal("2.05"));
+      cart.addItem(item, true);
+      cart.setQuantityByItemId("I01", 5);
+    }
+    {
+      Item item = new Item();
+      item.setItemId("I02");
+      item.setListPrice(new BigDecimal("3.06"));
+      cart.addItem(item, true);
+      cart.setQuantityByItemId("I02", 6);
+    }
+
+    // when
+    BigDecimal subTotal = cart.getSubTotal();
+
+    // then
+    assertThat(subTotal).isEqualTo(new BigDecimal("28.61"));
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/domain/OrderTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import org.junit.jupiter.api.Test;
+
+class OrderTest {
+
+  @Test
+  void initOrder() {
+    // given
+    Account account = new Account();
+    account.setUsername("mybatis");
+    account.setEmail("mybatis@example.com");
+    account.setFirstName("My");
+    account.setLastName("Batis");
+    account.setStatus("NG");
+    account.setAddress1("Address 1");
+    account.setAddress2("Address 2");
+    account.setCity("City");
+    account.setState("ST");
+    account.setZip("99001");
+    account.setCountry("JPN");
+    account.setPhone("09012345678");
+
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+    cart.addItem(item, true);
+
+    Order order = new Order();
+
+    // when
+    order.initOrder(account, cart);
+
+    // then
+    assertThat(order.getUsername()).isSameAs(account.getUsername());
+    assertThat(order.getOrderDate()).isBeforeOrEqualsTo(new Date());
+    assertThat(order.getShipAddress1()).isEqualTo(account.getAddress1());
+    assertThat(order.getShipAddress2()).isEqualTo(account.getAddress2());
+    assertThat(order.getShipCity()).isEqualTo(account.getCity());
+    assertThat(order.getShipState()).isEqualTo(account.getState());
+    assertThat(order.getShipCountry()).isEqualTo(account.getCountry());
+    assertThat(order.getShipZip()).isEqualTo(account.getZip());
+    assertThat(order.getBillAddress1()).isEqualTo(account.getAddress1());
+    assertThat(order.getBillAddress2()).isEqualTo(account.getAddress2());
+    assertThat(order.getBillCity()).isEqualTo(account.getCity());
+    assertThat(order.getBillState()).isEqualTo(account.getState());
+    assertThat(order.getBillCountry()).isEqualTo(account.getCountry());
+    assertThat(order.getBillZip()).isEqualTo(account.getZip());
+    assertThat(order.getTotalPrice()).isEqualTo(new BigDecimal("4.10"));
+    assertThat(order.getCreditCard()).isEqualTo("999 9999 9999 9999");
+    assertThat(order.getCardType()).isEqualTo("Visa");
+    assertThat(order.getExpiryDate()).isEqualTo("12/03");
+    assertThat(order.getCourier()).isEqualTo("UPS");
+    assertThat(order.getLocale()).isEqualTo("CA");
+    assertThat(order.getStatus()).isEqualTo("P");
+    assertThat(order.getLineItems()).hasSize(1);
+    assertThat(order.getLineItems().get(0).getItem()).isSameAs(item);
+    assertThat(order.getLineItems().get(0).getLineNumber()).isEqualTo(1);
+    assertThat(order.getLineItems().get(0).getItemId()).isEqualTo("I01");
+    assertThat(order.getLineItems().get(0).getUnitPrice()).isEqualTo(new BigDecimal("2.05"));
+    assertThat(order.getLineItems().get(0).getQuantity()).isEqualTo(2);
+    assertThat(order.getLineItems().get(0).getTotal()).isEqualTo(new BigDecimal("4.10"));
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/AccountMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.Account;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class AccountMapperTest {
+
+  @Autowired
+  private AccountMapper mapper;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Test
+  void getAccountByUsername() {
+    // given
+    String username = "j2ee";
+
+    // when
+    Account account = mapper.getAccountByUsername(username);
+
+    // then
+    assertThat(account.getUsername()).isEqualTo("j2ee");
+    assertThat(account.getEmail()).isEqualTo("yourname@yourdomain.com");
+    assertThat(account.getFirstName()).isEqualTo("ABC");
+    assertThat(account.getLastName()).isEqualTo("XYX");
+    assertThat(account.getStatus()).isEqualTo("OK");
+    assertThat(account.getAddress1()).isEqualTo("901 San Antonio Road");
+    assertThat(account.getAddress2()).isEqualTo("MS UCUP02-206");
+    assertThat(account.getCity()).isEqualTo("Palo Alto");
+    assertThat(account.getState()).isEqualTo("CA");
+    assertThat(account.getZip()).isEqualTo("94303");
+    assertThat(account.getCountry()).isEqualTo("USA");
+    assertThat(account.getPhone()).isEqualTo("555-555-5555");
+    assertThat(account.getLanguagePreference()).isEqualTo("english");
+    assertThat(account.getFavouriteCategoryId()).isEqualTo("DOGS");
+    assertThat(account.isListOption()).isTrue();
+    assertThat(account.isBannerOption()).isTrue();
+    assertThat(account.getBannerName()).isEqualTo("<image src=\"../images/banner_dogs.gif\">");
+
+  }
+
+  @Test
+  void getAccountByUsernameAndPassword() {
+    // given
+    String username = "ACID";
+    String password = "ACID";
+
+    // when
+    Account account = mapper.getAccountByUsernameAndPassword(username, password);
+
+    // then
+    assertThat(account.getUsername()).isEqualTo("ACID");
+    assertThat(account.getEmail()).isEqualTo("acid@yourdomain.com");
+    assertThat(account.getFirstName()).isEqualTo("ABC");
+    assertThat(account.getLastName()).isEqualTo("XYX");
+    assertThat(account.getStatus()).isEqualTo("OK");
+    assertThat(account.getAddress1()).isEqualTo("901 San Antonio Road");
+    assertThat(account.getAddress2()).isEqualTo("MS UCUP02-206");
+    assertThat(account.getCity()).isEqualTo("Palo Alto");
+    assertThat(account.getState()).isEqualTo("CA");
+    assertThat(account.getZip()).isEqualTo("94303");
+    assertThat(account.getCountry()).isEqualTo("USA");
+    assertThat(account.getPhone()).isEqualTo("555-555-5555");
+    assertThat(account.getLanguagePreference()).isEqualTo("english");
+    assertThat(account.getFavouriteCategoryId()).isEqualTo("CATS");
+    assertThat(account.isListOption()).isTrue();
+    assertThat(account.isBannerOption()).isTrue();
+    assertThat(account.getBannerName()).isEqualTo("<image src=\"../images/banner_cats.gif\">");
+
+  }
+
+  @Test
+  void insertAccount() {
+
+    // given
+    Account account = new Account();
+    account.setUsername("mybatis");
+    account.setEmail("mybatis@example.com");
+    account.setFirstName("My");
+    account.setLastName("Batis");
+    account.setStatus("NG");
+    account.setAddress1("Address 1");
+    account.setAddress2("Address 2");
+    account.setCity("City");
+    account.setState("ST");
+    account.setZip("99001");
+    account.setCountry("JPN");
+    account.setPhone("09012345678");
+
+    // when
+    mapper.insertAccount(account);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM account WHERE userid = ?", "mybatis");
+    assertThat(record).hasSize(12).containsEntry("USERID", account.getUsername())
+        .containsEntry("EMAIL", account.getEmail()).containsEntry("FIRSTNAME", account.getFirstName())
+        .containsEntry("LASTNAME", account.getLastName()).containsEntry("STATUS", account.getStatus())
+        .containsEntry("ADDR1", account.getAddress1()).containsEntry("ADDR2", account.getAddress2())
+        .containsEntry("CITY", account.getCity()).containsEntry("STATE", account.getState())
+        .containsEntry("ZIP", account.getZip()).containsEntry("COUNTRY", account.getCountry())
+        .containsEntry("PHONE", account.getPhone());
+  }
+
+  @Test
+  void insertProfile() {
+
+    // given
+    Account account = new Account();
+    account.setUsername("mybatis");
+    account.setLanguagePreference("japanese");
+    account.setFavouriteCategoryId("C01");
+    account.setListOption(true);
+    account.setBannerOption(false);
+
+    // when
+    mapper.insertProfile(account);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM profile WHERE userid = ?", "mybatis");
+
+    assertThat(record).hasSize(5).containsEntry("USERID", account.getUsername())
+        .containsEntry("LANGPREF", account.getLanguagePreference())
+        .containsEntry("FAVCATEGORY", account.getFavouriteCategoryId()).containsEntry("MYLISTOPT", 1)
+        .containsEntry("BANNEROPT", 0);
+  }
+
+  @Test
+  void insertSignon() {
+
+    // given
+    Account account = new Account();
+    account.setUsername("mybatis");
+    account.setPassword("password");
+
+    // when
+    mapper.insertSignon(account);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM signon WHERE username = ?", "mybatis");
+
+    assertThat(record).hasSize(2).containsEntry("USERNAME", account.getUsername()).containsEntry("PASSWORD",
+        account.getPassword());
+  }
+
+  @Test
+  void updateAccount() {
+
+    // given
+    Account account = new Account();
+    account.setUsername("j2ee");
+    account.setEmail("mybatis@example.com");
+    account.setFirstName("My");
+    account.setLastName("Batis");
+    account.setStatus("NG");
+    account.setAddress1("Address 1");
+    account.setAddress2("Address 2");
+    account.setCity("City");
+    account.setState("ST");
+    account.setZip("99001");
+    account.setCountry("JPN");
+    account.setPhone("09012345678");
+
+    // when
+    mapper.updateAccount(account);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM account WHERE userid = ?", "j2ee");
+
+    assertThat(record).hasSize(12).containsEntry("USERID", account.getUsername())
+        .containsEntry("EMAIL", account.getEmail()).containsEntry("FIRSTNAME", account.getFirstName())
+        .containsEntry("LASTNAME", account.getLastName()).containsEntry("STATUS", account.getStatus())
+        .containsEntry("ADDR1", account.getAddress1()).containsEntry("ADDR2", account.getAddress2())
+        .containsEntry("CITY", account.getCity()).containsEntry("STATE", account.getState())
+        .containsEntry("ZIP", account.getZip()).containsEntry("COUNTRY", account.getCountry())
+        .containsEntry("PHONE", account.getPhone());
+  }
+
+  @Test
+  void updateProfile() {
+
+    // given
+    Account account = new Account();
+    account.setUsername("j2ee");
+    account.setLanguagePreference("japanese");
+    account.setFavouriteCategoryId("C01");
+    account.setListOption(false);
+    account.setBannerOption(false);
+
+    // when
+    mapper.updateProfile(account);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM profile WHERE userid = ?", "j2ee");
+
+    assertThat(record).hasSize(5).containsEntry("USERID", account.getUsername())
+        .containsEntry("LANGPREF", account.getLanguagePreference())
+        .containsEntry("FAVCATEGORY", account.getFavouriteCategoryId()).containsEntry("MYLISTOPT", 0)
+        .containsEntry("BANNEROPT", 0);
+  }
+
+  @Test
+  void updateSignon() {
+
+    // given
+    Account account = new Account();
+    account.setUsername("j2ee");
+    account.setPassword("password");
+
+    // when
+    mapper.updateSignon(account);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM signon WHERE username = ?", "j2ee");
+
+    assertThat(record).hasSize(2).containsEntry("USERNAME", account.getUsername()).containsEntry("PASSWORD",
+        account.getPassword());
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/CategoryMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Comparator;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.Category;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class CategoryMapperTest {
+
+  @Autowired
+  private CategoryMapper mapper;
+
+  @Test
+  void getCategoryList() {
+    // given
+
+    // when
+    List<Category> categories = mapper.getCategoryList();
+
+    // then
+    categories.sort(Comparator.comparing(Category::getCategoryId));
+    assertThat(categories).hasSize(5);
+    assertThat(categories.get(0).getCategoryId()).isEqualTo("BIRDS");
+    assertThat(categories.get(0).getName()).isEqualTo("Birds");
+    assertThat(categories.get(0).getDescription())
+        .isEqualTo("<image src=\"../images/birds_icon.gif\"><font size=\"5\" color=\"blue\"> Birds</font>");
+    assertThat(categories.get(1).getCategoryId()).isEqualTo("CATS");
+    assertThat(categories.get(1).getName()).isEqualTo("Cats");
+    assertThat(categories.get(1).getDescription())
+        .isEqualTo("<image src=\"../images/cats_icon.gif\"><font size=\"5\" color=\"blue\"> Cats</font>");
+    assertThat(categories.get(2).getCategoryId()).isEqualTo("DOGS");
+    assertThat(categories.get(2).getName()).isEqualTo("Dogs");
+    assertThat(categories.get(2).getDescription())
+        .isEqualTo("<image src=\"../images/dogs_icon.gif\"><font size=\"5\" color=\"blue\"> Dogs</font>");
+    assertThat(categories.get(3).getCategoryId()).isEqualTo("FISH");
+    assertThat(categories.get(3).getName()).isEqualTo("Fish");
+    assertThat(categories.get(3).getDescription())
+        .isEqualTo("<image src=\"../images/fish_icon.gif\"><font size=\"5\" color=\"blue\"> Fish</font>");
+    assertThat(categories.get(4).getCategoryId()).isEqualTo("REPTILES");
+    assertThat(categories.get(4).getName()).isEqualTo("Reptiles");
+    assertThat(categories.get(4).getDescription())
+        .isEqualTo("<image src=\"../images/reptiles_icon.gif\"><font size=\"5\" color=\"blue\"> Reptiles</font>");
+  }
+
+  @Test
+  void getCategory() {
+    // given
+    String categoryId = "BIRDS";
+
+    // when
+    Category category = mapper.getCategory(categoryId);
+
+    // then
+    assertThat(category.getCategoryId()).isEqualTo("BIRDS");
+    assertThat(category.getName()).isEqualTo("Birds");
+    assertThat(category.getDescription())
+        .isEqualTo("<image src=\"../images/birds_icon.gif\"><font size=\"5\" color=\"blue\"> Birds</font>");
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/ItemMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.Item;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class ItemMapperTest {
+
+  @Autowired
+  private ItemMapper mapper;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Test
+  void getItemListByProduct() {
+    // given
+    String productId = "FI-SW-01";
+
+    // when
+    List<Item> items = mapper.getItemListByProduct(productId);
+
+    // then
+    items.sort(Comparator.comparing(Item::getItemId));
+    assertThat(items).hasSize(2);
+    assertThat(items.get(0).getItemId()).isEqualTo("EST-1");
+    assertThat(items.get(0).getListPrice()).isEqualTo(new BigDecimal("16.50"));
+    assertThat(items.get(0).getUnitCost()).isEqualTo(new BigDecimal("10.00"));
+    assertThat(items.get(0).getSupplierId()).isEqualTo(1);
+    assertThat(items.get(0).getStatus()).isEqualTo("P");
+    assertThat(items.get(0).getAttribute1()).isEqualTo("Large");
+    assertThat(items.get(0).getAttribute2()).isNull();
+    assertThat(items.get(0).getAttribute3()).isNull();
+    assertThat(items.get(0).getAttribute4()).isNull();
+    assertThat(items.get(0).getAttribute5()).isNull();
+    assertThat(items.get(0).getProduct().getProductId()).isEqualTo("FI-SW-01");
+    assertThat(items.get(0).getProduct().getName()).isEqualTo("Angelfish");
+    assertThat(items.get(0).getProduct().getDescription())
+        .isEqualTo("<image src=\"../images/fish1.gif\">Salt Water fish from Australia");
+    assertThat(items.get(0).getProduct().getCategoryId()).isEqualTo("FISH");
+    assertThat(items.get(1).getItemId()).isEqualTo("EST-2");
+    assertThat(items.get(1).getListPrice()).isEqualTo(new BigDecimal("16.50"));
+    assertThat(items.get(1).getUnitCost()).isEqualTo(new BigDecimal("10.00"));
+    assertThat(items.get(1).getSupplierId()).isEqualTo(1);
+    assertThat(items.get(1).getStatus()).isEqualTo("P");
+    assertThat(items.get(1).getAttribute1()).isEqualTo("Small");
+    assertThat(items.get(1).getAttribute2()).isNull();
+    assertThat(items.get(1).getAttribute3()).isNull();
+    assertThat(items.get(1).getAttribute4()).isNull();
+    assertThat(items.get(1).getAttribute5()).isNull();
+    assertThat(items.get(1).getProduct().getProductId()).isEqualTo("FI-SW-01");
+    assertThat(items.get(1).getProduct().getName()).isEqualTo("Angelfish");
+    assertThat(items.get(1).getProduct().getDescription())
+        .isEqualTo("<image src=\"../images/fish1.gif\">Salt Water fish from Australia");
+    assertThat(items.get(1).getProduct().getCategoryId()).isEqualTo("FISH");
+  }
+
+  @Test
+  void getItem() {
+    // given
+    String itemId = "EST-1";
+
+    // when
+    Item item = mapper.getItem(itemId);
+
+    // then
+    assertThat(item.getItemId()).isEqualTo("EST-1");
+    assertThat(item.getListPrice()).isEqualTo(new BigDecimal("16.50"));
+    assertThat(item.getUnitCost()).isEqualTo(new BigDecimal("10.00"));
+    assertThat(item.getSupplierId()).isEqualTo(1);
+    assertThat(item.getStatus()).isEqualTo("P");
+    assertThat(item.getAttribute1()).isEqualTo("Large");
+    assertThat(item.getAttribute2()).isNull();
+    assertThat(item.getAttribute3()).isNull();
+    assertThat(item.getAttribute4()).isNull();
+    assertThat(item.getAttribute5()).isNull();
+    assertThat(item.getProduct().getProductId()).isEqualTo("FI-SW-01");
+    assertThat(item.getProduct().getName()).isEqualTo("Angelfish");
+    assertThat(item.getProduct().getDescription())
+        .isEqualTo("<image src=\"../images/fish1.gif\">Salt Water fish from Australia");
+    assertThat(item.getProduct().getCategoryId()).isEqualTo("FISH");
+  }
+
+  @Test
+  void getInventoryQuantity() {
+    // given
+    String itemId = "EST-1";
+
+    // when
+    int quantity = mapper.getInventoryQuantity(itemId);
+
+    // then
+    assertThat(quantity).isEqualTo(10000);
+
+  }
+
+  @Test
+  void updateInventoryQuantity() {
+    // given
+    String itemId = "EST-1";
+    Map<String, Object> params = new HashMap<>();
+    params.put("itemId", itemId);
+    params.put("increment", 10);
+
+    // when
+    mapper.updateInventoryQuantity(params);
+
+    // then
+    Integer quantity = jdbcTemplate.queryForObject("SELECT QTY FROM inventory WHERE itemid = ?", Integer.class, itemId);
+    assertThat(quantity).isEqualTo(9990);
+
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/LineItemMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.LineItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class LineItemMapperTest {
+
+  @Autowired
+  private LineItemMapper mapper;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Test
+  void insertLineItem() {
+    // given
+    LineItem lineItem = new LineItem();
+    lineItem.setOrderId(1);
+    lineItem.setLineNumber(1);
+    lineItem.setItemId("EST-1");
+    lineItem.setQuantity(4);
+    lineItem.setUnitPrice(BigDecimal.valueOf(100));
+
+    // when
+    mapper.insertLineItem(lineItem);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM lineitem WHERE orderid = ? AND linenum = ?", 1,
+        1);
+    assertThat(record).hasSize(5).containsEntry("ORDERID", lineItem.getOrderId())
+        .containsEntry("LINENUM", lineItem.getLineNumber()).containsEntry("ITEMID", lineItem.getItemId())
+        .containsEntry("QUANTITY", lineItem.getQuantity()).containsEntry("UNITPRICE", new BigDecimal("100.00"));
+
+  }
+
+  @Test
+  void getLineItemsByOrderId() {
+    // given
+    LineItem lineItem = new LineItem();
+    lineItem.setOrderId(1);
+    lineItem.setLineNumber(1);
+    lineItem.setItemId("EST-1");
+    lineItem.setQuantity(4);
+    lineItem.setUnitPrice(BigDecimal.valueOf(100));
+    mapper.insertLineItem(lineItem);
+
+    // when
+    List<LineItem> lineItems = mapper.getLineItemsByOrderId(1);
+
+    // then
+    assertThat(lineItems).hasSize(1);
+    assertThat(lineItems.get(0).getOrderId()).isEqualTo(lineItem.getOrderId());
+    assertThat(lineItems.get(0).getLineNumber()).isEqualTo(lineItem.getOrderId());
+    assertThat(lineItems.get(0).getItemId()).isEqualTo(lineItem.getItemId());
+    assertThat(lineItems.get(0).getQuantity()).isEqualTo(lineItem.getQuantity());
+    assertThat(lineItems.get(0).getUnitPrice()).isEqualTo(new BigDecimal("100.00"));
+
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/MapperTestContext.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import javax.sql.DataSource;
+
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.transaction.PlatformTransactionManager;
+
+@Configuration
+@MapperScan("org.mybatis.jpetstore.mapper")
+public class MapperTestContext {
+
+  @Bean
+  DataSource dataSource() {
+    return new EmbeddedDatabaseBuilder().generateUniqueName(true).setType(EmbeddedDatabaseType.HSQL)
+        .setScriptEncoding("UTF-8").ignoreFailedDrops(true).addScript("database/jpetstore-hsqldb-schema.sql")
+        .addScripts("database/jpetstore-hsqldb-dataload.sql").build();
+  }
+
+  @Bean
+  PlatformTransactionManager transactionManager() {
+    return new DataSourceTransactionManager(dataSource());
+  }
+
+  @Bean
+  SqlSessionFactoryBean sqlSessionFactory() {
+    SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+    factoryBean.setDataSource(dataSource());
+    factoryBean.setTypeAliasesPackage("org.mybatis.jpetstore.domain");
+    return factoryBean;
+  }
+
+  @Bean
+  JdbcTemplate jdbcTemplate() {
+    return new JdbcTemplate(dataSource());
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/OrderMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.Order;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class OrderMapperTest {
+
+  @Autowired
+  private OrderMapper mapper;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Test
+  void insertOrder() {
+    // given
+    Order order = new Order();
+    order.setOrderId(1);
+    order.setOrderDate(java.sql.Timestamp.valueOf(LocalDateTime.of(2018, 12, 31, 23, 59, 59)));
+    order.setUsername("j2ee");
+    order.setCardType("Visa");
+    order.setCreditCard("1234 5678 9012 3456");
+    order.setExpiryDate("06/2022");
+    order.setCourier("Courier");
+    order.setLocale("ja");
+    order.setTotalPrice(new BigDecimal("2000.05"));
+    order.setBillAddress1("Bill Address1");
+    order.setBillAddress2("Bill Address2");
+    order.setBillCity("Bill City");
+    order.setBillState("Bill State");
+    order.setBillCountry("USA");
+    order.setBillZip("80001");
+    order.setBillToFirstName("Bill First Name");
+    order.setBillToLastName("Bill Last Name");
+    order.setShipAddress1("Ship Address1");
+    order.setShipAddress2("Ship Address2");
+    order.setShipCity("Ship City");
+    order.setShipState("Ship State");
+    order.setShipCountry("JPN");
+    order.setShipZip("70001");
+    order.setShipToFirstName("Ship First Name");
+    order.setShipToLastName("Ship Last Name");
+
+    // when
+    mapper.insertOrder(order);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM orders WHERE orderid = ?", 1);
+    assertThat(record).hasSize(25).containsEntry("ORDERID", order.getOrderId())
+        .containsEntry("USERID", order.getUsername())
+        .containsEntry("ORDERDATE", java.sql.Date.valueOf(LocalDate.of(2018, 12, 31)))
+        .containsEntry("SHIPADDR1", order.getShipAddress1()).containsEntry("SHIPADDR2", order.getShipAddress2())
+        .containsEntry("SHIPCITY", order.getShipCity()).containsEntry("SHIPSTATE", order.getShipState())
+        .containsEntry("SHIPZIP", order.getShipZip()).containsEntry("SHIPCOUNTRY", order.getShipCountry())
+        .containsEntry("SHIPTOFIRSTNAME", order.getShipToFirstName())
+        .containsEntry("SHIPTOLASTNAME", order.getShipToLastName()).containsEntry("BILLADDR1", order.getBillAddress1())
+        .containsEntry("BILLADDR2", order.getBillAddress2()).containsEntry("BILLCITY", order.getBillCity())
+        .containsEntry("BILLSTATE", order.getBillState()).containsEntry("BILLZIP", order.getBillZip())
+        .containsEntry("BILLCOUNTRY", order.getBillCountry())
+        .containsEntry("BILLTOFIRSTNAME", order.getBillToFirstName())
+        .containsEntry("BILLTOLASTNAME", order.getBillToLastName()).containsEntry("COURIER", order.getCourier())
+        .containsEntry("TOTALPRICE", order.getTotalPrice()).containsEntry("CREDITCARD", order.getCreditCard())
+        .containsEntry("EXPRDATE", order.getExpiryDate()).containsEntry("CARDTYPE", order.getCardType())
+        .containsEntry("LOCALE", order.getLocale());
+
+  }
+
+  @Test
+  void insertOrderStatus() {
+    // given
+    Order order = new Order();
+    order.setOrderId(1);
+    order.setOrderDate(java.sql.Timestamp.valueOf(LocalDateTime.of(2018, 12, 31, 23, 59, 59)));
+    order.setStatus("OK");
+
+    // when
+    mapper.insertOrderStatus(order);
+
+    // then
+    Map<String, Object> record = jdbcTemplate.queryForMap("SELECT * FROM orderstatus WHERE orderid = ?", 1);
+    assertThat(record).hasSize(4).containsEntry("ORDERID", order.getOrderId())
+        .containsEntry("LINENUM", order.getOrderId())
+        .containsEntry("TIMESTAMP", java.sql.Date.valueOf(LocalDate.of(2018, 12, 31)))
+        .containsEntry("STATUS", order.getStatus());
+
+  }
+
+  @Test
+  void getOrdersByUsername() {
+    // given
+    Order newOrder = new Order();
+    newOrder.setOrderId(1);
+    newOrder.setOrderDate(java.sql.Timestamp.valueOf(LocalDateTime.of(2018, 12, 31, 23, 59, 59)));
+    newOrder.setStatus("OK");
+    newOrder.setUsername("j2ee");
+    newOrder.setCardType("Visa");
+    newOrder.setCreditCard("1234 5678 9012 3456");
+    newOrder.setExpiryDate("06/2022");
+    newOrder.setCourier("Courier");
+    newOrder.setLocale("ja");
+    newOrder.setTotalPrice(new BigDecimal("2000.05"));
+    newOrder.setBillAddress1("Bill Address1");
+    newOrder.setBillAddress2("Bill Address2");
+    newOrder.setBillCity("Bill City");
+    newOrder.setBillState("Bill State");
+    newOrder.setBillCountry("USA");
+    newOrder.setBillZip("80001");
+    newOrder.setBillToFirstName("Bill First Name");
+    newOrder.setBillToLastName("Bill Last Name");
+    newOrder.setShipAddress1("Ship Address1");
+    newOrder.setShipAddress2("Ship Address2");
+    newOrder.setShipCity("Ship City");
+    newOrder.setShipState("Ship State");
+    newOrder.setShipCountry("JPN");
+    newOrder.setShipZip("70001");
+    newOrder.setShipToFirstName("Ship First Name");
+    newOrder.setShipToLastName("Ship Last Name");
+    mapper.insertOrder(newOrder);
+    mapper.insertOrderStatus(newOrder);
+
+    // when
+    List<Order> orders = mapper.getOrdersByUsername("j2ee");
+
+    // then
+    assertThat(orders).hasSize(1);
+    assertThat(orders.get(0).getOrderId()).isEqualTo(newOrder.getOrderId());
+    assertThat(orders.get(0).getOrderDate()).isEqualTo(java.sql.Date.valueOf(LocalDate.of(2018, 12, 31)));
+    assertThat(orders.get(0).getCardType()).isEqualTo(newOrder.getCardType());
+    assertThat(orders.get(0).getCreditCard()).isEqualTo(newOrder.getCreditCard());
+    assertThat(orders.get(0).getExpiryDate()).isEqualTo(newOrder.getExpiryDate());
+    assertThat(orders.get(0).getCourier()).isEqualTo(newOrder.getCourier());
+    assertThat(orders.get(0).getLocale()).isEqualTo(newOrder.getLocale());
+    assertThat(orders.get(0).getTotalPrice()).isEqualTo(newOrder.getTotalPrice());
+    assertThat(orders.get(0).getBillAddress1()).isEqualTo(newOrder.getBillAddress1());
+    assertThat(orders.get(0).getBillAddress2()).isEqualTo(newOrder.getBillAddress2());
+    assertThat(orders.get(0).getBillCity()).isEqualTo(newOrder.getBillCity());
+    assertThat(orders.get(0).getBillState()).isEqualTo(newOrder.getBillState());
+    assertThat(orders.get(0).getBillCountry()).isEqualTo(newOrder.getBillCountry());
+    assertThat(orders.get(0).getBillZip()).isEqualTo(newOrder.getBillZip());
+    assertThat(orders.get(0).getBillToFirstName()).isEqualTo(newOrder.getBillToFirstName());
+    assertThat(orders.get(0).getBillToLastName()).isEqualTo(newOrder.getBillToLastName());
+    assertThat(orders.get(0).getShipAddress1()).isEqualTo(newOrder.getShipAddress1());
+    assertThat(orders.get(0).getShipAddress2()).isEqualTo(newOrder.getShipAddress2());
+    assertThat(orders.get(0).getShipCity()).isEqualTo(newOrder.getShipCity());
+    assertThat(orders.get(0).getShipState()).isEqualTo(newOrder.getShipState());
+    assertThat(orders.get(0).getShipCountry()).isEqualTo(newOrder.getShipCountry());
+    assertThat(orders.get(0).getShipZip()).isEqualTo(newOrder.getShipZip());
+    assertThat(orders.get(0).getShipToFirstName()).isEqualTo(newOrder.getShipToFirstName());
+    assertThat(orders.get(0).getShipToLastName()).isEqualTo(newOrder.getShipToLastName());
+  }
+
+  @Test
+  void getOrder() {
+    // given
+    Order newOrder = new Order();
+    newOrder.setOrderId(1);
+    newOrder.setOrderDate(java.sql.Timestamp.valueOf(LocalDateTime.of(2018, 12, 31, 23, 59, 59)));
+    newOrder.setStatus("OK");
+    newOrder.setUsername("j2ee");
+    newOrder.setCardType("Visa");
+    newOrder.setCreditCard("1234 5678 9012 3456");
+    newOrder.setExpiryDate("06/2022");
+    newOrder.setCourier("Courier");
+    newOrder.setLocale("ja");
+    newOrder.setTotalPrice(new BigDecimal("2000.05"));
+    newOrder.setBillAddress1("Bill Address1");
+    newOrder.setBillAddress2("Bill Address2");
+    newOrder.setBillCity("Bill City");
+    newOrder.setBillState("Bill State");
+    newOrder.setBillCountry("USA");
+    newOrder.setBillZip("80001");
+    newOrder.setBillToFirstName("Bill First Name");
+    newOrder.setBillToLastName("Bill Last Name");
+    newOrder.setShipAddress1("Ship Address1");
+    newOrder.setShipAddress2("Ship Address2");
+    newOrder.setShipCity("Ship City");
+    newOrder.setShipState("Ship State");
+    newOrder.setShipCountry("JPN");
+    newOrder.setShipZip("70001");
+    newOrder.setShipToFirstName("Ship First Name");
+    newOrder.setShipToLastName("Ship Last Name");
+    mapper.insertOrder(newOrder);
+    mapper.insertOrderStatus(newOrder);
+
+    // when
+    Order order = mapper.getOrder(1);
+
+    // then
+    assertThat(order.getOrderId()).isEqualTo(newOrder.getOrderId());
+    assertThat(order.getOrderDate()).isEqualTo(java.sql.Date.valueOf(LocalDate.of(2018, 12, 31)));
+    assertThat(order.getCardType()).isEqualTo(newOrder.getCardType());
+    assertThat(order.getCreditCard()).isEqualTo(newOrder.getCreditCard());
+    assertThat(order.getExpiryDate()).isEqualTo(newOrder.getExpiryDate());
+    assertThat(order.getCourier()).isEqualTo(newOrder.getCourier());
+    assertThat(order.getLocale()).isEqualTo(newOrder.getLocale());
+    assertThat(order.getTotalPrice()).isEqualTo(newOrder.getTotalPrice());
+    assertThat(order.getBillAddress1()).isEqualTo(newOrder.getBillAddress1());
+    assertThat(order.getBillAddress2()).isEqualTo(newOrder.getBillAddress2());
+    assertThat(order.getBillCity()).isEqualTo(newOrder.getBillCity());
+    assertThat(order.getBillState()).isEqualTo(newOrder.getBillState());
+    assertThat(order.getBillCountry()).isEqualTo(newOrder.getBillCountry());
+    assertThat(order.getBillZip()).isEqualTo(newOrder.getBillZip());
+    assertThat(order.getBillToFirstName()).isEqualTo(newOrder.getBillToFirstName());
+    assertThat(order.getBillToLastName()).isEqualTo(newOrder.getBillToLastName());
+    assertThat(order.getShipAddress1()).isEqualTo(newOrder.getShipAddress1());
+    assertThat(order.getShipAddress2()).isEqualTo(newOrder.getShipAddress2());
+    assertThat(order.getShipCity()).isEqualTo(newOrder.getShipCity());
+    assertThat(order.getShipState()).isEqualTo(newOrder.getShipState());
+    assertThat(order.getShipCountry()).isEqualTo(newOrder.getShipCountry());
+    assertThat(order.getShipZip()).isEqualTo(newOrder.getShipZip());
+    assertThat(order.getShipToFirstName()).isEqualTo(newOrder.getShipToFirstName());
+    assertThat(order.getShipToLastName()).isEqualTo(newOrder.getShipToLastName());
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/ProductMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Comparator;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.Product;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class ProductMapperTest {
+
+  @Autowired
+  private ProductMapper mapper;
+
+  @Test
+  void getProductListByCategory() {
+    // given
+    String categoryId = "FISH";
+
+    // when
+    List<Product> products = mapper.getProductListByCategory(categoryId);
+
+    // then
+    products.sort(Comparator.comparing(Product::getProductId));
+    assertThat(products).hasSize(4);
+    assertThat(products.get(0).getProductId()).isEqualTo("FI-FW-01");
+    assertThat(products.get(0).getName()).isEqualTo("Koi");
+    assertThat(products.get(0).getCategoryId()).isEqualTo("FISH");
+    assertThat(products.get(0).getDescription())
+        .isEqualTo("<image src=\"../images/fish3.gif\">Fresh Water fish from Japan");
+    assertThat(products.get(1).getProductId()).isEqualTo("FI-FW-02");
+    assertThat(products.get(1).getName()).isEqualTo("Goldfish");
+    assertThat(products.get(1).getCategoryId()).isEqualTo("FISH");
+    assertThat(products.get(1).getDescription())
+        .isEqualTo("<image src=\"../images/fish2.gif\">Fresh Water fish from China");
+    assertThat(products.get(2).getProductId()).isEqualTo("FI-SW-01");
+    assertThat(products.get(2).getName()).isEqualTo("Angelfish");
+    assertThat(products.get(2).getCategoryId()).isEqualTo("FISH");
+    assertThat(products.get(2).getDescription())
+        .isEqualTo("<image src=\"../images/fish1.gif\">Salt Water fish from Australia");
+    assertThat(products.get(3).getProductId()).isEqualTo("FI-SW-02");
+    assertThat(products.get(3).getName()).isEqualTo("Tiger Shark");
+    assertThat(products.get(3).getCategoryId()).isEqualTo("FISH");
+    assertThat(products.get(3).getDescription())
+        .isEqualTo("<image src=\"../images/fish4.gif\">Salt Water fish from Australia");
+  }
+
+  @Test
+  void getProduct() {
+    // given
+    String productId = "FI-FW-01";
+
+    // when
+    Product product = mapper.getProduct(productId);
+
+    // then
+    assertThat(product.getProductId()).isEqualTo("FI-FW-01");
+    assertThat(product.getName()).isEqualTo("Koi");
+    assertThat(product.getCategoryId()).isEqualTo("FISH");
+    assertThat(product.getDescription()).isEqualTo("<image src=\"../images/fish3.gif\">Fresh Water fish from Japan");
+  }
+
+  @Test
+  void searchProductList() {
+    // given
+    String keywords = "%o%";
+
+    // when
+    List<Product> products = mapper.searchProductList(keywords);
+
+    // then
+    products.sort(Comparator.comparing(Product::getProductId));
+    System.out.println(products);
+    assertThat(products).hasSize(8);
+    assertThat(products.get(0).getProductId()).isEqualTo("AV-CB-01");
+    assertThat(products.get(0).getName()).isEqualTo("Amazon Parrot");
+    assertThat(products.get(0).getCategoryId()).isEqualTo("BIRDS");
+    assertThat(products.get(0).getDescription())
+        .isEqualTo("<image src=\"../images/bird2.gif\">Great companion for up to 75 years");
+    assertThat(products.get(1).getName()).isEqualTo("Koi");
+    assertThat(products.get(2).getName()).isEqualTo("Goldfish");
+    assertThat(products.get(3).getName()).isEqualTo("Bulldog");
+    assertThat(products.get(4).getName()).isEqualTo("Dalmation");
+    assertThat(products.get(5).getName()).isEqualTo("Poodle");
+    assertThat(products.get(6).getName()).isEqualTo("Golden Retriever");
+    assertThat(products.get(7).getName()).isEqualTo("Labrador Retriever");
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/mapper/SequenceMapperTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mybatis.jpetstore.domain.Sequence;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MapperTestContext.class)
+@Transactional
+class SequenceMapperTest {
+
+  @Autowired
+  private SequenceMapper mapper;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Test
+  void getSequence() {
+    // given
+
+    // when
+    Sequence sequence = mapper.getSequence(new Sequence("ordernum", -1));
+
+    // then
+    assertThat(sequence.getName()).isEqualTo("ordernum");
+    assertThat(sequence.getNextId()).isEqualTo(1000);
+  }
+
+  @Test
+  void updateSequence() {
+    // given
+    Sequence sequence = new Sequence("ordernum", 1001);
+
+    // when
+    mapper.updateSequence(sequence);
+
+    // then
+    Integer id = jdbcTemplate.queryForObject("SELECT nextid FROM sequence WHERE name = ?", Integer.class, "ordernum");
+    assertThat(id).isEqualTo(1001);
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/service/AccountServiceTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mybatis.jpetstore.domain.Account;
+import org.mybatis.jpetstore.mapper.AccountMapper;
+
+/**
+ * @author Eduardo Macarron
+ */
+@ExtendWith(MockitoExtension.class)
+class AccountServiceTest {
+
+  @Mock
+  private AccountMapper accountMapper;
+
+  @InjectMocks
+  private AccountService accountService;
+
+  @Test
+  void shouldCallTheMapperToInsertAnAccount() {
+    // given
+    Account account = new Account();
+
+    // when
+    accountService.insertAccount(account);
+
+    // then
+    verify(accountMapper).insertAccount(eq(account));
+    verify(accountMapper).insertProfile(eq(account));
+    verify(accountMapper).insertSignon(eq(account));
+  }
+
+  @Test
+  void shouldCallTheMapperToUpdateAnAccount() {
+    // given
+    Account account = new Account();
+    account.setPassword("foo");
+
+    // when
+    accountService.updateAccount(account);
+
+    // then
+    verify(accountMapper).updateAccount(eq(account));
+    verify(accountMapper).updateProfile(eq(account));
+    verify(accountMapper).updateSignon(eq(account));
+  }
+
+  @Test
+  void shouldCallTheMapperToGetAccountAnUsername() {
+    // given
+    String username = "bar";
+    Account expectedAccount = new Account();
+    when(accountMapper.getAccountByUsername(username)).thenReturn(expectedAccount);
+
+    // when
+    Account account = accountService.getAccount(username);
+
+    // then
+    assertThat(account).isSameAs(expectedAccount);
+  }
+
+  @Test
+  void shouldCallTheMapperToGetAccountAnUsernameAndPassword() {
+    // given
+    String username = "bar";
+    String password = "foo";
+
+    // when
+    Account expectedAccount = new Account();
+    when(accountMapper.getAccountByUsernameAndPassword(username, password)).thenReturn(expectedAccount);
+    Account account = accountService.getAccount(username, password);
+
+    // then
+    assertThat(account).isSameAs(expectedAccount);
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/service/CatalogServiceTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mybatis.jpetstore.domain.Category;
+import org.mybatis.jpetstore.domain.Item;
+import org.mybatis.jpetstore.domain.Product;
+import org.mybatis.jpetstore.mapper.CategoryMapper;
+import org.mybatis.jpetstore.mapper.ItemMapper;
+import org.mybatis.jpetstore.mapper.ProductMapper;
+
+/**
+ * @author Eduardo Macarron
+ */
+@ExtendWith(MockitoExtension.class)
+class CatalogServiceTest {
+
+  @Mock(lenient = true)
+  private ProductMapper productMapper;
+  @Mock
+  private CategoryMapper categoryMapper;
+  @Mock
+  private ItemMapper itemMapper;
+
+  @InjectMocks
+  private CatalogService catalogService;
+
+  @Test
+  void shouldCallTheSearchMapperTwice() {
+    // given
+    String keywords = "a b";
+    List<Product> l1 = new ArrayList<>();
+    l1.add(new Product());
+    List<Product> l2 = new ArrayList<>();
+    l2.add(new Product());
+
+    // when
+    when(productMapper.searchProductList("%a%")).thenReturn(l1);
+    when(productMapper.searchProductList("%b%")).thenReturn(l2);
+    List<Product> r = catalogService.searchProductList(keywords);
+
+    // then
+    assertThat(r).hasSize(2);
+    assertThat(r.get(0)).isSameAs(l1.get(0));
+    assertThat(r.get(1)).isSameAs(l2.get(0));
+  }
+
+  @Test
+  void shouldReturnCategoryList() {
+    // given
+    List<Category> expectedCategories = new ArrayList<>();
+
+    // when
+    when(categoryMapper.getCategoryList()).thenReturn(expectedCategories);
+    List<Category> categories = catalogService.getCategoryList();
+
+    // then
+    assertThat(categories).isSameAs(expectedCategories);
+  }
+
+  @Test
+  void shouldReturnCategory() {
+
+    // given
+    String categoryId = "C01";
+    Category expectedCategory = new Category();
+
+    // when
+    when(categoryMapper.getCategory(categoryId)).thenReturn(expectedCategory);
+    Category category = catalogService.getCategory(categoryId);
+
+    // then
+    assertThat(category).isSameAs(expectedCategory);
+
+  }
+
+  @Test
+  void shouldReturnProduct() {
+
+    // given
+    String productId = "P01";
+    Product expectedProduct = new Product();
+
+    // when
+    when(productMapper.getProduct(productId)).thenReturn(expectedProduct);
+    Product product = catalogService.getProduct(productId);
+
+    // then
+    assertThat(product).isSameAs(expectedProduct);
+
+  }
+
+  @Test
+  void shouldReturnProductList() {
+    // given
+    String categoryId = "C01";
+    List<Product> expectedProducts = new ArrayList<>();
+
+    // when
+    when(productMapper.getProductListByCategory(categoryId)).thenReturn(expectedProducts);
+    List<Product> products = catalogService.getProductListByCategory(categoryId);
+
+    // then
+    assertThat(products).isSameAs(expectedProducts);
+
+  }
+
+  @Test
+  void shouldReturnItemList() {
+    // given
+    String productId = "P01";
+    List<Item> expectedItems = new ArrayList<>();
+
+    // when
+    when(itemMapper.getItemListByProduct(productId)).thenReturn(expectedItems);
+    List<Item> items = catalogService.getItemListByProduct(productId);
+
+    // then
+    assertThat(items).isSameAs(expectedItems);
+
+  }
+
+  @Test
+  void shouldReturnItem() {
+
+    // given
+    String itemCode = "I01";
+    Item expectedItem = new Item();
+
+    // when
+    when(itemMapper.getItem(itemCode)).thenReturn(expectedItem);
+    Item item = catalogService.getItem(itemCode);
+
+    // then
+    assertThat(item).isSameAs(expectedItem);
+
+  }
+
+  @Test
+  void shouldReturnTrueWhenExistStock() {
+
+    // given
+    String itemCode = "I01";
+
+    // when
+    when(itemMapper.getInventoryQuantity(itemCode)).thenReturn(1);
+    boolean result = catalogService.isItemInStock(itemCode);
+
+    // then
+    assertThat(result).isTrue();
+
+  }
+
+  @Test
+  void shouldReturnFalseWhenNotExistStock() {
+
+    // given
+    String itemCode = "I01";
+
+    // when
+    when(itemMapper.getInventoryQuantity(itemCode)).thenReturn(0);
+    boolean result = catalogService.isItemInStock(itemCode);
+
+    // then
+    assertThat(result).isFalse();
+
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/service/OrderServiceTest.java
+================================================
+/*
+ *    Copyright 2010-2023 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mybatis.jpetstore.domain.Item;
+import org.mybatis.jpetstore.domain.LineItem;
+import org.mybatis.jpetstore.domain.Order;
+import org.mybatis.jpetstore.domain.Sequence;
+import org.mybatis.jpetstore.mapper.ItemMapper;
+import org.mybatis.jpetstore.mapper.LineItemMapper;
+import org.mybatis.jpetstore.mapper.OrderMapper;
+import org.mybatis.jpetstore.mapper.SequenceMapper;
+
+/**
+ * @author coderliux
+ */
+@ExtendWith(MockitoExtension.class)
+class OrderServiceTest {
+
+  @Mock
+  private ItemMapper itemMapper;
+  @Mock
+  private OrderMapper orderMapper;
+  @Mock
+  private LineItemMapper lineItemMapper;
+  @Mock
+  private SequenceMapper sequenceMapper;
+
+  @InjectMocks
+  private OrderService orderService;
+
+  @Test
+  void shouldReturnOrderWhenGivenOrderIdWithOutLineItems() {
+    // given
+    int orderId = 1;
+    Order order = new Order();
+    List<LineItem> lineItems = new ArrayList<>();
+
+    // when
+    when(orderMapper.getOrder(orderId)).thenReturn(order);
+    when(lineItemMapper.getLineItemsByOrderId(orderId)).thenReturn(lineItems);
+
+    // then
+    assertThat(orderService.getOrder(orderId)).isEqualTo(order);
+    assertThat(orderService.getOrder(orderId).getLineItems()).isEmpty();
+  }
+
+  @Test
+  void shouldReturnOrderWhenGivenOrderIdExistedLineItems() {
+    // given
+    int orderId = 1;
+    Order order = new Order();
+    List<LineItem> lineItems = new ArrayList<>();
+    LineItem item = new LineItem();
+    String itemId = "abc";
+    item.setItemId(itemId);
+    lineItems.add(item);
+
+    // when
+    when(orderMapper.getOrder(orderId)).thenReturn(order);
+    when(lineItemMapper.getLineItemsByOrderId(orderId)).thenReturn(lineItems);
+    when(itemMapper.getItem(itemId)).thenReturn(new Item());
+    when(itemMapper.getInventoryQuantity(itemId)).thenReturn(5);
+
+    // then
+    Order expectedOrder = orderService.getOrder(orderId);
+    assertThat(expectedOrder).isEqualTo(order);
+    assertThat(expectedOrder.getLineItems()).hasSize(1);
+    assertThat(expectedOrder.getLineItems().get(0).getItem().getQuantity()).isEqualTo(5);
+  }
+
+  @Test
+  void shouldReturnOrderList() {
+
+    // given
+    String username = "foo";
+    List<Order> expectedOrders = new ArrayList<>();
+
+    // when
+    when(orderMapper.getOrdersByUsername(username)).thenReturn(expectedOrders);
+    List<Order> orders = orderService.getOrdersByUsername(username);
+
+    // then
+    assertThat(orders).isSameAs(expectedOrders);
+
+  }
+
+  @Test
+  void shouldReturnNextId() {
+
+    // given
+    Sequence expectedSequence = new Sequence("order", 100);
+
+    // when
+    when(sequenceMapper.getSequence(any())).thenReturn(expectedSequence);
+    int nextId = orderService.getNextId("order");
+
+    // then
+    assertThat(nextId).isEqualTo(100);
+    verify(sequenceMapper).getSequence(argThat(v -> v.getName().equals("order") && v.getNextId() == -1));
+    verify(sequenceMapper).updateSequence(argThat(v -> v.getName().equals("order") && v.getNextId() == 101));
+
+  }
+
+  @Test
+  void shouldThrowExceptionWhenSequenceNotFound() {
+
+    // given
+
+    // when
+    when(sequenceMapper.getSequence(any())).thenReturn(null);
+    try {
+      orderService.getNextId("order");
+      fail("Should throw an exception when sequence not found.");
+    } catch (RuntimeException e) {
+      // then
+      assertThat(e.getMessage())
+          .isEqualTo("Error: A null sequence was returned from the database (could not get next order sequence).");
+      verify(sequenceMapper).getSequence(argThat(v -> v.getName().equals("order") && v.getNextId() == -1));
+    }
+
+  }
+
+  @Test
+  void shouldCallTheMapperToInsert() {
+    // given
+    Order order = new Order();
+    LineItem item = new LineItem();
+    String itemId = "I01";
+    int quantity = 4;
+    item.setItemId(itemId);
+    item.setQuantity(quantity);
+    order.addLineItem(item);
+
+    Sequence orderNumSequence = new Sequence("ordernum", 100);
+
+    Map<String, Object> expectedItemParam = new HashMap<>(2);
+    expectedItemParam.put("itemId", itemId);
+    expectedItemParam.put("increment", quantity);
+
+    // when
+    when(sequenceMapper.getSequence(any())).thenReturn(orderNumSequence);
+    orderService.insertOrder(order);
+
+    // then
+    verify(orderMapper).insertOrder(argThat(v -> v == order && v.getOrderId() == 100));
+    verify(orderMapper).insertOrderStatus(eq(order));
+    verify(lineItemMapper).insertLineItem(argThat(v -> v == item && v.getOrderId() == 100));
+    verify(itemMapper).updateInventoryQuantity(eq(expectedItemParam));
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/web/actions/AccountActionBeanTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+import org.mybatis.jpetstore.domain.Account;
+
+class AccountActionBeanTest {
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getMyListOutputNull() {
+
+    // Arrange
+    final AccountActionBean accountActionBean = new AccountActionBean();
+
+    // Act and Assert result
+    assertThat(accountActionBean.getMyList()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void constructorOutputNotNull() {
+
+    // Act, creating object to test constructor
+    final AccountActionBean actual = new AccountActionBean();
+
+    // Assert result
+    assertThat(actual).isNotNull();
+    assertThat(actual.getContext()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getPasswordOutputNull() {
+
+    // Arrange
+    final AccountActionBean accountActionBean = new AccountActionBean();
+
+    // Act and Assert result
+    assertThat(accountActionBean.getPassword()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void isAuthenticatedOutputFalse() {
+
+    // Arrange
+    final AccountActionBean accountActionBean = new AccountActionBean();
+
+    // Act and Assert result
+    assertThat(accountActionBean.isAuthenticated()).isFalse();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getUsernameOutputNull() {
+
+    // Arrange
+    final AccountActionBean accountActionBean = new AccountActionBean();
+
+    // Act and Assert result
+    assertThat(accountActionBean.getUsername()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getAccountOutputNotNull() {
+
+    // Arrange
+    final AccountActionBean accountActionBean = new AccountActionBean();
+
+    // Act
+    final Account actual = accountActionBean.getAccount();
+
+    // Assert result
+    assertThat(actual).isNotNull();
+    assertThat(actual.getAddress2()).isNull();
+    assertThat(actual.getState()).isNull();
+    assertThat(actual.getFirstName()).isNull();
+    assertThat(actual.getPassword()).isNull();
+    assertThat(actual.getLanguagePreference()).isNull();
+    assertThat(actual.getFavouriteCategoryId()).isNull();
+    assertThat(actual.getCountry()).isNull();
+    assertThat(actual.getPhone()).isNull();
+    assertThat(actual.getUsername()).isNull();
+    assertThat(actual.getLastName()).isNull();
+    assertThat(actual.getAddress1()).isNull();
+    assertThat(actual.getEmail()).isNull();
+    assertThat(actual.getStatus()).isNull();
+    assertThat(actual.getBannerName()).isNull();
+    assertThat(actual.getZip()).isNull();
+    assertThat(actual.getCity()).isNull();
+
+  }
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/web/actions/CatalogActionBeanTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+class CatalogActionBeanTest {
+
+  @Test
+  void getItemListOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getItemList()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getProductListOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getProductList()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getCategoryListOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getCategoryList()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getItemOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getItem()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getProductOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getProduct()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getCategoryOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getCategory()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getItemIdOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getItemId()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getProductIdOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getProductId()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getCategoryIdOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getCategoryId()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getKeywordOutputNull() {
+
+    // Arrange
+    final CatalogActionBean catalogActionBean = new CatalogActionBean();
+
+    // Act and Assert result
+    assertThat(catalogActionBean.getKeyword()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void constructorOutputNotNull() {
+
+    // Act, creating object to test constructor
+    final CatalogActionBean actual = new CatalogActionBean();
+
+    // Assert result
+    assertThat(actual).isNotNull();
+    assertThat(actual.getContext()).isNull();
+
+  }
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/web/actions/OrderActionBeanTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+class OrderActionBeanTest {
+
+  // Test written by Diffblue Cover.
+  @Test
+  void getOrderListOutputNull() {
+
+    // Arrange
+    final OrderActionBean orderActionBean = new OrderActionBean();
+
+    // Act and Assert result
+    assertThat(orderActionBean.getOrderList()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void isShippingAddressRequiredOutputFalse() {
+
+    // Arrange
+    final OrderActionBean orderActionBean = new OrderActionBean();
+
+    // Act and Assert result
+    assertThat(orderActionBean.isShippingAddressRequired()).isFalse();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void constructorOutputNotNull() {
+
+    // Act, creating object to test constructor
+    final OrderActionBean actual = new OrderActionBean();
+
+    // Assert result
+    assertThat(actual).isNotNull().isNotNull();
+    assertThat(actual.getContext()).isNull();
+
+  }
+
+  // Test written by Diffblue Cover.
+  @Test
+  void isConfirmedOutputFalse() {
+
+    // Arrange
+    final OrderActionBean orderActionBean = new OrderActionBean();
+
+    // Act and Assert result
+    assertThat(orderActionBean.isConfirmed()).isFalse();
+
+  }
+}
+
+
+
+================================================
+FILE: src/test/resources/.gitkeep
+================================================
+[Empty file]
+
+
+================================================
+FILE: .github/workflows/ci.yaml
+================================================
+name: Java CI
+
+on: [workflow_dispatch, push, pull_request]
+
+permissions: read-all
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        cache: [maven]
+        distribution: [temurin]
+        java: [17, 21, 24, 25-ea]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false
+      max-parallel: 4
+    name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK ${{ matrix.java }} ${{ matrix.distribution }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: ${{ matrix.distribution }}
+          cache: ${{ matrix.cache }}
+      - name: Test with Maven
+        run: ./mvnw test -B -V --no-transfer-progress -D"license.skip=true"
+
+
+
+================================================
+FILE: .github/workflows/codeql.yml
+================================================
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '43 22 * * 4'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java-kotlin' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          cache: maven
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+
+
+================================================
+FILE: .github/workflows/coveralls.yaml
+================================================
+name: Coveralls
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  build:
+    if: github.repository_owner == 'mybatis'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          cache: maven
+          distribution: temurin
+          java-version: 21
+      - name: Report Coverage to Coveralls for Pull Requests
+        if: github.event_name == 'pull_request'
+        run: ./mvnw -B -V test jacoco:report coveralls:report -q -Dlicense.skip=true -DrepoToken=$GITHUB_TOKEN -DserviceName=github -DpullRequest=$PR_NUMBER --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+      - name: Report Coverage to Coveralls for General Push
+        if: github.event_name == 'push'
+        run: ./mvnw -B -V test jacoco:report coveralls:report -q -Dlicense.skip=true -DrepoToken=$GITHUB_TOKEN -DserviceName=github --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+================================================
+FILE: .github/workflows/site.yaml
+================================================
+name: Site
+
+on:
+  push:
+    branches:
+      - site
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.repository_owner == 'mybatis' && ! contains(toJSON(github.event.head_commit.message), '[maven-release-plugin]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          cache: maven
+          distribution: temurin
+          java-version: 21
+      - name: Build site
+        run: ./mvnw site site:stage -DskipTests -Dlicense.skip=true -B -V --no-transfer-progress --settings ./.mvn/settings.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+      - name: Deploy Site to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: target/staging
+
+
+
+================================================
+FILE: .github/workflows/sonar.yaml
+================================================
+name: SonarCloud
+
+on:
+  push:
+    branches:
+      - master
+
+permissions: read-all
+
+jobs:
+  build:
+    if: github.repository_owner == 'mybatis'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          cache: maven
+          distribution: temurin
+          java-version: 21
+      - name: Analyze with SonarCloud
+        run: ./mvnw verify jacoco:report sonar:sonar -B -V -Dsonar.projectKey=mybatis_jpetstore-6 -Dsonar.organization=mybatis -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$SONAR_TOKEN -Dlicense.skip=true --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
+
+================================================
+FILE: .github/workflows/sonatype.yaml
+================================================
+name: Sonatype
+
+on:
+  push:
+    branches:
+      - master
+
+permissions: read-all
+
+jobs:
+  build:
+    if: github.repository_owner == 'mybatis' && ! contains(toJSON(github.event.head_commit.message), '[maven-release-plugin]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          cache: maven
+          distribution: temurin
+          java-version: 21
+      - name: Deploy to Sonatype
+        run: ./mvnw deploy -DskipTests -B -V --no-transfer-progress --settings ./.mvn/settings.xml -Dlicense.skip=true
+        env:
+          CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
+          CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
+
+
+
+================================================
+FILE: .github/workflows/support.yaml
+================================================
+#
+# Copyright 2010-2020 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: Container Support
+
+on: [push, pull_request]
+
+permissions: read-all
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        java: [17]
+        distribution: ['zulu']
+        token: ["tomcat9", "tomee80", "wildfly26", "liberty-ee8", "jetty", "glassfish5", "resin"]
+      fail-fast: false
+      max-parallel: 4
+    name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}, ${{ matrix.token }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: ${{ matrix.distribution }}
+      - name: Cache local Maven m2
+        uses: actions/cache@v4
+        with:
+            path: ~/.m2
+            key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+            restore-keys: ${{ runner.os }}-m2
+      - name: Test with ${{ matrix.token }}
+        run: ./mvnw test -P ${{ matrix.token }}
+
+
+
+================================================
+FILE: .mvn/extensions.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2025 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<extensions>
+    <extension>
+      <groupId>fr.jcgay.maven</groupId>
+      <artifactId>maven-profiler</artifactId>
+      <version>3.3</version>
+    </extension>
+</extensions>
+
+
+
+================================================
+FILE: .mvn/maven.config
+================================================
+-Daether.checksums.algorithms=SHA-512,SHA-256,SHA-1,MD5
+-Daether.connector.smartChecksums=false
+
+
+
+================================================
+FILE: .mvn/settings.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2025 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+  <servers>
+    <!-- Used for sonatype snapshots and releases -->
+    <server>
+      <id>central</id>
+      <username>${env.CI_DEPLOY_USERNAME}</username>
+      <password>${env.CI_DEPLOY_PASSWORD}</password>
+    </server>
+
+    <!-- Used for gh-pages-scm publish via maven-scm-publish-plugin -->
+    <server>
+      <id>gh-pages-scm</id>
+      <configuration>
+        <scmVersionType>branch</scmVersionType>
+        <scmVersion>gh-pages</scmVersion>
+      </configuration>
+    </server>
+
+    <!-- Github deployments (site) -->
+    <server>
+      <id>github</id>
+      <password>${env.GITHUB_TOKEN}</password>
+    </server>
+
+    <!-- NVD API Access (dependency-check-plugin) -->
+    <server>
+      <id>nvd</id>
+      <password>${env.NVD_API_KEY}</password>
+    </server>
+  </servers>
+
+</settings>
+
+
+
+================================================
+FILE: .mvn/wrapper/maven-wrapper.properties
+================================================
+distributionType=source
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.11/apache-maven-3.9.11-bin.zip
+wrapperUrl=https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.3/maven-wrapper-3.3.3.jar
+wrapperVersion=3.3.3
+
+
+
+================================================
+FILE: .mvn/wrapper/MavenWrapperDownloader.java
+================================================
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ThreadLocalRandom;
+
+public final class MavenWrapperDownloader {
+    private static final String WRAPPER_VERSION = "3.3.3";
+
+    private static final boolean VERBOSE = Boolean.parseBoolean(System.getenv("MVNW_VERBOSE"));
+
+    public static void main(String[] args) {
+        log("Apache Maven Wrapper Downloader " + WRAPPER_VERSION);
+
+        if (args.length != 2) {
+            System.err.println(" - ERROR wrapperUrl or wrapperJarPath parameter missing");
+            System.exit(1);
+        }
+
+        try {
+            log(" - Downloader started");
+            final URL wrapperUrl = URI.create(args[0]).toURL();
+            final String jarPath = args[1].replace("..", ""); // Sanitize path
+            final Path wrapperJarPath = Paths.get(jarPath).toAbsolutePath().normalize();
+            downloadFileFromURL(wrapperUrl, wrapperJarPath);
+            log("Done");
+        } catch (IOException e) {
+            System.err.println("- Error downloading: " + e.getMessage());
+            if (VERBOSE) {
+                e.printStackTrace();
+            }
+            System.exit(1);
+        }
+    }
+
+    private static void downloadFileFromURL(URL wrapperUrl, Path wrapperJarPath)
+            throws IOException {
+        log(" - Downloading to: " + wrapperJarPath);
+        if (System.getenv("MVNW_USERNAME") != null && System.getenv("MVNW_PASSWORD") != null) {
+            final String username = System.getenv("MVNW_USERNAME");
+            final char[] password = System.getenv("MVNW_PASSWORD").toCharArray();
+            Authenticator.setDefault(new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(username, password);
+                }
+            });
+        }
+        Path temp = wrapperJarPath
+                .getParent()
+                .resolve(wrapperJarPath.getFileName() + "."
+                        + Long.toUnsignedString(ThreadLocalRandom.current().nextLong()) + ".tmp");
+        try (InputStream inStream = wrapperUrl.openStream()) {
+            Files.copy(inStream, temp, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(temp, wrapperJarPath, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temp);
+        }
+        log(" - Downloader complete");
+    }
+
+    private static void log(String msg) {
+        if (VERBOSE) {
+            System.out.println(msg);
+        }
+    }
+
+}
+
+
