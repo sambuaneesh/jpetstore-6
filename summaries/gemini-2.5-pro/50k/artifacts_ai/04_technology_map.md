@@ -1,0 +1,7 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Account Management** | Java | Stripes (Controller), Spring (Service), MyBatis (Persistence) | HSQLDB | Synchronous, in-process method calls | MVC, Dependency Injection, Data Mapper, Transactional Service Layer |
+| **Catalog & Inventory Management** | Java | Stripes (Controller), Spring (Service), MyBatis (Persistence) | HSQLDB | Synchronous, in-process method calls | MVC, Dependency Injection, Data Mapper |
+| **Shopping Cart Management** | Java | Stripes (Controller), Spring (for service dependency) | None (In-memory, Session-scoped) | Synchronous, in-process method calls to `CatalogService` | MVC, Session State Management |
+| **Order Management** | Java | Stripes (Controller), Spring (Service), MyBatis (Persistence) | HSQLDB | Synchronous, in-process method calls | MVC, Dependency Injection, Data Mapper, Transactional Service Layer |
+| **Shared / Platform** | Java, JSP, XML | **Core:** Spring (IoC), **Web:** Stripes, JSP/JSTL, **Build:** Maven, **CI/CD:** GitHub Actions, **Test:** JUnit, Mockito, Selenide | HSQLDB (centrally configured) | HTTP (external), In-process (internal) | Monolithic, Three-Tier Layered Architecture, Front Controller |
