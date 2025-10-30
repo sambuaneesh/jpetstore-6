@@ -1,0 +1,142 @@
+{
+  "tool": {
+    "decomposition": {
+      "Account Service": [
+        {
+          "id": "Account"
+        },
+        {
+          "id": "AccountMapper"
+        },
+        {
+          "id": "AccountService"
+        },
+        {
+          "id": "AccountActionBean"
+        },
+        {
+          "id": "AccountMapperTest"
+        },
+        {
+          "id": "AccountServiceTest"
+        },
+        {
+          "id": "AccountActionBeanTest"
+        }
+      ],
+      "Catalog Service": [
+        {
+          "id": "Category"
+        },
+        {
+          "id": "Item"
+        },
+        {
+          "id": "Product"
+        },
+        {
+          "id": "CategoryMapper"
+        },
+        {
+          "id": "ItemMapper"
+        },
+        {
+          "id": "ProductMapper"
+        },
+        {
+          "id": "CatalogService"
+        },
+        {
+          "id": "CatalogActionBean"
+        },
+        {
+          "id": "CategoryMapperTest"
+        },
+        {
+          "id": "ItemMapperTest"
+        },
+        {
+          "id": "ProductMapperTest"
+        },
+        {
+          "id": "CatalogServiceTest"
+        },
+        {
+          "id": "CatalogActionBeanTest"
+        }
+      ],
+      "Cart Service": [
+        {
+          "id": "Cart"
+        },
+        {
+          "id": "CartItem"
+        },
+        {
+          "id": "CartActionBean"
+        },
+        {
+          "id": "CartTest"
+        }
+      ],
+      "Order Service": [
+        {
+          "id": "LineItem"
+        },
+        {
+          "id": "Order"
+        },
+        {
+          "id": "Sequence"
+        },
+        {
+          "id": "LineItemMapper"
+        },
+        {
+          "id": "OrderMapper"
+        },
+        {
+          "id": "SequenceMapper"
+        },
+        {
+          "id": "OrderService"
+        },
+        {
+          "id": "OrderActionBean"
+        },
+        {
+          "id": "OrderTest"
+        },
+        {
+          "id": "LineItemMapperTest"
+        },
+        {
+          "id": "OrderMapperTest"
+        },
+        {
+          "id": "SequenceMapperTest"
+        },
+        {
+          "id": "OrderServiceTest"
+        },
+        {
+          "id": "OrderActionBeanTest"
+        }
+      ],
+      "Shared Infrastructure Service": [
+        {
+          "id": "AbstractActionBean"
+        },
+        {
+          "id": "ScreenTransitionIT"
+        },
+        {
+          "id": "MapperTestContext"
+        },
+        {
+          "id": "MavenWrapperDownloader"
+        }
+      ]
+    }
+  }
+}
