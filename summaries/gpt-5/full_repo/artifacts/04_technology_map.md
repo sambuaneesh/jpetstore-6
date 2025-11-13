@@ -1,0 +1,11 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+|---|---|---|---|---|---|
+| Presentation (JSP/JSTL Views) | JSP, HTML, CSS | JSP 2.x, JSTL (Apache Taglibs), Stripes Taglib | None | HTTP(S) via Servlet container | MVC View |
+| Web Actions (Stripes ActionBeans) | Java | Stripes 1.6, Spring (DI via Stripes Spring integration) | None | HTTP requests handled by Stripes Dispatcher; in-process calls to Services | MVC Controller, Front Controller (Stripes Dispatcher), SessionScope |
+| Service Layer | Java | Spring 5 (Context, JDBC, TX), MyBatis-Spring 2.x | None (delegates to mappers) | In-process method calls; transactions via Spring AOP | Service Layer, Transaction Script, Dependency Injection |
+| Persistence Layer (MyBatis Mappers + XML) | Java (interfaces), XML | MyBatis 3.5, MyBatis-Spring 2.x, Apache Commons DBCP2 | MySQL 8 (runtime), HSQLDB (tests) | JDBC via MyBatis | Data Mapper, Repository-like |
+| Domain Model | Java | (Light use of Stripes @Validate annotations) | None | In-process | POJOs (Entities/Value Objects) |
+| Configuration & Bootstrapping | XML (Spring, web.xml), Java (Maven plugins) | Spring Container, Servlet API, Cargo Maven Plugin, Maven (WAR packaging) | Configures DataSource (DBCP2) | Servlet Filter/Dispatcher mappings; Spring IoC wiring; Property placeholder (.env) | Inversion of Control, Externalized Configuration, Front Controller |
+| Database & Schema Scripts | SQL | — | MySQL 8 (docker-compose), HSQLDB (embedded for tests) | SQL over JDBC | Relational Schema, Sequence Table |
+| Containerization & Deployment | Dockerfile, YAML | Docker, Docker Compose, Tomcat 9 (via Cargo), OpenJDK 17 | MySQL 8 container | HTTP 8080 exposed/mapped (compose 9050->8080); container networking | Containerization, Infrastructure as Code |
+| Testing (Unit, Integration, UI) | Java | JUnit 5, Mockito, AssertJ, Spring Test, Selenide, Selenium HtmlUnit Driver, Maven Failsafe, Cargo | Embedded HSQLDB (mapper tests); app DB per profile | HTTP to local Tomcat for IT (Selenide baseUrl); JDBC to embedded DB | Unit Testing, Integration/E2E Testing |
