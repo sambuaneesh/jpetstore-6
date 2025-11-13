@@ -1,0 +1,15 @@
+{
+  "validation": {
+    "status": "success",
+    "output": "\n\ud83d\udccb Validation Results for: gemini_only_decomposition_results/decomposition.json\n============================================================\n\n\u26a0\ufe0f  WARNINGS (1):\n  1. Consider adding 'uncounted' category for unassigned classes\n\n\u2705 FORMAT VALID! Only minor warnings.\n\n\ud83d\udcca Statistics:\n  - Total Services: 4\n  - Total Classes: 24\n  - Average Classes per Service: 6.0\n\n\ud83d\udce6 Service Breakdown:\n  - Account Service: 5 classes\n  - Cart Service: 3 classes\n  - Catalog Service: 8 classes\n  - Order Service: 8 classes\n"
+  },
+  "metrics": {
+    "status": "success",
+    "file": "gemini_only_decomposition_results/metrics.json",
+    "values": {
+      "cmod": 69.57612536775557,
+      "cid": 100.0,
+      "di": 71.31142750379344
+    }
+  }
+}

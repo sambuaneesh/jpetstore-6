@@ -1,0 +1,2740 @@
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/order/ViewOrder.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	Return to Main Menu</stripes:link></div>
+
+<div id="Catalog">
+
+<table>
+	<tr>
+		<th align="center" colspan="2">Order #${actionBean.order.orderId}
+		<fmt:formatDate value="${actionBean.order.orderDate}"
+			pattern="yyyy/MM/dd hh:mm:ss" /></th>
+	</tr>
+	<tr>
+		<th colspan="2">Payment Details</th>
+	</tr>
+	<tr>
+		<td>Card Type:</td>
+		<td><c:out value="${actionBean.order.cardType}" /></td>
+	</tr>
+	<tr>
+		<td>Card Number:</td>
+		<td><c:out value="${actionBean.order.creditCard}" /> * Fake
+		number!</td>
+	</tr>
+	<tr>
+		<td>Expiry Date (MM/YYYY):</td>
+		<td><c:out value="${actionBean.order.expiryDate}" /></td>
+	</tr>
+	<tr>
+		<th colspan="2">Billing Address</th>
+	</tr>
+	<tr>
+		<td>First name:</td>
+		<td><c:out value="${actionBean.order.billToFirstName}" /></td>
+	</tr>
+	<tr>
+		<td>Last name:</td>
+		<td><c:out value="${actionBean.order.billToLastName}" /></td>
+	</tr>
+	<tr>
+		<td>Address 1:</td>
+		<td><c:out value="${actionBean.order.billAddress1}" /></td>
+	</tr>
+	<tr>
+		<td>Address 2:</td>
+		<td><c:out value="${actionBean.order.billAddress2}" /></td>
+	</tr>
+	<tr>
+		<td>City:</td>
+		<td><c:out value="${actionBean.order.billCity}" /></td>
+	</tr>
+	<tr>
+		<td>State:</td>
+		<td><c:out value="${actionBean.order.billState}" /></td>
+	</tr>
+	<tr>
+		<td>Zip:</td>
+		<td><c:out value="${actionBean.order.billZip}" /></td>
+	</tr>
+	<tr>
+		<td>Country:</td>
+		<td><c:out value="${actionBean.order.billCountry}" /></td>
+	</tr>
+	<tr>
+		<th colspan="2">Shipping Address</th>
+	</tr>
+	<tr>
+		<td>First name:</td>
+		<td><c:out value="${actionBean.order.shipToFirstName}" /></td>
+	</tr>
+	<tr>
+		<td>Last name:</td>
+		<td><c:out value="${actionBean.order.shipToLastName}" /></td>
+	</tr>
+	<tr>
+		<td>Address 1:</td>
+		<td><c:out value="${actionBean.order.shipAddress1}" /></td>
+	</tr>
+	<tr>
+		<td>Address 2:</td>
+		<td><c:out value="${actionBean.order.shipAddress2}" /></td>
+	</tr>
+	<tr>
+		<td>City:</td>
+		<td><c:out value="${actionBean.order.shipCity}" /></td>
+	</tr>
+	<tr>
+		<td>State:</td>
+		<td><c:out value="${actionBean.order.shipState}" /></td>
+	</tr>
+	<tr>
+		<td>Zip:</td>
+		<td><c:out value="${actionBean.order.shipZip}" /></td>
+	</tr>
+	<tr>
+		<td>Country:</td>
+		<td><c:out value="${actionBean.order.shipCountry}" /></td>
+	</tr>
+	<tr>
+		<td>Courier:</td>
+		<td><c:out value="${actionBean.order.courier}" /></td>
+	</tr>
+	<tr>
+		<td colspan="2">Status: <c:out value="${actionBean.order.status}" /></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+		<table>
+			<tr>
+				<th>Item ID</th>
+				<th>Description</th>
+				<th>Quantity</th>
+				<th>Price</th>
+				<th>Total Cost</th>
+			</tr>
+			<c:forEach var="lineItem" items="${actionBean.order.lineItems}">
+				<tr>
+					<td><stripes:link
+						beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+						event="viewItem">
+						<stripes:param name="itemId" value="${lineItem.item.itemId}" />
+						${lineItem.item.itemId}
+					</stripes:link></td>
+					<td><c:if test="${lineItem.item != null}">
+						${lineItem.item.attribute1}
+						${lineItem.item.attribute2}
+						${lineItem.item.attribute3}
+						${lineItem.item.attribute4}
+						${lineItem.item.attribute5}
+						${lineItem.item.product.name}
+					</c:if> <c:if test="${lineItem.item == null}">
+						<i>{description unavailable}</i>
+					</c:if></td>
+
+					<td>${lineItem.quantity}</td>
+					<td>$<fmt:formatNumber value="${lineItem.unitPrice}"
+						pattern="#,##0.00" /></td>
+					<td>$<fmt:formatNumber value="${lineItem.total}"
+						pattern="#,##0.00" /></td>
+				</tr>
+			</c:forEach>
+			<tr>
+				<th colspan="5">Total: $<fmt:formatNumber
+					value="${actionBean.order.totalPrice}" pattern="#,##0.00" /></th>
+			</tr>
+		</table>
+		</td>
+	</tr>
+
+</table>
+
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/site/site.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<site name="${project.name}" xmlns="http://maven.apache.org/SITE/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd">
+
+  <body>
+    <menu name="Reference Documentation">
+      <item name="Introduction" href="index.html"/>
+    </menu>
+
+    <menu ref="reports"/>
+  </body>
+</site>
+
+
+
+
+================================================
+FILE: src/site/site_es.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<site name="${project.name}" xmlns="http://maven.apache.org/SITE/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd">
+
+  <body>
+    <menu name="Manual de Referencia">
+      <item name="Código de ejemplo" href="index.html"/>
+    </menu>
+
+    <menu ref="reports"/>
+  </body>
+</site>
+
+
+
+
+================================================
+FILE: src/site/site_ja.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<site name="${project.name}" xmlns="http://maven.apache.org/SITE/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd">
+
+  <body>
+    <menu name="Reference Documentation">
+      <item name="サンプルコード" href="index.html"/>
+    </menu>
+
+    <menu ref="reports"/>
+  </body>
+</site>
+
+
+
+
+================================================
+FILE: src/site/site_ko.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+
+<site name="${project.name}" xmlns="http://maven.apache.org/SITE/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd">
+
+  <body>
+    <menu name="레퍼런스 문서">
+      <item name="샘플코드" href="index.html"/>
+    </menu>
+
+    <menu ref="reports"/>
+  </body>
+</site>
+
+
+
+
+================================================
+FILE: src/site/es/xdoc/index.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>MyBatis-Spring | Código de ejemplo</title>
+    <author email="hpresnall@gmail.com">Hunter Presnall</author>
+    <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
+  </properties>
+
+  <body>
+    <section name="Código de ejemplo">
+      <p>
+        JPetStore 6 es una aplicación web completa construida sobre MyBatis 3,
+      	<a href="http://projects.spring.io/spring-framework/">Spring 4</a> y <a href="http://www.stripesframework.org/">Stripes</a>.
+        Está disponible para su descarga en la sección de
+        <a href="https://github.com/mybatis/jpetstore-6/releases">downloads</a> del repositorio Github de MyBatis 3.
+        En esta sección haremos un recorrido por este ejemplo para comprender cómo está construido y cómo ejecutarlo.
+      </p>
+      <subsection name="Propósito">
+      	<p>
+      	Esta nueva versión de JPetStore viene con la misma idea en mente que sus precedesores: <strong>hazlo fácil</strong>.
+      	El propósito principal de JPetStore 6 es demostrar que una aplicación web completa puede construirse con sólo unas pocas clases,
+      	y lo que es más importante,	sin necesidad de tener grandes conocimientos de programación. Sólo necesitas saber java básico y SQL.
+      	</p>
+      	<p>
+      	La sexta versión de JPetStore es la más pequeña de la familia, un 20% más pequeña que su predecesora.
+      	Sólo usa 24 clases y conserva un buen diseño y estructura de programa.
+      	</p>
+      	<pre>
+eduardo@nomada ~ $ ./cloc-1.60.pl ~/git/jpetstore-6/src/main/
+      60 text files.
+      60 unique files.
+       3 files ignored.
+
+http://cloc.sourceforge.net v 1.60  T=0.28 s (209.8 files/s, 17722.9 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Java                            24            480            462           1429
+JSP                             20            148              0            984
+XML                              9             79            120            405
+CSS                              1             46              0            277
+SQL                              2             26             30            226
+HTML                             2             44              0            143
+-------------------------------------------------------------------------------
+SUM:                            58            823            612           3464
+-------------------------------------------------------------------------------
+      	</pre>
+      	<p>
+      	Como veremos un poco después, no encontrarás código JDBC, de creación de objetos, de enlace de objetos o de gestión de transacciones.
+      	Y lo que es más sorprendente es que <strong>¡no encontrarás ninguna llamada al API de MyBatis!</strong>. A pesar de que esto suena a mágia,
+      	verás que la combinación de los mappers de MyBatis con la inyección de dependencias te permite realizar aplicaciones libres de dependencia
+      	de MyBatis.
+      	</p>
+      </subsection>
+      <subsection name="Estructura del código">
+      	<p> JPetStore 6 sigue la típica estructura de una aplicación maven.</p>
+<pre>/jpetstore                    <tt>&lt;-- El fichero maven pom.xml va aqui.</tt>
+  /src
+    /main/
+      /java                   <tt>&lt;-- El código java va aqui.</tt>
+        /org/
+          /mybatis
+            /jpetstore
+              /domain         <tt>&lt;-- Los objetos de negocio van aqui.</tt>
+              /mapper         <tt>&lt;-- Las mapper interfaces van aqui.</tt>
+              /service        <tt>&lt;-- La lógica de aplicación va aqui.</tt>
+              /web
+                /actions      <tt>&lt;-- La lógica de presentación (actions) van aqui.</tt>
+      /resources              <tt>&lt;-- Aqui van los recursos no-java.</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /mapper         <tt>&lt;-- Los ficheros XML de mapeo van aqui.</tt>
+        /database
+      /webapp
+        /css
+        /images
+        /WEB-INF              <tt>&lt;-- web.xml y applicationContext.xml están aqui.</tt>
+          /jsp                <tt>&lt;-- los ficheros JSP van aqui.</tt>
+      </pre>
+      </subsection>
+
+      <subsection name="Ficheros de configuración">
+      <p>
+      Los ficheros de configuración se leen durante el arranque de la aplicación. Su propósito es configurar los tres
+      frameworks que componen la aplicación: Stripes, Spring y MyBatis. Sólo tendremos que configurar
+      dos ficheros: web.xml y applicationContext.xml.
+      </p>
+      <h4>web.xml</h4>
+      <p>
+      Primeramente debemos arrancar Stripes, asi que, para ello, seguimos el manual de Stripes. El manual indica
+      que debe configurarse un dispatcher servlet y un filtro filter. Vamos allá.
+      </p>
+<source><![CDATA[
+<filter>
+	<display-name>Stripes Filter</display-name>
+	<filter-name>StripesFilter</filter-name>
+	<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+</filter>
+<filter-mapping>
+	<filter-name>StripesFilter</filter-name>
+	<servlet-name>StripesDispatcher</servlet-name>
+	<dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+<servlet>
+	<servlet-name>StripesDispatcher</servlet-name>
+	<servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+	<load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+	<servlet-name>StripesDispatcher</servlet-name>
+	<url-pattern>*.action</url-pattern>
+</servlet-mapping>
+]]></source>
+
+	<p>
+	Stripes es capaz de buscar los ActionBeans, para ello debemos configurar el paquete base desde el que debe comenzar la búsqueda.</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  <init-param>
+    <param-name>ActionResolver.Packages</param-name>
+    <param-value>org.mybatis.jpetstore.web</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+	<p>
+	Hemos acabado con Stripes. Continuemos con la parte de Spring. Según el manual de Spring debemos añadir un context listener
+	para arrancar Spring asi que añadámoslo:</p>
+
+<source><![CDATA[
+<listener>
+  <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+]]></source>
+
+	<p>
+	Por defecto Spring usa el fichero de configuración <code>/WEB-INF/applicationContext.xml</code> si no indicamos uno distinto.
+	El valor por defecto está bien para nosotros.
+	</p>
+
+	<p>
+	Ahora tenemos que decirle a Stripes que va a ejecutarse junto con Spring. De esta forma seremos capaces de
+	inyectar beans de Spring en ActionBeans de Stripes. Para ello, siguiendo una vez más el manual de Stripes, configuramos un interceptor
+	como sigue:
+	</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  ...
+  <init-param>
+    <param-name>Interceptor.Classes</param-name>
+    <param-value>net.sourceforge.stripes.integration.spring.SpringInterceptor</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+      <p>
+      Hemos acabado con el web.xml. Como habrás notado, no hemos realizado ninguna configuración de MyBatis 3 aun.
+      Esa configuración va en el fichero applicationContext.xml de Spring y la veremos en la siguiente seccion.
+      section.
+      </p>
+
+      <h4>applicationContext.xml</h4>
+      <p>
+      Como ya sabes el fichero applicationContext.xml es el fichero de configuración de Spring. Spring es un framework
+      de inyección de dependencias y debe conocer qué beans debe crear y como enlazarlos y esto es precisamente para lo que
+      sirve el applicationContext.xml. Echémosle un vistazo.
+      </p>
+
+      <p>
+      La primera tarea y la más sencilla que debemos hacer es indicarle a Spring donde buscar nuestros beans de servicio.
+      Dejaremos que Spring los busque en nuestro classpath y para ello tenemos que indicar a Spring el paquete base donde comenzar la búsqueda:
+      </p>
+
+<source><![CDATA[
+<context:component-scan base-package="org.mybatis.jpetstore.service" />
+]]></source>
+
+	  <p>
+	  <span class="label important">NOTA</span> Spring no es capaz de localizar de forma automática los mappers de MyBatis.
+	  Un mapper no es un bean normal y Spring no conocería cómo instanciarlos. Necesitaremos un
+	  <code>MapperScannerConfigurer</code> para esta tarea, como veremos pronto.
+	  </p>
+
+	  <p>
+	  Necesitaremos también un <code>DataSource</code> y un <code>TransactionManager</code>. Como esto es una aplicación de demo usaremos
+	  un <code>DataSource</code> de test de Spring que crea una base de datos HSQL en memoria y carga en ella los scripts de datos,
+	  y el <code>DataSourceTransactionManager</code> estándar de Spring para gestionar transacciones.
+	  </p>
+
+<source><![CDATA[
+<jdbc:embedded-database id="dataSource">
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-schema.sql"/>
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-dataload.sql"/>
+</jdbc:embedded-database>
+
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+	  <p>
+	  Hasta ahora, todo lo que hemos hecho es configurar Stripes y Spring y ya es momento de movernos a la parte de MyBatis.
+	  Como ya has aprendido del manual de MyBatis para configurar MyBatis con Spring necesitas al menos dos cosas:
+	  un <code>SqlSessionFactoryBean</code> y un mapper. Asi que pongámonos manos a la obra.
+	  Primeramente definimos un <code>SqlSessionFactoryBean</code>:
+	  </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+      <p>
+      Y ahora tenemos que configurar nuestros mappers. Para ello vamos a usar un <code>MapperScannerConfigurer</code>
+      que funciona de forma similar al component scan de Spring. El buscará mappers en nuestro classpath y los registrará en Spring.
+      De forma similar a como hicimos con el component-scan de Spring debemos configurar un paquete base donde iniciar la búsqueda.
+      </p>
+
+<source><![CDATA[
+<mybatis:scan base-package="org.mybatis.jpetstore.mapper" />
+]]></source>
+
+      <p>
+      Para escribir algo menos en nuestros ficheros de mapeo XML podemos utilizar alias cortos para nuestros beans.
+      El <code>SqlSessionFactoryBean</code> tiene la capacidad de buscar beans y registrar sus nombres cortos como alias si
+      configuramosla propiedad <code>typeAliasPackage</code> como sigue:
+      </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="typeAliasesPackage" value="org.mybatis.jpetstore.domain" />
+</bean>
+]]></source>
+
+		<p>
+		Nuestra aplicación está completamente configurada y lista para ejecutarse. Pero antes que eso demos un paseo por el código
+		para ver qué pinta tiene.
+		</p>
+
+      </subsection>
+
+      <subsection name="Paseo por el código">
+      <p>JPetStore 6 es una aplicación MVC típica con tres capas: presentación, logica y acceso a datos.
+      </p>
+      <h4>Presentación</h4>
+      <p>
+      La capa de presentación está compuesta por ficheros JSP y ActionBeans de Stripes. Los JSPs usan HTML simple,
+      tags JSTL y tagas de Stripes asi que no hay nada especial sobre ellos de cara a este ejemplo. Los ActionBeans de
+      Stripes son como los actions de Struts o los controllers de Spring MVC asi que tampoco hay nada especial acerca de ellos.
+      </p>
+      <p>
+      Dado que hemos integrado Stripes con Spring, podemos inyectar nuestros servcios en nuestros ActionBeans de forma que podemos
+      simplemente usarlos sin preocuparnos de crearlos o buscarlos. Echa un vistazo al <code>CatalogActionBean</code>:</p>
+
+<source><![CDATA[
+@SessionScope
+public class CatalogActionBean extends AbstractActionBean {
+  ...
+  @SpringBean
+  private transient CatalogService catalogService;
+  ...
+  public ForwardResolution viewCategory() {
+    if (categoryId != null) {
+      productList = catalogService.getProductListByCategory(categoryId);
+      category = catalogService.getCategory(categoryId);
+    }
+    return new ForwardResolution(VIEW_CATEGORY);
+  }
+  ...
+]]></source>
+
+	  <p>
+	  Fíjate que en la anotación <code>@SpringBean</code> annotation, que es una anotación de Stripes que le indica
+	  a Stripes que busque este bean en Spring y lo inyecte en el ActionBean.</p>
+
+      <h4>Lógica</h4>
+      <p>
+      La lógica de aplicación está compuesta de Java beans planos que actuan como servicios y Java beans planos que
+      actúan como objetos de dominio. Esta capa se encarga de rellenar objetos de dominio con datos de base de datos y
+      de modificar la base de datos con el contenido de estos mismos objetos. Para ello esta capa debe ser transaccional, esto es,
+      debe ser capaz de ralizar modificaciones atómicas en la base de datos.
+      </p>
+      <p>Veamos la clase <code>OrderService</code> para ver cómo hemos hecho todo esto:
+      </p>
+
+<source><![CDATA[
+@Service
+public class OrderService {
+
+  @Autowired
+  private ItemMapper itemMapper;
+  @Autowired
+  private OrderMapper orderMapper;
+  @Autowired
+  private LineItemMapper lineItemMapper;
+
+  @Transactional
+  public void insertOrder(Order order) {
+    order.setOrderId(getNextId("ordernum"));
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      String itemId = lineItem.getItemId();
+      Integer increment = new Integer(lineItem.getQuantity());
+      Map<String, Object> param = new HashMap<String, Object>(2);
+      param.put("itemId", itemId);
+      param.put("increment", increment);
+      itemMapper.updateInventoryQuantity(param);
+    }
+
+    orderMapper.insertOrder(order);
+    orderMapper.insertOrderStatus(order);
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      lineItem.setOrderId(order.getOrderId());
+      lineItemMapper.insertLineItem(lineItem);
+    }
+  }
+]]></source>
+
+      <p>
+      Lo primero que habrás notado es que no hay código JDBC en el servicio y tampoco código de MyBatis.
+      Puedes pensar que hemos usado el patron DAO y que el código de acceso a base de datos está en la capa de acceso a datos,
+      pero como veremos después, la capa de acceso a base de datos está construida con mappers de MyBatis, que son
+      interfaces java simples, y este es el motivo por el que <strong>no encontraás ninguna llamada al API de MyBatis en toda la aplicación</strong>.
+      Simplemente no es necesario.
+      </p>
+
+      <p>
+      Lo segundo en lo que te puedes haber fijado es que no hay commits ni rollbacks. Esto es porque el código usa
+      la demarcación de transacciones declarativa de Spring que se soporta completamente en MyBatis-Spring.
+      La anotación <code>@Transactional</code> de Spring indica que este método es transaccional,
+      lo que significa que todas las llamadas a mappers <code>updateInventoryQuantity</code>, <code>insertOrder</code> and
+      <code>insertLineItem</code> deben finalizar con éxito. En caso de que alguna de ellas falle, todas las actualizaciones
+      que se hubieran hecho antes se desharán.</p>
+
+      <h4>Persistencia</h4>
+      <p>
+      La capa de persistencia está compuesta por mappers de MyBatis.
+      Los mappers son interfaces Java simples y ficheros XML que contienen las sentencias SQL. No hay código Java en esta capa.
+      Cuando se ejecuta el método <code>getOrder</code> del mapper interface <code>OrderMapper</code>,
+      MyBatis ejecuta la sentencia SQL del stamtent getOrder del ficheroOrderMapper.xml file y rellena el bean
+      de dominio <code>Order</code> con los datos obtenidos.
+      </p>
+
+<source><![CDATA[
+public interface OrderMapper {
+  List<Order> getOrdersByUsername(String username);
+  Order getOrder(int orderId);
+  void insertOrder(Order order);
+  void insertOrderStatus(Order order);
+}]]></source>
+
+<source><![CDATA[
+<mapper namespace="org.mybatis.jpetstore.mapper.OrderMapper">
+
+  <cache />
+
+  <select id="getOrder" resultType="Order" parameterType="int">
+    SELECT
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.ORDERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+  </select>
+  ...
+</mapper>
+]]></source>
+
+      <p>
+      <span class="label important">NOTE</span>
+      Puedes añadir caché a tus queries fácilmente añadiendo un elemento &lt;cache /&gt; a tu fichero de mapeo XML.
+      </p>
+
+      </subsection>
+
+      <subsection name="Running JPetStore">
+        <p>Te prenguntarás. ¿Esto funciona? ¡Sí! Ejecutémoslo.</p>
+        <p>Asumiendo que tienes un PC limpio estos son los pasos que debes seguir para ejecutar el ejemplo en Tomcat.</p>
+        <ul>
+          <li>Vea <a href="https://github.com/mybatis/jpetstore-6#running-with-tomcat" target="how-to-run">aquí</a></li>
+        </ul>
+
+        <p>
+          Ya estás listo para jugar con la demo, experimentar tus propios cambios o lo que tú quieras.
+        </p>
+        <p>
+          Y recuerda que si encuentras un bug o ves que falta algo o que hay algo mejorable (por ejemplo faltan los tests!),
+          haz un fork del repositorio, cámbialo y abre un pull request. Gracias de antemano!
+        </p>
+        <p>
+          <span class="label important">NOTE</span>
+		  JPetStore y debe ejecutarse en cualquier servidor compatible Servlet 2.5 y JSP 2.1. Tampoco es necesario NetBeans o Eclipse,
+		  puedes ejecutarlo desde tu IDE favorito o desde la línea de comando.
+        </p>
+      </subsection>
+    </section>
+  </body>
+</document>
+
+
+
+================================================
+FILE: src/site/ja/xdoc/index.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>MyBatis-Spring | サンプルコード</title>
+    <author email="hpresnall@gmail.com">Hunter Presnall</author>
+    <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
+    <author email="harawata@gmail.com">Iwao AVE!</author>
+  </properties>
+
+  <body>
+    <section name="サンプルコード">
+      <p>
+        JPetStore 6 は MyBatis 3, <a href="http://projects.spring.io/spring-framework/">Spring 4</a> そして <a href="http://www.stripesframework.org/">Stripes</a> を使って構築された Web Application で、<a href="https://github.com/mybatis/jpetstore-6/releases">downloads</a> セクションからダウンロードすることができます。
+        この章では、このサンプルを見ながら実用的な Web Application の構築方法と実行方法について説明します。
+      </p>
+      <subsection name="目的">
+      <p>
+        この新しい JPetStore は、以前の版と同じ思想、つまり <strong>シンプルさ</strong> を重視しています。
+        JPetStore 6 は、僅かなクラスで完全な Web Application が構築可能で、そのために高度なコーディングスキルが必要な訳ではない、ということを証明するために開発されました。
+        必要なのは Java と SQL の基礎知識だけです。
+      </p>
+      	<pre>
+eduardo@nomada ~ $ ./cloc-1.60.pl ~/git/jpetstore-6/src/main/
+      60 text files.
+      60 unique files.
+       3 files ignored.
+
+http://cloc.sourceforge.net v 1.60  T=0.28 s (209.8 files/s, 17722.9 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Java                            24            480            462           1429
+JSP                             20            148              0            984
+XML                              9             79            120            405
+CSS                              1             46              0            277
+SQL                              2             26             30            226
+HTML                             2             44              0            143
+-------------------------------------------------------------------------------
+SUM:                            58            823            612           3464
+-------------------------------------------------------------------------------
+      	</pre>
+
+      <p>
+        ６バージョン目となる今回の JPetStore は、最も小さいものとなりました。
+        設計の良さとプログラム構成を維持しながら、使用している Java クラスはたったの 24 です。
+        この後見ていきますが、JDBC の呼び出しやオブジェクトの生成、バインディングやトランザクション処理を行うコードはありません。
+        さらに凄いのは、<strong>MyBatis の API を呼び出すコードもない</strong>ということです。
+        不思議に思われるかも知れませんが、このサンプルを見れば MyBatis の Mapper と Dependency Injection を組み合わせることで、MyBatis に依存しないアプリケーションを構築することができるということがお分かり頂けると思います。
+      	</p>
+      </subsection>
+      <subsection name="プログラム構成">
+      	<p> JPetStore 6 では、標準的な Maven プロジェクトのディレクトリ構成を踏襲しています。</p>
+<pre>/jpetstore                    <tt>&lt;-- Maven pom.xml </tt>
+  /src
+    /main/
+      /java                   <tt>&lt;-- Java コード</tt>
+        /org/
+          /mybatis
+            /jpetstore
+              /domain         <tt>&lt;-- ドメインオブジェクト</tt>
+              /mapper         <tt>&lt;-- Mapper インターフェイス</tt>
+              /service        <tt>&lt;-- アプリケーションロジック</tt>
+              /web
+                /actions      <tt>&lt;-- プレゼンテーションロジック（アクション）</tt>
+      /resources              <tt>&lt;-- Java 以外のファイル</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /mapper         <tt>&lt;-- Mapper XML ファイル</tt>
+        /database
+      /webapp
+        /css
+        /images
+        /WEB-INF              <tt>&lt;-- web.xml および applicationContext.xml</tt>
+          /jsp                <tt>&lt;-- JSP ファイル</tt>
+      </pre>
+      </subsection>
+
+      <subsection name="設定ファイル">
+      <p>
+      一連の設定ファイルはアプリケーション起動時に読み込まれます。
+      これらのファイルは、アプリケーションを構成する３つのフレームワークを設定するために必要です。
+      必要となるファイルは web.xml と applicationContext.xml の２つだけです。
+      </p>
+      <h4>web.xml</h4>
+      <p>
+      まずはじめに Stripes を開始する必要があるので、Stripes のマニュアルに従って設定していきます。
+      マニュアルによれば、Dispatcher Servlet と Filter を登録する必要があるようです。<br />
+      早速やってみましょう。
+      </p>
+<source><![CDATA[
+<filter>
+	<display-name>Stripes Filter</display-name>
+	<filter-name>StripesFilter</filter-name>
+	<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+</filter>
+<filter-mapping>
+	<filter-name>StripesFilter</filter-name>
+	<servlet-name>StripesDispatcher</servlet-name>
+	<dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+<servlet>
+	<servlet-name>StripesDispatcher</servlet-name>
+	<servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+	<load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+	<servlet-name>StripesDispatcher</servlet-name>
+	<url-pattern>*.action</url-pattern>
+</servlet-mapping>
+]]></source>
+
+	<p>Stripes が ActionBean クラスを検出する際、検索対象となるパッケージを指定します。</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  <init-param>
+    <param-name>ActionResolver.Packages</param-name>
+    <param-value>org.mybatis.jpetstore.web</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+	<p>Stripes に関する設定は以上です。次に Spring の設定を行います。
+	Spring のマニュアルによれば、Spring を開始するために Context Listener を登録する必要があるようです。<br />
+	早速やってみましょう。</p>
+
+<source><![CDATA[
+<listener>
+  <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+]]></source>
+
+	<p>特に指定しなければ、Spring は <code>/WEB-INF/applicationContext.xml</code> を設定ファイルとして使用します。デフォルトの設定で問題ないので次へ進みます。
+	</p>
+
+	<p>Spring を使用することを Stripes にも教えておく必要があります。これによって、Spring Bean を直接 Stripes の ActionBean にインジェクトできるようになります。
+	再度 Stripes のマニュアルに従って Interceptor を登録します。
+	</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  ...
+  <init-param>
+    <param-name>Interceptor.Classes</param-name>
+    <param-value>net.sourceforge.stripes.integration.spring.SpringInterceptor</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+      <p>web.xml は完成です。気づいたかも知れませんが、MyBatis 3 に関してはまだ何も設定していません。
+      次のセクションで説明しますが、Spring の applicationContext.xml の方で行います。
+      </p>
+
+      <h4>applicationContext.xml</h4>
+      <p>ご存知のように、applicationContext.xml は Spring の設定ファイルです。
+      依存性注入フレームワークである Spring に、どの Bean を生成し、どのように依存性を解決するかを指示するのが applicationContext.xml の役目です。詳しく見て行きましょう。
+      </p>
+      <p>
+        まずは、どこに Service Bean が配置されているか指定しましょう。Spring はクラスパス内を検索しますので、起点となるパッケージを指定するだけで OK です。
+      </p>
+
+<source><![CDATA[
+<context:component-scan base-package="org.mybatis.jpetstore.service" />
+]]></source>
+
+      <p>
+      <span class="label important">NOTE</span> Spring のコンポーネントスキャン機能では、MyBatis の Mapper を検出することはできません。
+      Mapper は通常の Bean ではないので、どのように初期化すれば良いか Spring には分かりません。
+      すぐ後で説明するように、Mapper は <code>MapperScannerConfigurer</code> を使って生成します。
+      </p>
+
+      <p><code>DataSource</code> と <code>TransactionManager</code> も必要です。このアプリケーションはデモなので、HSQL のインメモリデータベースを作成して用意されたデータを流し込むテスト用の <code>DataSource</code> と、トランザクションのために標準的な <code>DataSourceTransactionManager</code> を使用します。
+      </p>
+
+<source><![CDATA[
+<jdbc:embedded-database id="dataSource">
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-schema.sql"/>
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-dataload.sql"/>
+</jdbc:embedded-database>
+
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+      <p>ここまでは Stripes と Spring に関する標準的な設定のみでしたが、ここからは MyBatis に関する設定を行なっていきます。
+      このマニュアルで学んだように、MyBatis を Spring と連携させる場合、最低必要となるのは <code>SqlSessionFactoryBean</code> と Mapper クラスの２つです。
+      まずは <code>SqlSessionFactoryBean</code> を定義しましょう。
+      </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+      <p>次に Mapper の設定が必要ですが、ここでは Spring のコンポーネントスキャンと似たような機能を持った <code>MapperScannerConfigurer</code> を使います。
+      このクラスはクラスパスを検索して、検出した Mapper クラスを MyBatis に登録します。Spring のコンポーネントスキャンと同様、起点となるパッケージを指定する必要があります。
+      </p>
+
+<source><![CDATA[
+<mybatis:scan base-package="org.mybatis.jpetstore.mapper" />
+]]></source>
+
+      <p>Mapper XML ファイルを作成する際のタイピング量を減らすため、Bean のエイリアスを使いましょう。
+      <code>SqlSessionFactoryBean</code> の <code>typeAliasPackage</code> で Bean の検索対象を指定しておくと、短縮名で Bean を参照できるようになります。
+      </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="typeAliasesPackage" value="org.mybatis.jpetstore.domain" />
+</bean>
+]]></source>
+
+      <p>これで設定は完了ですが、実行する前にコード全体の構成を確認してみましょう。
+      </p>
+
+      </subsection>
+
+      <subsection name="コードの概要">
+      <p>JPetStore 6 は典型的な MVC アプリケーションで、プレゼンテーション層、ビジネスロジック層、データアクセス層の３つで構成されています。</p>
+      <h4>プレゼンテーション層</h4>
+      <p>プレゼンテーション層は、JSP ファイルと Stripes の ActionBean で構成されています。
+      JSP で使っているのは HTML、JSTL タグ、Stripes タグのみなので、このサンプルに関しては特筆すべきことはありません。
+      Stripes の ActionBean は Struts のアクションや Spring MVC のコントローラーに相当するクラスで、これについても特別なことはありません。
+      </p>
+      <p>Stripes と Spring を連携できるように設定したので、Service を ActionBean にインジェクトすることができます。これによって生成や参照取得について考えなくても Service を利用することができます。
+      例として、<code>CatalogActionBean</code> を見てみましょう。</p>
+
+<source><![CDATA[
+@SessionScope
+public class CatalogActionBean extends AbstractActionBean {
+  ...
+  @SpringBean
+  private transient CatalogService catalogService;
+  ...
+  public ForwardResolution viewCategory() {
+    if (categoryId != null) {
+      productList = catalogService.getProductListByCategory(categoryId);
+      category = catalogService.getCategory(categoryId);
+    }
+    return new ForwardResolution(VIEW_CATEGORY);
+  }
+  ...
+]]></source>
+
+	  <p><code>@SpringBean</code> アノテーションによって、Spring に登録されている Bean が ActionBean に注入されます。</p>
+
+      <h4>ロジック層</h4>
+      <p>アプリケーションロジック層は、サービスとして動作する Plain な Java Bean と、ドメインとして動作する Plain な Java Bean によって構成されています。
+      この層では、データベースから取得したデータをドメインオブジェクトに設定する処理と、ドメインオブジェクトのデータを使ってデータベースを更新する処理を担当しています。
+      そのため、この層はトランザクショナル、つまり複数のデータベース更新処理をまとめて実行できるようになっている必要があります。
+      </p>
+      <p>これをどのようにして実現しているのか、<code>OrderService</code> を見てみましょう。
+      </p>
+
+<source><![CDATA[
+@Service
+public class OrderService {
+
+  @Autowired
+  private ItemMapper itemMapper;
+  @Autowired
+  private OrderMapper orderMapper;
+  @Autowired
+  private LineItemMapper lineItemMapper;
+
+  @Transactional
+  public void insertOrder(Order order) {
+    order.setOrderId(getNextId("ordernum"));
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      String itemId = lineItem.getItemId();
+      Integer increment = new Integer(lineItem.getQuantity());
+      Map<String, Object> param = new HashMap<String, Object>(2);
+      param.put("itemId", itemId);
+      param.put("increment", increment);
+      itemMapper.updateInventoryQuantity(param);
+    }
+
+    orderMapper.insertOrder(order);
+    orderMapper.insertOrderStatus(order);
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      lineItem.setOrderId(order.getOrderId());
+      lineItemMapper.insertLineItem(lineItem);
+    }
+  }
+]]></source>
+
+      <p>まず気づくのは、サービスなのに JDBC 関連のコードや MyBatis 関連のコードがないということです。
+      DAO パターンを使っていてデータベースアクセスのコードは DAO 側に記述してあるのだろう、と思うかも知れませんが、後で見るようにデータアクセス層は通常の Java インターフェイスである MyBatis Mapper で構築されています。
+      こうした構成にしておくことで、アプリケーション全体を通して MyBatis API の呼び出しが不要となっているのです。</p>
+
+      <p>次に目立つのは、コミットやロールバックの記述がないという点でしょう。
+      これは MyBatis-Spring がサポートする Spring の宣言的トランザクションを使っているためです。
+      Spring の <code>@Transactional</code> アノテーションは、このメソッドがトランザクション管理の対象であり、<code>updateInventoryQuantity</code>, <code>insertOrder</code>, <code>insertLineItem</code> の一連の呼び出しが全て成功しない限り、コミットされないことを表しています。</p>
+
+      <h4>パーシステンス層</h4>
+      <p>パーシステンス層は MyBatis の Mapper によって構成されています。
+      Mapper は Plain な Java インターフェイスと SQL ステートメントを含む Mapepr XML ファイルです。
+      この層には独自の Java コードはありません。
+      <code>OrderMapper</code> インターフェイスの <code>getOrder</code> メソッドが呼ばれると、MyBatis によって OrderMapper.xml ファイルで定義されている getOrder SQL ステートメントが実行され、データベースから取得したデータが格納された <code>Order</code> ドメインオブジェクトが生成されます。
+      </p>
+
+<source><![CDATA[
+public interface OrderMapper {
+  List<Order> getOrdersByUsername(String username);
+  Order getOrder(int orderId);
+  void insertOrder(Order order);
+  void insertOrderStatus(Order order);
+}]]></source>
+
+<source><![CDATA[
+<mapper namespace="org.mybatis.jpetstore.mapper.OrderMapper">
+
+  <cache />
+
+  <select id="getOrder" resultType="Order" parameterType="int">
+    SELECT
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.ORDERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+  </select>
+  ...
+</mapper>
+]]></source>
+
+      <p>
+      <span class="label important">NOTE</span>
+      Mapper XML ファイルに &lt;cache /&gt; 要素を追加することで、簡単にクエリ結果のキャッシュを有効化することができます。
+      お望みであれば Spring を使ってより高いレベルで Mapper や Service メソッドへの呼び出し結果をキャッシュさせることもできます。
+      </p>
+
+      </subsection>
+
+      <subsection name="JPetStore の実行">
+        <p>本当に動くの？と思うかも知れません。もちろんです！ 実際に試してみましょう。/</p>
+        <p>クリーンなコンピューターを持っているとして、Eclipse 上の Tomcat を使ってサンプルを実行する手順を下記に示します。
+        </p>
+        <ul>
+          <li><a href="https://github.com/mybatis/jpetstore-6#running-with-tomcat" target="how-to-run">こちら</a>を参照してください。</li>
+        </ul>
+        <p>
+          これで戯れる準備ができました。自由に変更を加えていろいろ試してみてください。
+        </p>
+        <p>
+          不具合や不備、改善点など（例えばテストケースが無いとか！）を見つけたら、変更内容の diff ファイルをパッチにして <a href="http://code.google.com/p/mybatis/issues/entry">トラッカー</a> にチケットを作成してください。よろしくお願いします！
+        </p>
+        <p>
+          <span class="label important">NOTE</span>
+          JPetStore 6 は Servlet 2.5 と JSP 2.1 をサポートする Java Server で動作します。
+          NetBeans や Eclipse も必須ではありません。お好きな IDE やコマンドラインで実行することができます。
+        </p>
+      </subsection>
+    </section>
+  </body>
+</document>
+
+
+
+================================================
+FILE: src/site/ko/xdoc/index.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>마이바티스 스프링 연동모듈 | 샘플코드</title>
+    <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
+    <author email="fromm0@gmail.com">이동국(한국어 번역)</author>
+  </properties>
+
+  <body>
+    <section name="Sample Code">
+      <p>JPetStore 6은 마이바티스 3, <a href="http://projects.spring.io/spring-framework/">스프링 4</a> 과
+      <a href="http://www.stripesframework.org/">스트라이프(Stripes)</a>을 사용하는 완전한 웹 애플리케이션이다.
+       마이바티스 프로젝트 사이트에서 <a href="https://github.com/mybatis/jpetstore-6/releases">다운로드(downloads)</a>
+       페이지에서 다운로드가 가능하다. 여기서는 샘플을 빌드하는 방법을 이해하고 실행하는 방법에 대해 배워볼것이다. </p>
+      <subsection name="Purpose">
+      	<p>새로운 JPetStore는 <strong>단순하게</strong>라는 이전버전과 동일한 생각으로 작성되었다.
+      	JPetStore 6의 가장 중요한 목적은 최대한 적은 수의 클래스를 사용하고 좀더 중요한 것이 무엇인지 고려한 뒤
+      	특별한 코딩기법은 최대한 배제한체 만들어진 웹 애플리케이션을 보여준다.
+      	그래서 흔히 접할 수 있는 자바의 특징과 SQL만을 알면된다. </p>
+      	<pre>
+eduardo@nomada ~ $ ./cloc-1.60.pl ~/git/jpetstore-6/src/main/
+      60 text files.
+      60 unique files.
+       3 files ignored.
+
+http://cloc.sourceforge.net v 1.60  T=0.28 s (209.8 files/s, 17722.9 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Java                            24            480            462           1429
+JSP                             20            148              0            984
+XML                              9             79            120            405
+CSS                              1             46              0            277
+SQL                              2             26             30            226
+HTML                             2             44              0            143
+-------------------------------------------------------------------------------
+SUM:                            58            823            612           3464
+-------------------------------------------------------------------------------
+      	</pre>
+
+      	<p>JPetStore의 6번째 버전은 그 동안 만들어진 것중에 가장 작다. 좋은 디자인과 프로그래밍 구조를 유지하는 반면에 24개의 클래스로만 사용한다.
+      	뒤로가보면 JDBC코드, 객체 생성, 바인딩 코드 또는 트랜잭션을 다루는 코드등을 찾을수 없을것이다.
+      	조금더 인상적인 것은 <strong>마이바티스 API를 호출하는 코드도 찾을수 없을것이다</strong>.
+      	비록 비현실적인 얘기로 들릴수 있지만 마이바티스에 어떤 의존성을 가지지 않은 애플리케이션을 만들기 위해
+      	마이바티스 매퍼와 의존성 삽입의 조합을 보게 될것이다. 	</p>
+      </subsection>
+      <subsection name="Program Structure">
+      	<p> JPetStore 6 은 다음의 일반적인 메이븐 프로젝트 구조를 따른다. </p>
+<pre>/jpetstore                    <tt>&lt;-- 메이븐 pom.xml 파일은 여기</tt>
+  /src
+    /main/
+      /java                   <tt>&lt;-- 자바코드는 여기</tt>
+        /org/
+          /mybatis
+            /jpetstore
+              /domain         <tt>&lt;-- 비즈니스 도메인 객체는 여기</tt>
+              /mapper         <tt>&lt;-- 매퍼 인터페이스는 여기</tt>
+              /service        <tt>&lt;-- 애플리케이션 로직은 여기</tt>
+              /web
+                /actions      <tt>&lt;-- 프리젠테이션 로직은 여기</tt>
+      /resources              <tt>&lt;-- 자바 이외의 파일은 여기</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /mapper         <tt>&lt;-- 매퍼 XML파일은 여기</tt>
+        /database
+      /webapp
+        /css
+        /images
+        /WEB-INF              <tt>&lt;-- web.xml 과 applicationContext.xml 파일은 여기</tt>
+          /jsp                <tt>&lt;-- JSP 파일은 여기</tt>
+      </pre>
+      </subsection>
+
+      <subsection name="Configuration files">
+      <p>설정파일은 애플리케이션이 시작되는 동안 로드된다.
+       설정파일의 목적은 애플리케이션을 구성하는 3개(스트라이프, 스프링과 마이바티스)의 프레임워크를 설정한다.
+       우리는 두개의 파일(web.xml 과 applicationContext.xml)을 설정할 필요가 있다. </p>
+      <h4>web.xml</h4>
+      <p>먼저 스트라이프를 시작하기 위해 다음설정처럼 스트라이프 메뉴얼이 시키는데로 설정했다.
+       메뉴얼은 디스패처(dispatcher) 서블릿과 필터를 셋팅하도록 언급하고 있다.
+       그래서 다음처럼 설정했다. </p>
+<source><![CDATA[
+<filter>
+  <display-name>Stripes Filter</display-name>
+  <filter-name>StripesFilter</filter-name>
+  <filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+</filter>
+<filter-mapping>
+  <filter-name>StripesFilter</filter-name>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+<servlet>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+  <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <url-pattern>*.action</url-pattern>
+</servlet-mapping>
+]]></source>
+
+	<p>스트라이프는 ActionBean클래스를 찾을 수 있다.
+	이러한 목적으로 검색할 기본 패키지는 반드시 셋업해야 한다. </p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  <init-param>
+    <param-name>ActionResolver.Packages</param-name>
+    <param-value>org.mybatis.jpetstore.web</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+	<p>스트라이프로 해야 할 일은 모두 했다. 그러면 다음으로 스프링을 보도록 하자.
+	스프링 레퍼런스에 따르면 스프링을 시작할때 컨텍스트 리스너를 추가해야 한다.
+	그래서 다음처럼 추가한다. </p>
+
+<source><![CDATA[
+<listener>
+  <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+]]></source>
+
+	<p>기본적으로 스프링은 다른 파일로 명시하지 않으면 <code>/WEB-INF/applicationContext.xml</code>를 사용할것이다.
+	디폴트 설정이 우리에겐 충분했다. </p>
+
+	<p>이제부터 스트라이프가 스프링과 함께 실행된다는 점을 알도록 해보자.
+	이 방법으로 스프링 빈을 스트라이프 ActionBean에 직접 주입할 수 있을것이다.
+	이러한 목적으로 다음 설정은 스트라이프 메뉴얼에 다시 한번더 나온다.
+	다음의 설정처럼 인터셉터를 셋팅한다. </p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  ...
+  <init-param>
+    <param-name>Interceptor.Classes</param-name>
+    <param-value>net.sourceforge.stripes.integration.spring.SpringInterceptor</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+      <p>web.xml 파일에는 필요한 작업을 모두 처리했다.
+       앞서 언급한 것중에 마이바티스 3 설정은 아직 셋업하지 않았다.
+       그 설정은 스프링의 applicationContext.xml 에 들어간다.
+       그리고 이 파일을 계속 살펴볼것이다. </p>
+
+      <h4>applicationContext.xml</h4>
+      <p>이미 아는 것처럼 applicationContext.xml은 스프링의 설정파일이다.
+       스프링은 의존성 주입을 처리하는 프레임워크이고 어떤 빈을 생성해야 하는지 어떻게 바인딩을 해야 하는지와
+      applicationContext.xml 파일이 어떤 역할을 하는지 알아야 한다. 그러면 이제부터 하나씩 살펴보자. </p>
+      <p>가장 먼저 쉽게 할수 있는 것은 스프링이 서비스 빈을 어디에 있는지 알아내게 하는 것이다.
+       스프링이 클래스패스에서 빈을 찾도록 할것이다. 그러기 위해서는 검색할 기본 패키지를 지정할 필요가 있다. </p>
+
+<source><![CDATA[
+<context:component-scan base-package="org.mybatis.jpetstore.service" />
+]]></source>
+
+	  <p>
+	  <span class="label important">중요</span> 스프링의 컴포넌트 스캔기능으로 마이바티스 매퍼를 찾을수는 없다.
+	  매퍼는 POJO와 같은 단순한 빈이 아니기 때문에 스프링이 배퍼를 인스턴스화하는 방법을 알지 못한다.
+	  그래서 매퍼를 찾기 위해서 <code>MapperScannerConfigurer</code>가 필요하다.
+	  <code>MapperScannerConfigurer</code>는 잠시 후 다시 볼것이다. </p>
+
+	  <p><code>DataSource</code> 와 <code>TransactionManager</code>가 필요하다.
+	   데모 애플리케이션은 테스트용 스프링 <code>DataSource</code>를 사용한다.
+	   테스트용 스프링 <code>DataSource</code>는 HSQL 이라는 인메모리 타입의 데이터베이스를 사용하고 데이터베이스 스크립트를 로드한 뒤
+	   트랜잭션을 다루기 위해 스프링의 <code>DataSourceTransactionManager</code> 를 사용한다. </p>
+
+<source><![CDATA[
+<jdbc:embedded-database id="dataSource">
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-schema.sql"/>
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-dataload.sql"/>
+</jdbc:embedded-database>
+
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+	  <p>지금까지 우리는 스트라이프와 스프링의 설정파일을 살펴봤다. 이제는 마이바티스를 다룰 차례이다.
+	  마이바티스와 스프링을 셋업하는 메뉴얼에서 배운것처럼 최소한 두가지가 필요하다.
+	  여기서 두가지는 <code>SqlSessionFactoryBean</code>과 매퍼 클래스이다.
+	  먼저 <code>SqlSessionFactoryBean</code>를 정의해보자. </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+      <p>그래서 지금은 매퍼를 셋업할 필요가 있다. 이러한 목적으로 스프링의 컴포넌트 스캔과 유사한
+      <code>MapperScannerConfigurer</code> 를 사용할 것이다.
+       매퍼 클래스를 클래스패스에서 찾아서 마이바티스에 등록할 것이다.
+       스프링의 컴포넌트 스캔과 유사하게 검색할 기본 패키지를 설정해야 한다. </p>
+
+<source><![CDATA[
+<mybatis:scan base-package="org.mybatis.jpetstore.mapper" />
+]]></source>
+
+      <p>매퍼 XML파일을 작성할때 좀더 작성하기 수월하도록 하기 위해 빈의 짧은 별칭을 사용하고자 할것이다.
+      <code>SqlSessionFactoryBean</code>은 빈을 검색할 수 있고 다음처럼
+      <code>typeAliasPackage</code> 프로퍼티를 셋팅해서 별칭처럼 짧은 이름을 등록할수도 있다. </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="typeAliasesPackage" value="org.mybatis.jpetstore.domain" />
+</bean>
+]]></source>
+
+		<p>이제 애플리케이션은 설정이 완료되었고 실행할 준비가 되었다.
+		하지만 실행하기전에 어떻게 돌아가는지 보기 위해 코드를 살펴보자. </p>
+
+      </subsection>
+
+      <subsection name="Code tour">
+      <p>JPetStore 6은 세개의 레이어(프리젠테이션, 로직 그리고 데이터접근)로 구성된 일반적인 MVC애플리케이션이다. </p>
+      <h4>프리젠테이션</h4>
+      <p>프리젠테이션 레이어는 JSP파일과 스트라이프 ActionBean으로 구성되었다.
+      JSP는 평범한 HTML, JSTL태그 그리고 스트라이프 태그를 사용한다.
+       그래서 이 샘플때문에 특별히 다른걸 공부해야 할 필요는 없을것이다.
+       스트라이프 ActionBean은 스트러츠 액션이나 스프링 MVC 컨트롤러와 비슷하다.
+       그래서 이 역시 특별히 다른걸 공부해야 할 필요는 없을것이다.  </p>
+      <p>여기서는 스트라이프와 스프링을 연동한다. 서비스를 ActionBean에 주입할수 있고
+       생성이나 룩업에 대해서 특별히 걱정하지 않아도 사용할 수 있다.
+      <code>CatalogActionBean</code>를 살펴보자. </p>
+
+<source><![CDATA[
+@SessionScope
+public class CatalogActionBean extends AbstractActionBean {
+  ...
+  @SpringBean
+  private transient CatalogService catalogService;
+  ...
+  public ForwardResolution viewCategory() {
+    if (categoryId != null) {
+      productList = catalogService.getProductListByCategory(categoryId);
+      category = catalogService.getCategory(categoryId);
+    }
+    return new ForwardResolution(VIEW_CATEGORY);
+  }
+  ...
+]]></source>
+
+	  <p>스트라이프 애노테이션인 <code>@SpringBean</code>은 스프링의 빈을 찾아서 ActionBean에 주입한다. </p>
+
+      <h4>로직</h4>
+      <p>애플리케이션 로직은 서비스처럼 동작하는 자바빈과 도메인 모델처럼 동작하는 자바빈으로 구성된다.
+       이 레이어는 데이터베이스 데이터로 도메인 객체를 만들고 도메인 객체의 컨텐츠로 데이터베이스 데이터를 업데이트한다.
+       이러한 작업을 처리하기 때문에 이 레이어는 트랜잭션을 처리할수 있어야 한다.
+       그래야 데이터베이스 업데이트에서 원자성(atomic)을 보장할 수 있다. </p>
+      <p>트랜잭션을 처리하는 방법을 보기 위해 <code>OrderService</code> 코드를 보자. </p>
+
+<source><![CDATA[
+@Service
+public class OrderService {
+
+  @Autowired
+  private ItemMapper itemMapper;
+  @Autowired
+  private OrderMapper orderMapper;
+  @Autowired
+  private LineItemMapper lineItemMapper;
+
+  @Transactional
+  public void insertOrder(Order order) {
+    order.setOrderId(getNextId("ordernum"));
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      String itemId = lineItem.getItemId();
+      Integer increment = new Integer(lineItem.getQuantity());
+      Map<String, Object> param = new HashMap<String, Object>(2);
+      param.put("itemId", itemId);
+      param.put("increment", increment);
+      itemMapper.updateInventoryQuantity(param);
+    }
+
+    orderMapper.insertOrder(order);
+    orderMapper.insertOrderStatus(order);
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      lineItem.setOrderId(order.getOrderId());
+      lineItemMapper.insertLineItem(lineItem);
+    }
+  }
+]]></source>
+
+      <p>주의깊게 봐야할 첫번째는 서비스에 JDBC코드와 마이바티스 코드가 없다는 점이다.
+      DAO패턴과 데이터베이스 접근 코드를 데이터베이스 레이어에서만 사용해야 한다고 생각할지도 모르겠다.
+       하지만 이후에 보는것처럼 데이터베이스 레이어는 평범한 자바 인터페이스인 마이바티스 매퍼로 작성되었다.
+       그래서 전체 애플리케이션에서 <strong>마이바티스 API를 호출하는 곳을 찾을수가 없을것이다</strong>.
+       사실 매퍼를 사용하면 마이바티스 API를 직접 사용할 필요가 없다. </p>
+
+      <p>주의깊게 봐야할 두번째는 커밋이나 롤백하는 코드가 없다는 점이다.
+       스프링의 선언적인 트랜잭션 관리기능을 사용하기 때문에 가능하다.
+       이 선언적인 트랜잭션 관리는 마이바티스 스프링 연동모듈에서 모두 지원한다.
+       스프링의 <code>@Transactional</code> 애노테이션은 이 메서드가 트랜잭션을 다루는 메서드임을 나타낸다.
+       이 말은 <code>updateInventoryQuantity</code>, <code>insertOrder</code> 그리고 <code>insertLineItem</code>
+       매퍼 호출이 성공하면 커밋되고 에러가 발생하면 롤백이 된다는 것을 의미한다. </p>
+
+      <h4>퍼시스턴스</h4>
+      <p>퍼시스턴스 레이어는 마이바티스 매퍼로 구성되었다.
+       매퍼는 평범한 자바 인터페이스이고 매퍼 XML파일은 SQL구문을 가진다.
+       이 레이어에는 개발자가 작성한 어떤 부가적인 자바코드도 없다.
+      <code>getOrder</code> 메서드가 <code>OrderMapper</code> 인터페이스에서 호출되면
+       마이바티스는 OrderMapper.xml 파일의 getOrder SQL구문을 실행할것이고
+       받은 데이터는 <code>Order</code> 도메인 빈을 생성한다.  </p>
+
+<source><![CDATA[
+public interface OrderMapper {
+  List<Order> getOrdersByUsername(String username);
+  Order getOrder(int orderId);
+  void insertOrder(Order order);
+  void insertOrderStatus(Order order);
+}]]></source>
+
+<source><![CDATA[
+<mapper namespace="org.mybatis.jpetstore.mapper.OrderMapper">
+
+  <cache />
+
+  <select id="getOrder" resultType="Order" parameterType="int">
+    SELECT
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.ORDERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+  </select>
+  ...
+</mapper>
+]]></source>
+
+      <p>
+      <span class="label important">중요</span>
+       매퍼 XML파일에 &lt;cache /&gt; 엘리먼트를 추가해서 쿼리별로 캐시를 추가할 수 있다.
+       아니면 스프링을 사용해서 매퍼와 서비스 메서드 전반에 좀더 높은 레벨에서 캐시를 사용할 수도 있다. </p>
+
+      </subsection>
+
+      <subsection name="Running JPetStore">
+        <p>물어보자. 더볼게 없나? "예"라고 답변한다면 이제 실행해보자. </p>
+        <p>Let's assume you have a clean computer. These are the steps you should follow to
+      have the sample running under Tomcat:
+        </p>
+        <ul>
+          <li><a href="https://github.com/mybatis/jpetstore-6#running-with-tomcat" target="how-to-run">여기를</a> 클릭하십시오</li>
+        </ul>
+        <p>실행할 준비가 되었다면 스스로 원하는 것을 변경해보자. </p>
+        <p>
+          And remember that if you find a bug or something that is missing or can be improved (for example the missing tests!),
+          fork the repo, change it, and open a pull request. Thanks in advance!!!
+        </p>
+        <p>
+          <span class="label important">중요</span>
+		JPetStore 6 은 서블릿 2.5 와 JSP 2.1 과 호환되는 자바서버에서 돌아간다.
+		Netbeans와 이클립스는 필요하지 않다. 선호하는 IDE나 명령창에서도 샘플을 실행할 수 있다. </p>
+      </subsection>
+    </section>
+  </body>
+</document>
+
+
+
+================================================
+FILE: src/site/resources/css/site.css
+================================================
+/**
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+/*
+ * when new flags are needed, take them from
+ *
+ * https://www.printableworldflags.com/flag-icon
+ *
+ * that are free for any kind of usage
+ */
+
+ul.i18n {list-style-type:none;}
+li.en {background: url('../images/en.png') left no-repeat;padding-left: 32px; margin: 10px}
+li.es {background: url('../images/es.png') left no-repeat;padding-left: 32px; margin: 10px}
+li.ja {background: url('../images/ja.png') left no-repeat;padding-left: 32px; margin: 10px}
+li.fr {background: url('../images/fr.png') left no-repeat;padding-left: 32px; margin: 10px}
+li.zh {background: url('../images/zh.png') left no-repeat;padding-left: 32px; margin: 10px}
+li.ko {background: url('../images/ko.png') left no-repeat;padding-left: 32px; margin: 10px}
+
+
+
+================================================
+FILE: src/site/xdoc/index.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>MyBatis-Spring | Sample Code</title>
+    <author email="eduardo.macarron@gmail.com">Eduardo Macarron</author>
+  </properties>
+
+  <body>
+    <section name="Sample Code">
+      <p>
+      	JPetStore 6 is a full web application built on top of MyBatis 3,
+      	<a href="http://projects.spring.io/spring-framework/">Spring 4</a> and <a href="http://www.stripesframework.org/">Stripes</a>.
+        It is available for download in the
+        <a href="https://github.com/mybatis/jpetstore-6/releases">downloads</a>
+        section of MyBatis project site.
+        In this section we will walk through this sample to understand how is it built and learn how to run it.
+      </p>
+
+      <subsection name="Translations">
+        <p>Users can read this doc in following translations:</p>
+        <ul class="i18n">
+          <li class="es"><a href="./es/index.html">Español</a></li>
+          <li class="ja"><a href="./ja/index.html">日本語</a></li>
+          <li class="ko"><a href="./ko/index.html">한국어</a></li>
+        </ul>
+        <p>Do you want to read about MyBatis in your own native language? File an issue providing patches with your
+        mother tongue documentation!</p>
+      </subsection>
+
+      <subsection name="Purpose">
+      	<p>
+      	This new JPetStore comes with the same idea in mind than its predecessors: <strong>keep it simple</strong>.
+      	The purpose of JPetStore 6 is to demonstrate how to build a web application with very few classes and no advanced coding skills.
+      	You just need to know plain Java and SQL.
+      	</p>
+      	<p>
+      	The 6th version of JPetStore is the smallest of the family, 20% smaller than its predecessor.
+      	It uses just 24 java classes while keeping a good design and program structure.
+      	</p>
+      	<pre>
+eduardo@nomada ~ $ ./cloc-1.60.pl ~/git/jpetstore-6/src/main/
+      60 text files.
+      60 unique files.
+       3 files ignored.
+
+http://cloc.sourceforge.net v 1.60  T=0.28 s (209.8 files/s, 17722.9 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Java                            24            480            462           1429
+JSP                             20            148              0            984
+XML                              9             79            120            405
+CSS                              1             46              0            277
+SQL                              2             26             30            226
+HTML                             2             44              0            143
+-------------------------------------------------------------------------------
+SUM:                            58            823            612           3464
+-------------------------------------------------------------------------------
+      	</pre>
+      	<p>
+      	As we will see later on, you will find no code to deal with JDBC, to create objects or bind them or to handle transactions.
+      	What is more impressive is that you <strong>will not find any call to the MyBatis API</strong>.
+      	Although this sounds magical, you will see that the combination of MyBatis mappers and dependency injection lets you
+      	build applications without dependencies.
+      	</p>
+      </subsection>
+      <subsection name="Program Structure">
+      	<p> JPetStore 6 follows the typical maven project structure </p>
+<pre>/jpetstore                    <tt>&lt;-- Maven pom.xml goes here.</tt>
+  /src
+    /main
+      /java                   <tt>&lt;-- Java code goes here.</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /domain         <tt>&lt;-- Business domain objects go here.</tt>
+              /mapper         <tt>&lt;-- Mapper interfaces go here.</tt>
+              /service        <tt>&lt;-- Application logic goes here.</tt>
+              /web
+                /actions      <tt>&lt;-- Presentation logic (actions) goes here.</tt>
+      /resources              <tt>&lt;-- Non java files go here.</tt>
+        /org
+          /mybatis
+            /jpetstore
+              /mapper         <tt>&lt;-- Mapper XML files go here.</tt>
+        /database
+      /webapp
+        /css
+        /images
+        /WEB-INF              <tt>&lt;-- web.xml and applicationContext.xml go here.</tt>
+          /jsp                <tt>&lt;-- JSP files go here.</tt>
+      </pre>
+      </subsection>
+
+      <subsection name="Configuration files">
+      <p>
+      Configuration files are read during application startup. Their purpose is to configure the three
+      frameworks composing the application: Stripes, Spring and MyBatis. We will need to configure just
+      two files: web.xml and applicationContext.xml.
+      </p>
+      <h4>web.xml</h4>
+      <p>
+      First of all we need to start Stripes, so we will follow the Stripes manual to do so. The manual says that
+      we should set up a dispatcher servlet and a filter, so let's go:
+      </p>
+<source><![CDATA[
+<filter>
+  <display-name>Stripes Filter</display-name>
+  <filter-name>StripesFilter</filter-name>
+  <filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+</filter>
+<filter-mapping>
+  <filter-name>StripesFilter</filter-name>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+<servlet>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+  <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+  <servlet-name>StripesDispatcher</servlet-name>
+  <url-pattern>*.action</url-pattern>
+</servlet-mapping>
+]]></source>
+
+	<p>Stripes is able to search for ActionBean classes, for that purpose we must set up the
+	base package it should search in.</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  <init-param>
+    <param-name>ActionResolver.Packages</param-name>
+    <param-value>org.mybatis.jpetstore.web</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+	<p>We are done with Stripes. Let's move on to the Spring side. According to Spring's reference manual
+	we should add a Context listener to start up Spring. Let's add it:</p>
+
+<source><![CDATA[
+<listener>
+  <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+]]></source>
+
+	<p>By default Spring will use <code>/WEB-INF/applicationContext.xml</code> if we don't specify
+	a different file. The default is fine for us.
+	</p>
+
+	<p>Now we have to let Stripes know that it will be running with Spring. This way we will be able
+	to inject Spring beans directly into Stripes ActionBeans. For that purpose, following once
+	again the Stripes manual, we set up an interceptor as follows below:
+	</p>
+
+<source><![CDATA[
+<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+  ...
+  <init-param>
+    <param-name>Interceptor.Classes</param-name>
+    <param-value>net.sourceforge.stripes.integration.spring.SpringInterceptor</param-value>
+  </init-param>
+</filter>
+]]></source>
+
+      <p>We are done with web.xml. As you may have noticed, we have not set up any MyBatis 3 configuration yet.
+      That configuration goes into the Spring's applicationContext.xml that we will see in the following section.
+      </p>
+
+      <h4>applicationContext.xml</h4>
+      <p>As you already know, applicationContext.xml is the Spring's configuration file. Spring is a dependency
+      injection framework and it has to know which beans it must create and how to bind them together and that is
+      what applicationContext.xml file is for. Let's have a deeper look into it.
+      </p>
+      <p>
+      The first and easiest thing we have to do is let Spring know where are our service beans. We will let Spring
+      search them in our classpath so we just need to provide it the base package to search in:
+      </p>
+
+<source><![CDATA[
+<context:component-scan base-package="org.mybatis.jpetstore.service" />
+]]></source>
+
+	  <p>
+	  <span class="label important">NOTE</span> Spring's component scan feature is not able to find MyBatis mappers.
+	  A mapper is not a plain bean and Spring would not know how to instantiate it. We will see how to search for mappers soon.
+	  </p>
+
+	  <p>We will also need a <code>DataSource</code> and a <code>TransactionManager</code>. Given that this is a demo application
+	  we will use a test Spring <code>DataSource</code> that will create an HSQL in-memory database and load
+	  our database scripts into it and the standard Spring's <code>DataSourceTransactionManager</code>
+	  to handle transactions.
+	  </p>
+
+<source><![CDATA[
+<jdbc:embedded-database id="dataSource">
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-schema.sql"/>
+  <jdbc:script location="classpath:database/jpetstore-hsqldb-dataload.sql"/>
+</jdbc:embedded-database>
+
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+	  <p>So far, all we have done is standard Stripes and Spring configuration and now it is time to
+	  move on to the MyBatis part. As you have learned in this manual to set up MyBatis with Spring you need
+	  at least two things: an <code>SqlSessionFactoryBean</code> and, at least, one mapper class.
+	  So let's go hands on. First define a <code>SqlSessionFactoryBean</code>:
+	  </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean>
+]]></source>
+
+      <p>And now we need to setup our mappers. For that purpose we will use the <code>MapperScannerConfigurer</code>
+      that works similar to Spring standard component scan. It will search our classpath for mapper classes
+      and register them to MyBatis. Similar to Spring's component scan we must configure the base
+      package to search in.
+      </p>
+
+<source><![CDATA[
+<mybatis:scan base-package="org.mybatis.jpetstore.mapper" />
+]]></source>
+
+      <p>To save some writing when building our mapper xml files we would want to be able to use short
+      aliases for beans. The <code>SqlSessionFactoryBean</code> has the capability to search for beans and
+      register their short names as aliases if we setup the <code>typeAliasPackage</code> property like
+      the following:
+      </p>
+
+<source><![CDATA[
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="typeAliasesPackage" value="org.mybatis.jpetstore.domain" />
+</bean>
+]]></source>
+
+		<p>Our application is now fully configured and ready to run. But before running it lets have a tour
+		through the code to see how it looks like.
+		</p>
+
+      </subsection>
+
+      <subsection name="Code tour">
+      <p>JPetStore 6 is a typical MVC application with three layers: presentation, logic and data access.
+      </p>
+      <h4>Presentation</h4>
+      <p>The presentation layer is composed by JSP files and Stripes ActionBeans. JSPs just use plain HTML,
+      JSTL tags and Stripes tags. Stripes ActionBeans are like Struts actions or Spring MVC controllers.
+      </p>
+      <p>Given that we have integrated Stripes with Spring, we can inject our services into our ActionsBeans so
+      you can just use them without caring about its creation or lookup.
+      Have a look at <code>CatalogActionBean</code>:
+      </p>
+
+<source><![CDATA[
+@SessionScope
+public class CatalogActionBean extends AbstractActionBean {
+  ...
+  @SpringBean
+  private transient CatalogService catalogService;
+  ...
+  public ForwardResolution viewCategory() {
+    if (categoryId != null) {
+      productList = catalogService.getProductListByCategory(categoryId);
+      category = catalogService.getCategory(categoryId);
+    }
+    return new ForwardResolution(VIEW_CATEGORY);
+  }
+  ...
+]]></source>
+
+	  <p>The <code>@SpringBean</code> annotation is an Stripes annotation that tells Stripes to
+	  look for that bean in Spring and inject it into this ActionBean.</p>
+
+      <h4>Logic</h4>
+      <p>Application logic is composed by plain Java beans that act as services and plain Java beans that
+      act as domain objects. This layer is in charge of filling domain objects with database data and
+      updating database data with the content of the domain objects. For this purpose this layer must be
+      transactional.
+      </p>
+      <p>Let's have a look at <code>OrderService</code> code to see how all this is achieved:
+      </p>
+
+<source><![CDATA[
+@Service
+public class OrderService {
+
+  @Autowired
+  private ItemMapper itemMapper;
+  @Autowired
+  private OrderMapper orderMapper;
+  @Autowired
+  private LineItemMapper lineItemMapper;
+
+  @Transactional
+  public void insertOrder(Order order) {
+    order.setOrderId(getNextId("ordernum"));
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      String itemId = lineItem.getItemId();
+      Integer increment = new Integer(lineItem.getQuantity());
+      Map<String, Object> param = new HashMap<String, Object>(2);
+      param.put("itemId", itemId);
+      param.put("increment", increment);
+      itemMapper.updateInventoryQuantity(param);
+    }
+
+    orderMapper.insertOrder(order);
+    orderMapper.insertOrderStatus(order);
+    for (int i = 0; i < order.getLineItems().size(); i++) {
+      LineItem lineItem = (LineItem) order.getLineItems().get(i);
+      lineItem.setOrderId(order.getOrderId());
+      lineItemMapper.insertLineItem(lineItem);
+    }
+  }
+]]></source>
+
+      <p>The first thing you will notice is that there is no JDBC code in the service,
+      nor it is any MyBatis code in it. You may think that we used the
+      DAO pattern and database access code is in the database layer, but as we will see later,
+      the database layer is built with MyBatis mappers, that are plain java
+      interfaces, and that is why <strong>you will not find any call to MyBatis API</strong>
+      in the whole application. It is just not needed.</p>
+
+      <p>The second thing you may have noticed is that there are no commits or rollbacks.
+      That is because it uses the declarative transaction demarcation feature of Spring that is
+      fully supported by MyBatis-Spring.
+      The Spring's <code>@Transactional</code> annotation indicates that this method is transactional,
+      that means that all <code>updateInventoryQuantity</code>, <code>insertOrder</code> and
+      <code>insertLineItem</code> mapper calls must end OK. If one of them fails any previous
+      update will be rolled back.</p>
+
+      <h4>Persistence</h4>
+      <p>The persistence layer is composed of MyBatis mappers. Mappers are just plain Java
+      interfaces and mapper XML files containing the SQL statements.
+      There is no custom Java code in this layer. When the
+      <code>getOrder</code> method is called on the <code>OrderMapper</code> interface,
+      MyBatis will execute the getOrder SQL statement in OrderMapper.xml file and
+      will populate the <code>Order</code> domain bean with retrieved data.
+      </p>
+
+<source><![CDATA[
+public interface OrderMapper {
+  List<Order> getOrdersByUsername(String username);
+  Order getOrder(int orderId);
+  void insertOrder(Order order);
+  void insertOrderStatus(Order order);
+}]]></source>
+
+<source><![CDATA[
+<mapper namespace="org.mybatis.jpetstore.mapper.OrderMapper">
+
+  <cache />
+
+  <select id="getOrder" resultType="Order">
+    SELECT
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.ORDERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+  </select>
+  ...
+</mapper>
+]]></source>
+
+      <p>
+      <span class="label important">NOTE</span>
+      You can easily add caching to your queries by adding a &lt;cache /&gt; element to your mapper xml file.
+      </p>
+
+      </subsection>
+
+      <subsection name="Running JPetStore">
+        <p>You may ask. Does all this work? Yes it does! Let's run it.</p>
+        <p>Let's assume you have a clean computer. These are the steps you should follow to
+           have the sample running under Tomcat:
+        </p>
+        <ul>
+          <li>See <a href="https://github.com/mybatis/jpetstore-6#running-with-tomcat" target="how-to-run">here</a></li>
+        </ul>
+        <p>
+          Now you are ready to play with it, experiment with your own changes or whatever you want.
+        </p>
+        <p>
+          And remember that if you find a bug or something that is missing or can be improved (for example the missing tests!),
+          fork the repo, change it, and open a pull request. Thanks in advance!!!
+        </p>
+        <p>
+        <span class="label important">NOTE</span>
+		JPetStore 6 should run in any Servlet 2.5 y JSP 2.1 compliant Java server. Eclipse is not needed
+		either, you can run the sample from your favorite IDE or the command line.
+        </p>
+      </subsection>
+
+    </section>
+  </body>
+</document>
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/ScreenTransitionIT.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore;
+
+import static com.codeborne.selenide.Browsers.CHROME;
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Configuration.baseUrl;
+import static com.codeborne.selenide.Configuration.browser;
+import static com.codeborne.selenide.Configuration.headless;
+import static com.codeborne.selenide.Configuration.timeout;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.title;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.junit5.ScreenShooterExtension;
+
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.openqa.selenium.By;
+
+/**
+ * Integration tests for screen transition.
+ *
+ * @author Kazuki Shimizu
+ */
+@ExtendWith(ScreenShooterExtension.class)
+class ScreenTransitionIT {
+
+  @BeforeAll
+  static void setupSelenide() {
+    browser = CHROME;
+    headless = true;
+    timeout = TimeUnit.SECONDS.toMillis(10);
+    baseUrl = "http://localhost:8080/jpetstore";
+  }
+
+  @AfterEach
+  void logout() {
+    SelenideElement element = $(By.linkText("Sign Out"));
+    if (element.exists()) {
+      element.click();
+    }
+  }
+
+  @Test
+  void testOrder() {
+
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+    $(By.cssSelector("#Content h2")).shouldBe(text("Welcome to JPetStore 6"));
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.name("username")).setValue("j2ee");
+    $(By.name("password")).setValue("j2ee");
+    $(By.name("signon")).click();
+    $(By.id("WelcomeContent")).shouldBe(text("Welcome ABC!"));
+
+    // Search items
+    $(By.name("keyword")).setValue("fish");
+    $(By.name("searchProducts")).click();
+    $$(By.cssSelector("#Catalog table tr")).shouldHave(size(4));
+
+    // Select item
+    $(By.linkText("Fresh Water fish from China")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Goldfish"));
+
+    // Add a item to the cart
+    $(By.linkText("Add to Cart")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Shopping Cart"));
+
+    // Add a item to the cart
+    $(By.cssSelector("#QuickLinks a:nth-of-type(5)")).click();
+    $(By.linkText("AV-CB-01")).click();
+    $(By.linkText("EST-18")).click();
+    $(By.linkText("Add to Cart")).click();
+    $(By.cssSelector("#Cart tr:nth-of-type(4) td")).shouldBe(text("Sub Total: $199.00"));
+
+    // Update quantity
+    $(By.name("EST-20")).setValue("10");
+    $(By.name("updateCartQuantities")).click();
+    $(By.cssSelector("#Catalog tr td:nth-of-type(7)")).shouldBe(text("$55.00"));
+    $(By.cssSelector("#Cart tr:nth-of-type(4) td")).shouldBe(text("Sub Total: $248.50"));
+
+    // Remove item
+    $(By.cssSelector("#Cart tr:nth-of-type(3) td:nth-of-type(8) a")).click();
+    $(By.cssSelector("#Cart tr:nth-of-type(3) td")).shouldBe(text("Sub Total: $55.00"));
+
+    // Checkout cart items
+    $(By.linkText("Proceed to Checkout")).click();
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Changing shipping address
+    $(By.name("shippingAddressRequired")).click();
+    $(By.name("newOrder")).click();
+    $(By.cssSelector("#Catalog tr th")).shouldBe(text("Shipping Address"));
+    $(By.name("order.shipAddress2")).setValue("MS UCUP02-207");
+
+    // Confirm order information
+    $(By.name("newOrder")).click();
+    $(By.cssSelector("#Catalog")).shouldBe(text("Please confirm the information below and then press continue..."));
+
+    // Submit order
+    $(By.linkText("Confirm")).click();
+    $(By.cssSelector(".messages li")).shouldBe(text("Thank you, your order has been submitted."));
+    String orderId = extractOrderId($(By.cssSelector("#Catalog table tr")).text());
+
+    // Show profile page
+    $(By.linkText("My Account")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+
+    // Show orders
+    $(By.linkText("My Orders")).click();
+    $(By.cssSelector("#Content h2")).shouldBe(text("My Orders"));
+
+    // Show order detail
+    $(By.linkText(orderId)).click();
+    assertThat(extractOrderId($(By.cssSelector("#Catalog table tr")).text())).isEqualTo(orderId);
+
+    // Sign out
+    $(By.linkText("Sign Out")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+  }
+
+  @Test
+  void testUpdateProfile() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.name("username")).setValue("j2ee");
+    $(By.name("password")).setValue("j2ee");
+    $(By.name("signon")).click();
+    $(By.id("WelcomeContent")).shouldBe(text("Welcome ABC!"));
+
+    // Show profile page
+    $(By.linkText("My Account")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+    $$(By.cssSelector("#Catalog table td")).get(1).shouldBe(text("j2ee"));
+
+    // Edit account
+    $(By.name("account.phone")).setValue("555-555-5556");
+    $(By.name("editAccount")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+    $$(By.cssSelector("#Catalog table td")).get(1).shouldBe(text("j2ee"));
+    $(By.name("account.phone")).shouldBe(value("555-555-5556"));
+  }
+
+  @Test
+  void testRegistrationUser() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.cssSelector("#Catalog p")).shouldBe(text("Please enter your username and password."));
+
+    // Move to use registration page
+    $(By.linkText("Register Now!")).click();
+    $(By.cssSelector("#Catalog h3")).shouldBe(text("User Information"));
+
+    // Create a new user
+    String userId = String.valueOf(System.currentTimeMillis());
+    $(By.name("username")).setValue(userId);
+    $(By.name("password")).setValue("password");
+    $(By.name("repeatedPassword")).setValue("password");
+    $(By.name("account.firstName")).setValue("Jon");
+    $(By.name("account.lastName")).setValue("MyBatis");
+    $(By.name("account.email")).setValue("jon.mybatis@test.com");
+    $(By.name("account.phone")).setValue("09012345678");
+    $(By.name("account.address1")).setValue("Address1");
+    $(By.name("account.address2")).setValue("Address2");
+    $(By.name("account.city")).setValue("Minato-Ku");
+    $(By.name("account.state")).setValue("Tokyo");
+    $(By.name("account.zip")).setValue("0001234");
+    $(By.name("account.country")).setValue("Japan");
+    $(By.name("account.languagePreference")).selectOption("japanese");
+    $(By.name("account.favouriteCategoryId")).selectOption("CATS");
+    $(By.name("account.listOption")).setSelected(true);
+    $(By.name("account.bannerOption")).setSelected(true);
+    $(By.name("newAccount")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to sign in page & sign
+    $(By.linkText("Sign In")).click();
+    $(By.name("username")).setValue(userId);
+    $(By.name("password")).setValue("password");
+    $(By.name("signon")).click();
+    $(By.id("WelcomeContent")).shouldBe(text("Welcome Jon!"));
+
+  }
+
+  @Test
+  void testSelectItems() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to category
+    $(By.cssSelector("#SidebarContent a")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+
+    // Move to items
+    $(By.linkText("FI-SW-01")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Angelfish"));
+
+    // Move to item detail
+    $(By.linkText("EST-1")).click();
+    $$(By.cssSelector("#Catalog table tr td")).get(2).shouldBe(text("Large Angelfish"));
+
+    // Back to items
+    $(By.linkText("Return to FI-SW-01")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Angelfish"));
+
+    // Back to category
+    $(By.linkText("Return to FISH")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+
+    // Back to the top page
+    $(By.linkText("Return to Main Menu")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+  }
+
+  @Test
+  void testViewCart() {
+
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to cart
+    $(By.name("img_cart")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Shopping Cart"));
+
+  }
+
+  @Test
+  void testViewHelp() {
+
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to help
+    $(By.linkText("?")).click();
+    $(By.cssSelector("#Content h1")).shouldBe(text("JPetStore Demo"));
+
+  }
+
+  @Test
+  void testSidebarContentOnTopPage() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Fish category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Dogs category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(2)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Dogs"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Cats category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(3)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Reptiles category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(4)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Reptiles"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Birds category
+    $(By.cssSelector("#SidebarContent a:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+    $(By.linkText("Return to Main Menu")).click();
+  }
+
+  @Test
+  void testQuickLinks() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Fish category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+
+    // Move to Dogs category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(2)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Dogs"));
+
+    // Move to Reptiles category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(3)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Reptiles"));
+
+    // Move to Cats category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(4)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+
+    // Move to Birds category
+    $(By.cssSelector("#QuickLinks a:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+  }
+
+  @Test
+  void testMainImageContentOnTopPage() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Birds category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Fish category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(2)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Fish"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Dogs category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(3)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Dogs"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Reptiles category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(4)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Reptiles"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Cats category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+    $(By.linkText("Return to Main Menu")).click();
+
+    // Move to Birds category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(6)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+    $(By.linkText("Return to Main Menu")).click();
+  }
+
+  @Test
+  void testLogoContent() {
+    // Open the home page
+    open("/");
+    assertThat(title()).isEqualTo("JPetStore Demo");
+
+    // Move to the top page
+    $(By.linkText("Enter the Store")).click();
+    $(By.id("WelcomeContent")).shouldBe(empty);
+
+    // Move to Birds category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(1)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Birds"));
+
+    // Move to top by clicking logo
+    $(By.cssSelector("#LogoContent a")).click();
+
+    // Move to Cats category
+    $(By.cssSelector("#MainImageContent area:nth-of-type(5)")).click();
+    $(By.cssSelector("#Catalog h2")).shouldBe(text("Cats"));
+  }
+
+  private static String extractOrderId(String target) {
+    Matcher matcher = Pattern.compile("Order #(\\d{4}) .*").matcher(target);
+    String orderId = "";
+    if (matcher.find()) {
+      orderId = matcher.group(1);
+    }
+    return orderId;
+  }
+
+}
+
+
+
+================================================
+FILE: src/test/java/org/mybatis/jpetstore/domain/CartTest.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.Iterator;
+
+import org.junit.jupiter.api.Test;
+
+class CartTest {
+
+  @Test
+  void addItemWhenIsInStockIsTrue() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+
+    // when
+    cart.addItem(item, true);
+    cart.addItem(item, true);
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isTrue();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(2);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("4.10"));
+    assertThat(cart.containsItemId("I01")).isTrue();
+    assertThat(cart.getNumberOfItems()).isEqualTo(1);
+    {
+      Iterator<CartItem> cartItems = cart.getCartItems();
+      assertThat(cartItems.next()).isNotNull();
+      assertThat(cartItems.hasNext()).isFalse();
+    }
+    {
+      Iterator<CartItem> cartItems = cart.getAllCartItems();
+      assertThat(cartItems.next()).isNotNull();
+      assertThat(cartItems.hasNext()).isFalse();
+    }
+  }
+
+  @Test
+  void addItemWhenIsInStockIsFalse() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+
+    // when
+    cart.addItem(item, false);
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isFalse();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(1);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("2.05"));
+  }
+
+  @Test
+  void removeItemByIdWhenItemNotFound() {
+    // given
+    Cart cart = new Cart();
+
+    // when
+    Item item = cart.removeItemById("I01");
+
+    // then
+    assertThat(item).isNull();
+    assertThat(cart.containsItemId("I01")).isFalse();
+    assertThat(cart.getNumberOfItems()).isEqualTo(0);
+    assertThat(cart.getCartItems().hasNext()).isFalse();
+    assertThat(cart.getAllCartItems().hasNext()).isFalse();
+  }
+
+  @Test
+  void removeItemByIdWhenItemFound() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+
+    // when
+    Item removedItem = cart.removeItemById("I01");
+
+    // then
+    assertThat(removedItem).isSameAs(item);
+    assertThat(cart.getCartItemList()).isEmpty();
+  }
+
+  @Test
+  void incrementQuantityByItemId() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+
+    // when
+    cart.incrementQuantityByItemId("I01");
+    cart.incrementQuantityByItemId("I01");
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isTrue();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(3);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("6.15"));
+  }
+
+  @Test
+  void setQuantityByItemId() {
+    // given
+    Cart cart = new Cart();
+    Item item = new Item();
+    item.setItemId("I01");
+    item.setListPrice(new BigDecimal("2.05"));
+    cart.addItem(item, true);
+
+    // when
+    cart.setQuantityByItemId("I01", 10);
+
+    // then
+    assertThat(cart.getCartItemList().get(0).getItem()).isSameAs(item);
+    assertThat(cart.getCartItemList().get(0).isInStock()).isTrue();
+    assertThat(cart.getCartItemList().get(0).getQuantity()).isEqualTo(10);
+    assertThat(cart.getCartItemList().get(0).getTotal()).isEqualTo(new BigDecimal("20.50"));
+  }
+
+  @Test
+  void getSubTotalWhenItemIsEmpty() {
+    // given
+    Cart cart = new Cart();
+
+    // when
+    BigDecimal subTotal = cart.getSubTotal();
+
+    // then
+    assertThat(subTotal).isEqualTo(BigDecimal.ZERO);
+
+  }
+
+  @Test
+  void getSubTotalWhenItemIsExist() {
+    // given
+    Cart cart = new Cart();
+    {
+      Item item = new Item();
+      item.setItemId("I01");
+      item.setListPrice(new BigDecimal("2.05"));
+      cart.addItem(item, true);
+      cart.setQuantityByItemId("I01", 5);
+    }
+    {
+      Item item = new Item();
+      item.setItemId("I02");
+      item.setListPrice(new BigDecimal("3.06"));
+      cart.addItem(item, true);
+      cart.setQuantityByItemId("I02", 6);
+    }
+
+    // when
+    BigDecimal subTotal = cart.getSubTotal();
+
+    // then
+    assertThat(subTotal).isEqualTo(new BigDecimal("28.61"));
+  }
+
+}

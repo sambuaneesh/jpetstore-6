@@ -1,0 +1,154 @@
+An architectural summary of the JPetStore codebase chunk 2 of 3 is provided below, focusing on details relevant to microservice decomposition analysis.
+
+### 1. High-Level Architectural Overview
+
+This codebase chunk represents the user-facing web components, domain logic tests, and data access layer tests for a classic monolithic web application. The architecture follows a standard three-tier pattern:
+
+*   **Presentation Layer:** Built using **JavaServer Pages (JSP)** with the **Stripes** action-based MVC framework. This layer is responsible for rendering the UI and handling user input.
+*   **Business Logic Layer:** Managed by the **Spring Framework**, providing service components, dependency injection, and declarative transaction management (`@Transactional`).
+*   **Data Access Layer:** Implemented with **MyBatis 3**, which maps Java interfaces (`Mappers`) to SQL statements defined in XML or via annotations. It handles all database interactions.
+
+The integration tests (`ScreenTransitionIT.java`) reveal strong coupling between the **Catalog**, **Cart**, **Account**, and **Order** functionalities, as they are often chained together in a single user session.
+
+### 2. Architectural Frameworks and Libraries
+
+*   **Stripes Framework:** Used for the MVC presentation layer. JSPs use `<stripes:link>` and `<stripes:form>` tags to bind UI events to backend Java classes called `ActionBean`s.
+*   **Spring Framework:** Provides the core application container for managing services, transactions, and dependency injection. The tests and documentation confirm its use for `@Service` components, `@Autowired` dependencies, and `@Transactional` boundaries.
+*   **MyBatis 3:** The persistence framework. It uses `Mapper` interfaces to define data access operations, which are implemented via SQL statements. The tests (`*MapperTest.java`) extensively validate these mappers.
+*   **JSP/JSTL:** Standard Java technologies for rendering dynamic web pages.
+*   **Selenide:** Used for browser-based integration testing, providing clear specifications of user workflows.
+*   **JUnit 5 & Mockito:** Used for unit and mapper-level testing.
+
+### 3. Core Functional Components
+
+The code is organized into distinct but interconnected functional domains, primarily visible through the JSP folder structure and the user flows defined in integration tests.
+
+---
+
+#### 3.1. Catalog Browsing and Search
+
+This component is responsible for displaying product categories, products, and individual items to the user, as well as handling product searches.
+
+*   **Component Names:**
+    *   **Views (JSP):** `Main.jsp`, `Category.jsp`, `Product.jsp`, `Item.jsp`, `SearchProducts.jsp`.
+    *   **Controller (Stripes):** `org.mybatis.jpetstore.web.actions.CatalogActionBean` (inferred from JSPs).
+    *   **Service:** `CatalogService` (inferred from documentation).
+    *   **Data Access (MyBatis):** `CategoryMapper`, `ProductMapper`, `ItemMapper`.
+    *   **Domain Models:** `Category`, `Product`, `Item`.
+
+*   **API Endpoints / Web Actions (handled by `CatalogActionBean`):**
+    *   `viewCategory`: Displays all products in a given category (`categoryId`).
+    *   `viewProduct`: Displays all items for a given product (`productId`).
+    *   `viewItem`: Displays the details of a specific item (`itemId`).
+    *   `searchProducts`: Processes a form submission with a `keyword` to find matching products.
+
+*   **Data Models & Schema:**
+    *   **`Category`**: Maps to the `CATEGORY` table.
+        *   `categoryId` (PK), `name`, `description`.
+    *   **`Product`**: Maps to the `PRODUCT` table.
+        *   `productId` (PK), `categoryId`, `name`, `description`.
+    *   **`Item`**: Maps to the `ITEM` and `INVENTORY` tables.
+        *   `itemId` (PK), `productId`, `listPrice`, `unitCost`, `supplierId`, `status`, `attribute1-5`.
+        *   Includes a nested `Product` object.
+        *   `quantity`: Retrieved from the `INVENTORY` table (`QTY` column).
+
+*   **Service Dependencies & Communication:**
+    *   JSPs trigger events in `CatalogActionBean`.
+    *   `CatalogActionBean` depends on `CatalogService`.
+    *   `CatalogService` orchestrates calls to `CategoryMapper`, `ProductMapper`, and `ItemMapper` to fetch data.
+    *   `Item.jsp` and `Product.jsp` link directly to `CartActionBean`'s `addItemToCart` event, demonstrating a tight coupling between the Catalog and Cart domains.
+
+*   **Key Business Logic:**
+    *   The search logic (`searchProductList` in `ProductMapperTest`) uses a SQL `LIKE` query on keywords.
+    *   Navigation hierarchy is strictly enforced: Main -> Category -> Product -> Item.
+
+---
+
+#### 3.2. Shopping Cart Management
+
+This component manages the user's temporary shopping cart, allowing items to be added, removed, and quantities updated. The cart is session-scoped.
+
+*   **Component Names:**
+    *   **View (JSP):** `Cart.jsp`.
+    *   **Controller (Stripes):** `org.mybatis.jpetstore.web.actions.CartActionBean` (inferred from JSPs).
+    *   **Domain Model:** `Cart`, `CartItem`.
+
+*   **API Endpoints / Web Actions (handled by `CartActionBean`):**
+    *   `viewCart`: Displays the shopping cart page.
+    *   `addItemToCart`: Adds a specified `workingItemId` to the cart.
+    *   `removeItemFromCart`: Removes a specified `workingItemId` from the cart.
+    *   `updateCartQuantities`: Updates the quantities for all items in the cart based on form input.
+
+*   **Data Models & Schema:**
+    *   **`Cart` (Domain-only, not persisted):** A session object that holds a list of `CartItem`s. Contains logic for managing its contents.
+    *   **`CartItem` (Domain-only, not persisted):** Represents an item within the cart. It holds a reference to a persistent `Item` object and includes transient fields like `quantity`, `inStock`, and a calculated `total`.
+
+*   **Service Dependencies & Communication:**
+    *   `Catalog` JSPs directly call `CartActionBean` to add items.
+    *   `Cart.jsp` links to `OrderActionBean`'s `newOrderForm` event, tightly coupling the Cart to the Order checkout process.
+    *   To add an item, `CartActionBean` likely depends on `CatalogService` to fetch the `Item` details from the database.
+
+*   **Key Business Logic (`CartTest.java`):**
+    *   **Subtotal Calculation:** `Cart.getSubTotal()` iterates through all `CartItem`s and sums their individual total prices (`quantity * item.listPrice`).
+    *   **Quantity Management:** The `Cart` object contains logic to increment the quantity if an existing item is added again (`addItem`) or to update quantities explicitly (`setQuantityByItemId`).
+    *   The cart logic is entirely in-memory within the domain object and is not persisted to the database until an order is created.
+
+---
+
+#### 3.3. Order Placement and History
+
+This component handles the entire checkout process, from collecting payment and shipping information to creating a persistent order. It also allows users to view their order history.
+
+*   **Component Names:**
+    *   **Views (JSP):** `Checkout.jsp`, `NewOrderForm.jsp`, `ShippingForm.jsp`, `ConfirmOrder.jsp`, `ViewOrder.jsp`, `ListOrders.jsp`.
+    *   **Controller (Stripes):** `org.mybatis.jpetstore.web.actions.OrderActionBean` (inferred from JSPs).
+    *   **Service:** `OrderService` (inferred from documentation and tests).
+    *   **Data Access (MyBatis):** `OrderMapper`, `LineItemMapper`, `SequenceMapper`, `ItemMapper`.
+    *   **Domain Models:** `Order`, `LineItem`, `Sequence`.
+
+*   **API Endpoints / Web Actions (handled by `OrderActionBean`):**
+    *   `newOrderForm`: Displays the payment and billing form.
+    *   `newOrder`: Processes the order form submission. If confirmed, it creates the order; otherwise, it may redirect to the shipping form or confirmation page.
+    *   `listOrders`: Displays a list of the current user's past orders.
+    *   `viewOrder`: Displays the details of a specific `orderId`.
+
+*   **Data Models & Schema:**
+    *   **`Order`**: Maps to `ORDERS` and `ORDERSTATUS` tables.
+        *   `orderId` (PK), `username`, `orderDate`, `ship/billAddress1-2`, `ship/billCity`, etc., `totalPrice`, `creditCard`, `cardType`, `expiryDate`, `status`.
+    *   **`LineItem`**: Maps to `LINEITEM` table.
+        *   `orderId` (FK), `lineNumber`, `itemId`, `quantity`, `unitPrice`.
+    *   **`Sequence`**: Maps to `SEQUENCE` table.
+        *   `name` (PK), `nextId`. Used for generating unique `orderId` values (`ordernum`).
+
+*   **Service Dependencies & Communication:**
+    *   The checkout flow is initiated from the `Cart.jsp` page.
+    *   `OrderActionBean` depends on `OrderService`.
+    *   The `OrderService.insertOrder` method (described in documentation) is **transactional (`@Transactional`)**. This is a critical architectural detail.
+    *   Inside the transaction, `OrderService` calls:
+        1.  `SequenceMapper` to get the next order ID.
+        2.  `ItemMapper` to update the inventory quantity for each line item.
+        3.  `OrderMapper` to insert the main order record.
+        4.  `OrderMapper` to insert the initial order status.
+        5.  `LineItemMapper` to insert each line item associated with the order.
+
+*   **Key Business Logic:**
+    *   **Order Creation (`OrderTest.java`):** The `Order.initOrder(Account, Cart)` method acts as a factory, transforming a transient `Cart` object and user `Account` data into a persistent `Order` object with its `LineItem`s.
+    *   **Transactional Integrity:** The entire order placement process is atomic. A failure in any step (e.g., updating inventory) will roll back the entire transaction, preventing inconsistent orders. This demonstrates a strong transactional dependency across inventory, order, and line item data.
+    *   **ID Generation:** The system uses a database sequence table (`SEQUENCE`) to generate primary keys for orders, managed via `SequenceMapper`.
+
+### 4. User Workflows (from `ScreenTransitionIT.java`)
+
+The integration tests define the primary business processes and highlight the tight coupling between domains.
+
+1.  **Full Order Workflow (`testOrder`):**
+    *   **Login (`Account`)** -> **Search Products (`Catalog`)** -> **View Product (`Catalog`)** -> **Add to Cart (`Catalog` -> `Cart`)** -> **View Different Category (`Catalog`)** -> **Add Second Item (`Catalog` -> `Cart`)** -> **View Cart (`Cart`)** -> **Update Quantity (`Cart`)** -> **Remove Item (`Cart`)** -> **Proceed to Checkout (`Cart` -> `Order`)** -> **Submit Payment/Billing (`Order`)** -> **Submit Shipping (`Order`)** -> **Confirm Order (`Order`)** -> **Submit Order (`Order`)** -> **View My Account (`Account`)** -> **View My Orders (`Order`)**.
+    *   **Microservice Implication:** This single, seamless flow shows a strong need for either a well-orchestrated process spanning multiple services or keeping these domains together. Decomposing this flow would require careful handling of state, compensation logic (Sagas), and inter-service communication (e.g., synchronous calls or event-driven choreography).
+
+2.  **Account Management Workflow (`testUpdateProfile`, `testRegistrationUser`):**
+    *   Standard Create and Update operations on the user account. This functionality appears relatively self-contained, primarily interacting with the `ACCOUNT`, `PROFILE`, and `SIGNON` tables.
+
+### 5. Deployment & Configuration
+
+*   **Deployment Unit:** The application is a standard WAR file deployed to a servlet container (e.g., Tomcat).
+*   **Test Configuration (`MapperTestContext.java`):** The test environment is configured programmatically using Spring. It uses an in-memory HSQLDB, which is initialized with schema (`jpetstore-hsqldb-schema.sql`) and data (`jpetstore-hsqldb-dataload.sql`) scripts. This setup mirrors the production configuration described in the `site` documentation (`applicationContext.xml`).
+*   **Documentation (`src/site/`):** Contains Maven-generated site documentation that explicitly describes the technology stack and architecture, confirming the analysis from the code and tests. It serves as a valuable architectural guide.

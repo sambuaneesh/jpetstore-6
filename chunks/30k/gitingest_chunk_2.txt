@@ -1,0 +1,3245 @@
+
+
+
+
+================================================
+FILE: src/main/resources/StripesResources.properties
+================================================
+#
+#    Copyright 2010-2022 the original author or authors.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#       https://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+
+
+
+================================================
+FILE: src/main/resources/database/jpetstore-hsqldb-data.sql
+================================================
+--
+--    Copyright 2010-2023 the original author or authors.
+--
+--    Licensed under the Apache License, Version 2.0 (the "License");
+--    you may not use this file except in compliance with the License.
+--    You may obtain a copy of the License at
+--
+--       https://www.apache.org/licenses/LICENSE-2.0
+--
+--    Unless required by applicable law or agreed to in writing, software
+--    distributed under the License is distributed on an "AS IS" BASIS,
+--    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--    See the License for the specific language governing permissions and
+--    limitations under the License.
+--
+
+create table SUPPLIER (
+    suppid int not null,
+    name varchar(80) null,
+    status varchar(2) not null,
+    addr1 varchar(80) null,
+    addr2 varchar(80) null,
+    city varchar(80) null,
+    state varchar(80) null,
+    zip varchar(5) null,
+    phone varchar(80) null,
+    constraint pk_supplier primary key (suppid)
+);
+
+create table SIGNON (
+    username varchar(25) not null,
+    password varchar(25)  not null,
+    constraint pk_signon primary key (username)
+);
+
+create table ACCOUNT (
+    userid varchar(80) not null,
+    email varchar(80) not null,
+    firstname varchar(80) not null,
+    lastname varchar(80) not null,
+    status varchar(2)  null,
+    addr1 varchar(80) not null,
+    addr2 varchar(40) null,
+    city varchar(80) not  null,
+    state varchar(80) not null,
+    zip varchar(20) not null,
+    country varchar(20) not null,
+    phone varchar(80) not null,
+    constraint pk_account primary key (userid)
+);
+
+create table PROFILE (
+    userid varchar(80) not null,
+    langpref varchar(80) not null,
+    favcategory varchar(30),
+    mylistopt int,
+    banneropt int,
+    constraint pk_profile primary key (userid)
+);
+
+create table BANNERDATA (
+    favcategory varchar(80) not null,
+    bannername varchar(255)  null,
+    constraint pk_bannerdata primary key (favcategory)
+);
+
+create table ORDERS (
+      orderid int not null,
+      userid varchar(80) not null,
+      orderdate date not null,
+      shipaddr1 varchar(80) not null,
+      shipaddr2 varchar(80) null,
+      shipcity varchar(80) not null,
+      shipstate varchar(80) not null,
+      shipzip varchar(20) not null,
+      shipcountry varchar(20) not null,
+      billaddr1 varchar(80) not null,
+      billaddr2 varchar(80)  null,
+      billcity varchar(80) not null,
+      billstate varchar(80) not null,
+      billzip varchar(20) not null,
+      billcountry varchar(20) not null,
+      courier varchar(80) not null,
+      totalprice decimal(10,2) not null,
+      billtofirstname varchar(80) not null,
+      billtolastname varchar(80) not null,
+      shiptofirstname varchar(80) not null,
+      shiptolastname varchar(80) not null,
+      creditcard varchar(80) not null,
+      exprdate varchar(7) not null,
+      cardtype varchar(80) not null,
+      locale varchar(80) not null,
+      constraint pk_orders primary key (orderid)
+);
+
+create table ORDERSTATUS (
+      orderid int not null,
+      linenum int not null,
+      timestamp date not null,
+      status varchar(2) not null,
+      constraint pk_orderstatus primary key (orderid, linenum)
+);
+
+create table LINEITEM (
+      orderid int not null,
+      linenum int not null,
+      itemid varchar(10) not null,
+      quantity int not null,
+      unitprice decimal(10,2) not null,
+      constraint pk_lineitem primary key (orderid, linenum)
+);
+
+create table CATEGORY (
+	catid varchar(10) not null,
+	name varchar(80) null,
+	descn varchar(255) null,
+	constraint pk_category primary key (catid)
+);
+
+create table PRODUCT (
+    productid varchar(10) not null,
+    category varchar(10) not null,
+    name varchar(80) null,
+    descn varchar(255) null,
+    constraint pk_product primary key (productid),
+        constraint fk_product_1 foreign key (category)
+        references CATEGORY (catid)
+);
+
+create index PRODUCTCAT on PRODUCT (category);
+create index PRODUCTNAME on PRODUCT (name);
+
+create table ITEM (
+    itemid varchar(10) not null,
+    productid varchar(10) not null,
+    listprice decimal(10,2) null,
+    unitcost decimal(10,2) null,
+    supplier int null,
+    status varchar(2) null,
+    attr1 varchar(80) null,
+    attr2 varchar(80) null,
+    attr3 varchar(80) null,
+    attr4 varchar(80) null,
+    attr5 varchar(80) null,
+    constraint pk_item primary key (itemid),
+        constraint fk_item_1 foreign key (productid)
+        references PRODUCT (productid),
+        constraint fk_item_2 foreign key (supplier)
+        references SUPPLIER (suppid)
+);
+
+create index ITEMPROD on ITEM (productid);
+
+create table INVENTORY (
+    itemid varchar(10) not null,
+    qty int not null,
+    constraint pk_inventory primary key (itemid)
+);
+
+CREATE TABLE SEQUENCE
+(
+    name               varchar(30)  not null,
+    nextid             int          not null,
+    constraint pk_sequence primary key (name)
+);
+
+
+INSERT INTO SEQUENCE VALUES('ordernum', 1000);
+
+INSERT INTO SIGNON VALUES('j2ee','j2ee');
+INSERT INTO SIGNON VALUES('ACID','ACID');
+
+INSERT INTO ACCOUNT VALUES('j2ee','yourname@yourdomain.com','ABC', 'XYX', 'OK', '901 San Antonio Road', 'MS UCUP02-206', 'Palo Alto', 'CA', '94303', 'USA',  '555-555-5555');
+INSERT INTO ACCOUNT VALUES('ACID','acid@yourdomain.com','ABC', 'XYX', 'OK', '901 San Antonio Road', 'MS UCUP02-206', 'Palo Alto', 'CA', '94303', 'USA',  '555-555-5555');
+
+INSERT INTO PROFILE VALUES('j2ee','english','DOGS',1,1);
+INSERT INTO PROFILE VALUES('ACID','english','CATS',1,1);
+
+INSERT INTO BANNERDATA VALUES ('FISH','<image src="../images/banner_fish.gif">');
+INSERT INTO BANNERDATA VALUES ('CATS','<image src="../images/banner_cats.gif">');
+INSERT INTO BANNERDATA VALUES ('DOGS','<image src="../images/banner_dogs.gif">');
+INSERT INTO BANNERDATA VALUES ('REPTILES','<image src="../images/banner_reptiles.gif">');
+INSERT INTO BANNERDATA VALUES ('BIRDS','<image src="../images/banner_birds.gif">');
+
+INSERT INTO CATEGORY VALUES ('FISH','Fish','<image src="../images/fish_icon.gif"><font size="5" color="blue"> Fish</font>');
+INSERT INTO CATEGORY VALUES ('DOGS','Dogs','<image src="../images/dogs_icon.gif"><font size="5" color="blue"> Dogs</font>');
+INSERT INTO CATEGORY VALUES ('REPTILES','Reptiles','<image src="../images/reptiles_icon.gif"><font size="5" color="blue"> Reptiles</font>');
+INSERT INTO CATEGORY VALUES ('CATS','Cats','<image src="../images/cats_icon.gif"><font size="5" color="blue"> Cats</font>');
+INSERT INTO CATEGORY VALUES ('BIRDS','Birds','<image src="../images/birds_icon.gif"><font size="5" color="blue"> Birds</font>');
+
+INSERT INTO PRODUCT VALUES ('FI-SW-01','FISH','Angelfish','<image src="../images/fish1.gif">Salt Water fish from Australia');
+INSERT INTO PRODUCT VALUES ('FI-SW-02','FISH','Tiger Shark','<image src="../images/fish4.gif">Salt Water fish from Australia');
+INSERT INTO PRODUCT VALUES ('FI-FW-01','FISH', 'Koi','<image src="../images/fish3.gif">Fresh Water fish from Japan');
+INSERT INTO PRODUCT VALUES ('FI-FW-02','FISH', 'Goldfish','<image src="../images/fish2.gif">Fresh Water fish from China');
+INSERT INTO PRODUCT VALUES ('K9-BD-01','DOGS','Bulldog','<image src="../images/dog2.gif">Friendly dog from England');
+INSERT INTO PRODUCT VALUES ('K9-PO-02','DOGS','Poodle','<image src="../images/dog6.gif">Cute dog from France');
+INSERT INTO PRODUCT VALUES ('K9-DL-01','DOGS', 'Dalmation','<image src="../images/dog5.gif">Great dog for a Fire Station');
+INSERT INTO PRODUCT VALUES ('K9-RT-01','DOGS', 'Golden Retriever','<image src="../images/dog1.gif">Great family dog');
+INSERT INTO PRODUCT VALUES ('K9-RT-02','DOGS', 'Labrador Retriever','<image src="../images/dog5.gif">Great hunting dog');
+INSERT INTO PRODUCT VALUES ('K9-CW-01','DOGS', 'Chihuahua','<image src="../images/dog4.gif">Great companion dog');
+INSERT INTO PRODUCT VALUES ('RP-SN-01','REPTILES','Rattlesnake','<image src="../images/snake1.gif">Doubles as a watch dog');
+INSERT INTO PRODUCT VALUES ('RP-LI-02','REPTILES','Iguana','<image src="../images/lizard1.gif">Friendly green friend');
+INSERT INTO PRODUCT VALUES ('FL-DSH-01','CATS','Manx','<image src="../images/cat2.gif">Great for reducing mouse populations');
+INSERT INTO PRODUCT VALUES ('FL-DLH-02','CATS','Persian','<image src="../images/cat1.gif">Friendly house cat, doubles as a princess');
+INSERT INTO PRODUCT VALUES ('AV-CB-01','BIRDS','Amazon Parrot','<image src="../images/bird2.gif">Great companion for up to 75 years');
+INSERT INTO PRODUCT VALUES ('AV-SB-02','BIRDS','Finch','<image src="../images/bird1.gif">Great stress reliever');
+
+INSERT INTO SUPPLIER VALUES (1,'XYZ Pets','AC','600 Avon Way','','Los Angeles','CA','94024','212-947-0797');
+INSERT INTO SUPPLIER VALUES (2,'ABC Pets','AC','700 Abalone Way','','San Francisco ','CA','94024','415-947-0797');
+
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-1','FI-SW-01',16.50,10.00,1,'P','Large');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-2','FI-SW-01',16.50,10.00,1,'P','Small');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-3','FI-SW-02',18.50,12.00,1,'P','Toothless');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-4','FI-FW-01',18.50,12.00,1,'P','Spotted');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-5','FI-FW-01',18.50,12.00,1,'P','Spotless');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-6','K9-BD-01',18.50,12.00,1,'P','Male Adult');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-7','K9-BD-01',18.50,12.00,1,'P','Female Puppy');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-8','K9-PO-02',18.50,12.00,1,'P','Male Puppy');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-9','K9-DL-01',18.50,12.00,1,'P','Spotless Male Puppy');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-10','K9-DL-01',18.50,12.00,1,'P','Spotted Adult Female');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-11','RP-SN-01',18.50,12.00,1,'P','Venomless');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-12','RP-SN-01',18.50,12.00,1,'P','Rattleless');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-13','RP-LI-02',18.50,12.00,1,'P','Green Adult');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-14','FL-DSH-01',58.50,12.00,1,'P','Tailless');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-15','FL-DSH-01',23.50,12.00,1,'P','With tail');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-16','FL-DLH-02',93.50,12.00,1,'P','Adult Female');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-17','FL-DLH-02',93.50,12.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-18','AV-CB-01',193.50,92.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-19','AV-SB-02',15.50, 2.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-20','FI-FW-02',5.50, 2.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-21','FI-FW-02',5.29, 1.00,1,'P','Adult Female');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-22','K9-RT-02',135.50, 100.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-23','K9-RT-02',145.49, 100.00,1,'P','Adult Female');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-24','K9-RT-02',255.50, 92.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-25','K9-RT-02',325.29, 90.00,1,'P','Adult Female');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-26','K9-CW-01',125.50, 92.00,1,'P','Adult Male');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-27','K9-CW-01',155.29, 90.00,1,'P','Adult Female');
+INSERT INTO  ITEM (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-28','K9-RT-01',155.29, 90.00,1,'P','Adult Female');
+
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-1',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-2',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-3',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-4',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-5',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-6',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-7',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-8',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-9',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-10',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-11',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-12',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-13',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-14',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-15',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-16',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-17',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-18',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-19',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-20',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-21',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-22',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-23',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-24',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-25',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-26',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-27',10000);
+INSERT INTO INVENTORY (itemid, qty ) VALUES ('EST-28',10000);
+
+
+
+
+================================================
+FILE: src/main/resources/database/jpetstore-hsqldb-dataload.sql
+================================================
+--
+--    Copyright 2010-2022 the original author or authors.
+--
+--    Licensed under the Apache License, Version 2.0 (the "License");
+--    you may not use this file except in compliance with the License.
+--    You may obtain a copy of the License at
+--
+--       https://www.apache.org/licenses/LICENSE-2.0
+--
+--    Unless required by applicable law or agreed to in writing, software
+--    distributed under the License is distributed on an "AS IS" BASIS,
+--    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--    See the License for the specific language governing permissions and
+--    limitations under the License.
+--
+
+INSERT INTO sequence VALUES('ordernum', 1000);
+
+INSERT INTO signon VALUES('j2ee','j2ee');
+INSERT INTO signon VALUES('ACID','ACID');
+
+INSERT INTO account VALUES('j2ee','yourname@yourdomain.com','ABC', 'XYX', 'OK', '901 San Antonio Road', 'MS UCUP02-206', 'Palo Alto', 'CA', '94303', 'USA',  '555-555-5555');
+INSERT INTO account VALUES('ACID','acid@yourdomain.com','ABC', 'XYX', 'OK', '901 San Antonio Road', 'MS UCUP02-206', 'Palo Alto', 'CA', '94303', 'USA',  '555-555-5555');
+
+INSERT INTO profile VALUES('j2ee','english','DOGS',1,1);
+INSERT INTO profile VALUES('ACID','english','CATS',1,1);
+
+INSERT INTO bannerdata VALUES ('FISH','<image src="../images/banner_fish.gif">');
+INSERT INTO bannerdata VALUES ('CATS','<image src="../images/banner_cats.gif">');
+INSERT INTO bannerdata VALUES ('DOGS','<image src="../images/banner_dogs.gif">');
+INSERT INTO bannerdata VALUES ('REPTILES','<image src="../images/banner_reptiles.gif">');
+INSERT INTO bannerdata VALUES ('BIRDS','<image src="../images/banner_birds.gif">');
+
+INSERT INTO category VALUES ('FISH','Fish','<image src="../images/fish_icon.gif"><font size="5" color="blue"> Fish</font>');
+INSERT INTO category VALUES ('DOGS','Dogs','<image src="../images/dogs_icon.gif"><font size="5" color="blue"> Dogs</font>');
+INSERT INTO category VALUES ('REPTILES','Reptiles','<image src="../images/reptiles_icon.gif"><font size="5" color="blue"> Reptiles</font>');
+INSERT INTO category VALUES ('CATS','Cats','<image src="../images/cats_icon.gif"><font size="5" color="blue"> Cats</font>');
+INSERT INTO category VALUES ('BIRDS','Birds','<image src="../images/birds_icon.gif"><font size="5" color="blue"> Birds</font>');
+
+INSERT INTO product VALUES ('FI-SW-01','FISH','Angelfish','<image src="../images/fish1.gif">Salt Water fish from Australia');
+INSERT INTO product VALUES ('FI-SW-02','FISH','Tiger Shark','<image src="../images/fish4.gif">Salt Water fish from Australia');
+INSERT INTO product VALUES ('FI-FW-01','FISH', 'Koi','<image src="../images/fish3.gif">Fresh Water fish from Japan');
+INSERT INTO product VALUES ('FI-FW-02','FISH', 'Goldfish','<image src="../images/fish2.gif">Fresh Water fish from China');
+INSERT INTO product VALUES ('K9-BD-01','DOGS','Bulldog','<image src="../images/dog2.gif">Friendly dog from England');
+INSERT INTO product VALUES ('K9-PO-02','DOGS','Poodle','<image src="../images/dog6.gif">Cute dog from France');
+INSERT INTO product VALUES ('K9-DL-01','DOGS', 'Dalmation','<image src="../images/dog5.gif">Great dog for a Fire Station');
+INSERT INTO product VALUES ('K9-RT-01','DOGS', 'Golden Retriever','<image src="../images/dog1.gif">Great family dog');
+INSERT INTO product VALUES ('K9-RT-02','DOGS', 'Labrador Retriever','<image src="../images/dog5.gif">Great hunting dog');
+INSERT INTO product VALUES ('K9-CW-01','DOGS', 'Chihuahua','<image src="../images/dog4.gif">Great companion dog');
+INSERT INTO product VALUES ('RP-SN-01','REPTILES','Rattlesnake','<image src="../images/snake1.gif">Doubles as a watch dog');
+INSERT INTO product VALUES ('RP-LI-02','REPTILES','Iguana','<image src="../images/lizard1.gif">Friendly green friend');
+INSERT INTO product VALUES ('FL-DSH-01','CATS','Manx','<image src="../images/cat2.gif">Great for reducing mouse populations');
+INSERT INTO product VALUES ('FL-DLH-02','CATS','Persian','<image src="../images/cat1.gif">Friendly house cat, doubles as a princess');
+INSERT INTO product VALUES ('AV-CB-01','BIRDS','Amazon Parrot','<image src="../images/bird2.gif">Great companion for up to 75 years');
+INSERT INTO product VALUES ('AV-SB-02','BIRDS','Finch','<image src="../images/bird1.gif">Great stress reliever');
+
+INSERT INTO supplier VALUES (1,'XYZ Pets','AC','600 Avon Way','','Los Angeles','CA','94024','212-947-0797');
+INSERT INTO supplier VALUES (2,'ABC Pets','AC','700 Abalone Way','','San Francisco ','CA','94024','415-947-0797');
+
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-1','FI-SW-01',16.50,10.00,1,'P','Large');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-2','FI-SW-01',16.50,10.00,1,'P','Small');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-3','FI-SW-02',18.50,12.00,1,'P','Toothless');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-4','FI-FW-01',18.50,12.00,1,'P','Spotted');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-5','FI-FW-01',18.50,12.00,1,'P','Spotless');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-6','K9-BD-01',18.50,12.00,1,'P','Male Adult');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-7','K9-BD-01',18.50,12.00,1,'P','Female Puppy');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-8','K9-PO-02',18.50,12.00,1,'P','Male Puppy');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-9','K9-DL-01',18.50,12.00,1,'P','Spotless Male Puppy');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-10','K9-DL-01',18.50,12.00,1,'P','Spotted Adult Female');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-11','RP-SN-01',18.50,12.00,1,'P','Venomless');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-12','RP-SN-01',18.50,12.00,1,'P','Rattleless');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-13','RP-LI-02',18.50,12.00,1,'P','Green Adult');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-14','FL-DSH-01',58.50,12.00,1,'P','Tailless');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-15','FL-DSH-01',23.50,12.00,1,'P','With tail');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-16','FL-DLH-02',93.50,12.00,1,'P','Adult Female');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-17','FL-DLH-02',93.50,12.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-18','AV-CB-01',193.50,92.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-19','AV-SB-02',15.50, 2.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-20','FI-FW-02',5.50, 2.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-21','FI-FW-02',5.29, 1.00,1,'P','Adult Female');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-22','K9-RT-02',135.50, 100.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-23','K9-RT-02',145.49, 100.00,1,'P','Adult Female');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-24','K9-RT-02',255.50, 92.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-25','K9-RT-02',325.29, 90.00,1,'P','Adult Female');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-26','K9-CW-01',125.50, 92.00,1,'P','Adult Male');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-27','K9-CW-01',155.29, 90.00,1,'P','Adult Female');
+INSERT INTO  item (itemid, productid, listprice, unitcost, supplier, status, attr1) VALUES('EST-28','K9-RT-01',155.29, 90.00,1,'P','Adult Female');
+
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-1',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-2',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-3',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-4',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-5',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-6',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-7',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-8',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-9',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-10',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-11',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-12',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-13',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-14',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-15',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-16',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-17',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-18',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-19',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-20',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-21',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-22',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-23',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-24',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-25',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-26',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-27',10000);
+INSERT INTO inventory (itemid, qty ) VALUES ('EST-28',10000);
+
+
+
+
+================================================
+FILE: src/main/resources/database/jpetstore-hsqldb-schema.sql
+================================================
+--
+--    Copyright 2010-2022 the original author or authors.
+--
+--    Licensed under the Apache License, Version 2.0 (the "License");
+--    you may not use this file except in compliance with the License.
+--    You may obtain a copy of the License at
+--
+--       https://www.apache.org/licenses/LICENSE-2.0
+--
+--    Unless required by applicable law or agreed to in writing, software
+--    distributed under the License is distributed on an "AS IS" BASIS,
+--    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--    See the License for the specific language governing permissions and
+--    limitations under the License.
+--
+
+create table supplier (
+    suppid int not null,
+    name varchar(80) null,
+    status varchar(2) not null,
+    addr1 varchar(80) null,
+    addr2 varchar(80) null,
+    city varchar(80) null,
+    state varchar(80) null,
+    zip varchar(5) null,
+    phone varchar(80) null,
+    constraint pk_supplier primary key (suppid)
+);
+
+create table signon (
+    username varchar(25) not null,
+    password varchar(25)  not null,
+    constraint pk_signon primary key (username)
+);
+
+create table account (
+    userid varchar(80) not null,
+    email varchar(80) not null,
+    firstname varchar(80) not null,
+    lastname varchar(80) not null,
+    status varchar(2)  null,
+    addr1 varchar(80) not null,
+    addr2 varchar(40) null,
+    city varchar(80) not  null,
+    state varchar(80) not null,
+    zip varchar(20) not null,
+    country varchar(20) not null,
+    phone varchar(80) not null,
+    constraint pk_account primary key (userid)
+);
+
+create table profile (
+    userid varchar(80) not null,
+    langpref varchar(80) not null,
+    favcategory varchar(30),
+    mylistopt int,
+    banneropt int,
+    constraint pk_profile primary key (userid)
+);
+
+create table bannerdata (
+    favcategory varchar(80) not null,
+    bannername varchar(255)  null,
+    constraint pk_bannerdata primary key (favcategory)
+);
+
+create table orders (
+      orderid int not null,
+      userid varchar(80) not null,
+      orderdate date not null,
+      shipaddr1 varchar(80) not null,
+      shipaddr2 varchar(80) null,
+      shipcity varchar(80) not null,
+      shipstate varchar(80) not null,
+      shipzip varchar(20) not null,
+      shipcountry varchar(20) not null,
+      billaddr1 varchar(80) not null,
+      billaddr2 varchar(80)  null,
+      billcity varchar(80) not null,
+      billstate varchar(80) not null,
+      billzip varchar(20) not null,
+      billcountry varchar(20) not null,
+      courier varchar(80) not null,
+      totalprice decimal(10,2) not null,
+      billtofirstname varchar(80) not null,
+      billtolastname varchar(80) not null,
+      shiptofirstname varchar(80) not null,
+      shiptolastname varchar(80) not null,
+      creditcard varchar(80) not null,
+      exprdate varchar(7) not null,
+      cardtype varchar(80) not null,
+      locale varchar(80) not null,
+      constraint pk_orders primary key (orderid)
+);
+
+create table orderstatus (
+      orderid int not null,
+      linenum int not null,
+      timestamp date not null,
+      status varchar(2) not null,
+      constraint pk_orderstatus primary key (orderid, linenum)
+);
+
+create table lineitem (
+      orderid int not null,
+      linenum int not null,
+      itemid varchar(10) not null,
+      quantity int not null,
+      unitprice decimal(10,2) not null,
+      constraint pk_lineitem primary key (orderid, linenum)
+);
+
+create table category (
+	catid varchar(10) not null,
+	name varchar(80) null,
+	descn varchar(255) null,
+	constraint pk_category primary key (catid)
+);
+
+create table product (
+    productid varchar(10) not null,
+    category varchar(10) not null,
+    name varchar(80) null,
+    descn varchar(255) null,
+    constraint pk_product primary key (productid),
+        constraint fk_product_1 foreign key (category)
+        references category (catid)
+);
+
+create index productCat on product (category);
+create index productName on product (name);
+
+create table item (
+    itemid varchar(10) not null,
+    productid varchar(10) not null,
+    listprice decimal(10,2) null,
+    unitcost decimal(10,2) null,
+    supplier int null,
+    status varchar(2) null,
+    attr1 varchar(80) null,
+    attr2 varchar(80) null,
+    attr3 varchar(80) null,
+    attr4 varchar(80) null,
+    attr5 varchar(80) null,
+    constraint pk_item primary key (itemid),
+        constraint fk_item_1 foreign key (productid)
+        references product (productid),
+        constraint fk_item_2 foreign key (supplier)
+        references supplier (suppid)
+);
+
+create index itemProd on item (productid);
+
+create table inventory (
+    itemid varchar(10) not null,
+    qty int not null,
+    constraint pk_inventory primary key (itemid)
+);
+
+CREATE TABLE sequence
+(
+    name               varchar(30)  not null,
+    nextid             int          not null,
+    constraint pk_sequence primary key (name)
+);
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/AccountMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.AccountMapper">
+
+  <cache />
+
+  <select id="getAccountByUsername" resultType="Account">
+    SELECT
+          SIGNON.USERNAME,
+          ACCOUNT.EMAIL,
+          ACCOUNT.FIRSTNAME,
+          ACCOUNT.LASTNAME,
+          ACCOUNT.STATUS,
+          ACCOUNT.ADDR1 AS address1,
+          ACCOUNT.ADDR2 AS address2,
+          ACCOUNT.CITY,
+          ACCOUNT.STATE,
+          ACCOUNT.ZIP,
+          ACCOUNT.COUNTRY,
+          ACCOUNT.PHONE,
+          PROFILE.LANGPREF AS languagePreference,
+          PROFILE.FAVCATEGORY AS favouriteCategoryId,
+          PROFILE.MYLISTOPT AS listOption,
+          PROFILE.BANNEROPT AS bannerOption,
+          BANNERDATA.BANNERNAME
+    FROM ACCOUNT, PROFILE, SIGNON, BANNERDATA
+    WHERE ACCOUNT.USERID = #{username}
+      AND SIGNON.USERNAME = ACCOUNT.USERID
+      AND PROFILE.USERID = ACCOUNT.USERID
+      AND PROFILE.FAVCATEGORY = BANNERDATA.FAVCATEGORY
+  </select>
+
+  <select id="getAccountByUsernameAndPassword" resultType="Account">
+    SELECT
+      SIGNON.USERNAME,
+      ACCOUNT.EMAIL,
+      ACCOUNT.FIRSTNAME,
+      ACCOUNT.LASTNAME,
+      ACCOUNT.STATUS,
+      ACCOUNT.ADDR1 AS address1,
+      ACCOUNT.ADDR2 AS address2,
+      ACCOUNT.CITY,
+      ACCOUNT.STATE,
+      ACCOUNT.ZIP,
+      ACCOUNT.COUNTRY,
+      ACCOUNT.PHONE,
+      PROFILE.LANGPREF AS languagePreference,
+      PROFILE.FAVCATEGORY AS favouriteCategoryId,
+      PROFILE.MYLISTOPT AS listOption,
+      PROFILE.BANNEROPT AS bannerOption,
+      BANNERDATA.BANNERNAME
+    FROM ACCOUNT, PROFILE, SIGNON, BANNERDATA
+    WHERE ACCOUNT.USERID = #{param1}
+      AND SIGNON.PASSWORD = #{param2}
+      AND SIGNON.USERNAME = ACCOUNT.USERID
+      AND PROFILE.USERID = ACCOUNT.USERID
+      AND PROFILE.FAVCATEGORY = BANNERDATA.FAVCATEGORY
+  </select>
+
+  <update id="updateAccount" parameterType="Account">
+    UPDATE ACCOUNT SET
+      EMAIL = #{email},
+      FIRSTNAME = #{firstName},
+      LASTNAME = #{lastName},
+      STATUS = #{status},
+      ADDR1 = #{address1},
+      ADDR2 = #{address2,jdbcType=VARCHAR},
+      CITY = #{city},
+      STATE = #{state},
+      ZIP = #{zip},
+      COUNTRY = #{country},
+      PHONE = #{phone}
+    WHERE USERID = #{username}
+  </update>
+
+  <insert id="insertAccount" parameterType="Account">
+    INSERT INTO ACCOUNT
+      (EMAIL, FIRSTNAME, LASTNAME, STATUS, ADDR1, ADDR2, CITY, STATE, ZIP, COUNTRY, PHONE, USERID)
+    VALUES
+      (#{email}, #{firstName}, #{lastName}, #{status}, #{address1},  #{address2,jdbcType=VARCHAR}, #{city}, #{state}, #{zip}, #{country}, #{phone}, #{username})
+  </insert>
+
+  <update id="updateProfile" parameterType="Account">
+    <bind name="listOptionValue" value="_parameter.isListOption() ? 1 : 0" />
+    <bind name="bannerOptionValue" value="_parameter.isBannerOption() ? 1 : 0" />
+
+    UPDATE PROFILE SET
+    LANGPREF = #{languagePreference},
+    FAVCATEGORY = #{favouriteCategoryId},
+    MYLISTOPT = #{listOptionValue},
+    BANNEROPT = #{bannerOptionValue}
+    WHERE USERID = #{username}
+  </update>
+
+  <insert id="insertProfile" parameterType="Account">
+    <bind name="listOptionValue" value="_parameter.isListOption() ? 1 : 0" />
+    <bind name="bannerOptionValue" value="_parameter.isBannerOption() ? 1 : 0" />
+
+    INSERT INTO PROFILE (LANGPREF, FAVCATEGORY, MYLISTOPT, BANNEROPT, USERID)
+    VALUES (#{languagePreference}, #{favouriteCategoryId}, #{listOptionValue}, #{bannerOptionValue}, #{username})
+  </insert>
+
+  <update id="updateSignon" parameterType="Account">
+    UPDATE SIGNON SET PASSWORD = #{password}
+    WHERE USERNAME = #{username}
+  </update>
+
+  <insert id="insertSignon" parameterType="Account">
+    INSERT INTO SIGNON (PASSWORD,USERNAME)
+    VALUES (#{password}, #{username})
+  </insert>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/CategoryMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.CategoryMapper">
+
+  <cache />
+
+  <select id="getCategory" resultType="Category">
+    SELECT
+      CATID AS categoryId,
+      NAME,
+      DESCN AS description
+    FROM CATEGORY
+    WHERE CATID = #{categoryId}
+  </select>
+
+  <select id="getCategoryList" resultType="Category">
+    SELECT
+      CATID AS categoryId,
+      NAME,
+      DESCN AS description
+    FROM CATEGORY
+  </select>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/ItemMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.ItemMapper">
+
+  <cache />
+
+  <select id="getItemListByProduct" resultType="Item">
+    SELECT
+      I.ITEMID,
+      LISTPRICE,
+      UNITCOST,
+      SUPPLIER AS supplierId,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5
+    FROM ITEM I, PRODUCT P
+    WHERE P.PRODUCTID = I.PRODUCTID
+    AND I.PRODUCTID = #{value}
+  </select>
+
+  <select id="getItem" resultType="Item">
+    select
+      I.ITEMID,
+      LISTPRICE,
+      UNITCOST,
+      SUPPLIER AS supplierId,
+      I.PRODUCTID AS "product.productId",
+      NAME AS "product.name",
+      DESCN AS "product.description",
+      CATEGORY AS "product.categoryId",
+      STATUS,
+      ATTR1 AS attribute1,
+      ATTR2 AS attribute2,
+      ATTR3 AS attribute3,
+      ATTR4 AS attribute4,
+      ATTR5 AS attribute5,
+      QTY AS quantity
+    from ITEM I, INVENTORY V, PRODUCT P
+    where P.PRODUCTID = I.PRODUCTID
+      and I.ITEMID = V.ITEMID
+      and I.ITEMID = #{value}
+  </select>
+
+  <select id="getInventoryQuantity" resultType="int">
+    SELECT QTY AS value
+    FROM INVENTORY
+    WHERE ITEMID = #{itemId}
+  </select>
+
+  <update id="updateInventoryQuantity">
+    UPDATE INVENTORY SET
+      QTY = QTY - #{increment}
+    WHERE ITEMID = #{itemId}
+  </update>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/LineItemMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.LineItemMapper">
+
+  <cache />
+
+  <select id="getLineItemsByOrderId" resultType="LineItem">
+    SELECT
+      ORDERID,
+      LINENUM AS lineNumber,
+      ITEMID,
+      QUANTITY,
+      UNITPRICE
+    FROM LINEITEM
+    WHERE ORDERID = #{orderId}
+  </select>
+
+  <insert id="insertLineItem">
+    INSERT INTO LINEITEM (ORDERID, LINENUM, ITEMID, QUANTITY, UNITPRICE)
+    VALUES (#{orderId}, #{lineNumber}, #{itemId}, #{quantity}, #{unitPrice})
+  </insert>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/OrderMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.OrderMapper">
+
+  <cache />
+
+  <select id="getOrder" resultType="Order">
+    select
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.ORDERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+  </select>
+
+  <select id="getOrdersByUsername" resultType="Order">
+    SELECT
+      BILLADDR1 AS billAddress1,
+      BILLADDR2 AS billAddress2,
+      BILLCITY,
+      BILLCOUNTRY,
+      BILLSTATE,
+      BILLTOFIRSTNAME,
+      BILLTOLASTNAME,
+      BILLZIP,
+      SHIPADDR1 AS shipAddress1,
+      SHIPADDR2 AS shipAddress2,
+      SHIPCITY,
+      SHIPCOUNTRY,
+      SHIPSTATE,
+      SHIPTOFIRSTNAME,
+      SHIPTOLASTNAME,
+      SHIPZIP,
+      CARDTYPE,
+      COURIER,
+      CREDITCARD,
+      EXPRDATE AS expiryDate,
+      LOCALE,
+      ORDERDATE,
+      ORDERS.ORDERID,
+      TOTALPRICE,
+      USERID AS username,
+      STATUS
+    FROM ORDERS, ORDERSTATUS
+    WHERE ORDERS.USERID = #{value}
+      AND ORDERS.ORDERID = ORDERSTATUS.ORDERID
+    ORDER BY ORDERDATE
+  </select>
+
+  <insert id="insertOrder">
+    INSERT INTO ORDERS (ORDERID, USERID, ORDERDATE, SHIPADDR1, SHIPADDR2, SHIPCITY, SHIPSTATE,
+      SHIPZIP, SHIPCOUNTRY, BILLADDR1, BILLADDR2, BILLCITY, BILLSTATE, BILLZIP, BILLCOUNTRY,
+      COURIER, TOTALPRICE, BILLTOFIRSTNAME, BILLTOLASTNAME, SHIPTOFIRSTNAME, SHIPTOLASTNAME,
+      CREDITCARD, EXPRDATE, CARDTYPE, LOCALE)
+    VALUES(#{orderId}, #{username}, #{orderDate}, #{shipAddress1}, #{shipAddress2,jdbcType=VARCHAR}, #{shipCity},
+      #{shipState}, #{shipZip}, #{shipCountry}, #{billAddress1}, #{billAddress2,jdbcType=VARCHAR}, #{billCity},
+      #{billState}, #{billZip}, #{billCountry}, #{courier}, #{totalPrice}, #{billToFirstName}, #{billToLastName},
+      #{shipToFirstName}, #{shipToLastName}, #{creditCard}, #{expiryDate}, #{cardType}, #{locale})
+  </insert>
+
+  <insert id="insertOrderStatus">
+    INSERT INTO ORDERSTATUS (ORDERID, LINENUM, TIMESTAMP, STATUS)
+    VALUES (#{orderId,jdbcType=NUMERIC}, #{orderId,jdbcType=NUMERIC}, #{orderDate,jdbcType=TIMESTAMP}, #{status,jdbcType=VARCHAR})
+  </insert>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/ProductMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.ProductMapper">
+
+  <cache />
+
+  <select id="getProduct" resultType="Product">
+    SELECT
+      PRODUCTID,
+      NAME,
+      DESCN as description,
+      CATEGORY as categoryId
+    FROM PRODUCT
+    WHERE PRODUCTID = #{productId}
+  </select>
+
+  <select id="getProductListByCategory" resultType="Product">
+    SELECT
+      PRODUCTID,
+      NAME,
+      DESCN as description,
+      CATEGORY as categoryId
+    FROM PRODUCT
+    WHERE CATEGORY = #{value}
+  </select>
+
+  <select id="searchProductList" resultType="Product">
+    select
+      PRODUCTID,
+      NAME,
+      DESCN as description,
+      CATEGORY as categoryId
+    from PRODUCT
+    WHERE lower(name) like #{value}
+  </select>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/resources/org/mybatis/jpetstore/mapper/SequenceMapper.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.mybatis.jpetstore.mapper.SequenceMapper">
+
+  <cache />
+
+  <select id="getSequence" resultType="Sequence">
+    SELECT name, nextid
+    FROM SEQUENCE
+    WHERE NAME = #{name}
+  </select>
+
+  <update id="updateSequence">
+    UPDATE SEQUENCE
+    SET NEXTID = #{nextId}
+    WHERE NAME = #{name}
+  </update>
+
+</mapper>
+
+
+
+================================================
+FILE: src/main/webapp/help.html
+================================================
+<!--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>JPetStore Demo</title>
+  <link rel="StyleSheet" href="css/jpetstore.css" type="text/css" media="screen"/>
+</head>
+
+<body>
+<div id="Content">
+
+<h1>JPetStore Demo</h1>
+
+<p>
+  The JPetStore Demo is an online pet store. Like most e-stores, you can browse
+  and search the product catalog, choose items to add to a shopping cart, amend
+  the shopping cart, and order the items in the shopping cart. You can perform
+  many of these actions without registering with or logging into the
+  application. However, before you can order items you must log in (sign in) to
+  the application. In order to sign in, you must have an account with the
+  application, which is created when you register (sign up) with the
+  application.
+</p>
+
+<ul>
+  <li><a href="#SigningUp">Signing Up</a></li>
+  <li><a href="#SigningIn">Signing In</a></li>
+  <li><a href="#Catalog">Working with the Product Catalog</a></li>
+  <li><a href="#CatalogBrowsing">Browsing the Catalog</a></li>
+  <li><a href="#CatalogSearching">Searching the Catalog</a></li>
+  <li><a href="#ShoppingCart">Working with the Shopping Cart</a></li>
+  <li><a href="#ShoppingCartAdd">Adding and Removing Items</a></li>
+  <li><a href="#ShoppingCartUpdate">Updating the Quantity of an Item</a></li>
+  <li><a href="#Ordering">Ordering Items</a></li>
+  <li><a href="#OrderReview">Reviewing an Order</a></li>
+  <li><a href="#Issues">Known Issues</a></li>
+</ul>
+
+<h2><a id="SigningUp" name="SigningUp"></a>Signing Up</h2>
+
+<p>
+  To sign up, click the Sign-in link at the right end of the banner. Next,
+  click the New User link in the resulting page. Among other information, the
+  signup page requires you to provide a user identifier and password. This
+  information is used to identify your account and must be provided when
+  signing in.
+</p>
+
+<h2><a id="SigningIn" name="SigningIn"></a>Signing In</h2>
+
+<p>
+  You sign in to the application by clicking the Sign-in link at the right end
+  of the banner, filling in the user identifier and password, and clicking the
+  Submit button.
+</p>
+
+<p>
+  You will also be redirected to the signin page when you try to place an
+  order and you have not signed in. Once you have signed in, you can return to
+  your shopping session by clicking the shopping cart icon at the right end of
+  the banner.
+</p>
+
+<h2><a id="Catalog" name="Catalog"></a>Working with the Product Catalog</h2>
+
+<p>This section describes how to browse and search the product catalog.</p>
+
+<h4><a id="CatalogBrowsing" name="CatalogBrowsing"></a>Browsing the Catalog</h4>
+
+<p>
+  The pet store catalog is organized hierarchically as follows: categories,
+  products, items.
+</p>
+
+<p>
+  You list the pets in a category by clicking on the category name in the
+  left column of the main page, or by clicking on the picture representing the
+  category.
+</p>
+
+<p>
+  Once you select a category, the pet store will display a list of products
+  within a category. Selecting a product displays a list of items and their
+  prices. Selecting a product item displays a text and visual description of
+  the item and the number of that item in stock.
+</p>
+
+<h4><a id="CatalogSearching" name="CatalogSearching"></a>Searching the Catalog</h4>
+
+<p>
+  You search for products by typing the product name in search field in the
+  middle of the banner.
+</p>
+
+<h2><a id="ShoppingCart" name="ShoppingCart"></a>Working with the Shopping Cart</h2>
+
+<h4><a id="ShoppingCartAdd" name="ShoppingCartAdd"></a>Adding and Removing Items</h4>
+
+<p>
+  You add an item to your shopping cart by clicking the Add to Cart button to
+  the right of an item. This action also displays your shopping cart.
+</p>
+
+<p>
+  You can remove the item by clicking the Remove button to the left of the
+  item.
+</p>
+
+<p>
+  To continue shopping, you select a product category from the list under
+  the banner.
+</p>
+
+<h4><a id="ShoppingCartUpdate" name="ShoppingCartUpdate"></a>Updating the Quantity of an Item</h4>
+
+<p>
+  You adjust the quantity of an item by typing the quantity in the item's
+  Quantity field in the shopping cart and clicking the Update button.
+</p>
+
+<p>
+  If the quantity of items requested is greater than that in stock, the In
+  Stock field in the shopping cart will show that the item is backordered.
+</p>
+
+<h4><a id="Ordering" name="Ordering"></a>Ordering Items</h4>
+
+<p>
+  You order the items in the shopping cart by selecting the Proceed to Checkout
+  button. The pet store will display a read-only list of the shopping cart
+  contents. To proceed with the checkout, click the Continue button.
+</p>
+
+<p>
+  If you have not signed in, the application will display the signin page,
+  where you will need to provide your account name and password. Otherwise, the
+  application will display a page requesting payment and shipping information.
+  When you have filled in the required information, you click the Submit
+  button, and the application will display a read-only page containing your
+  billing and shipping address. If you need to change any information,
+  click your browser's Back button and enter the correct information. To
+  complete the order, you click the Continue button.
+</p>
+
+<h2><a id="OrderReview" name="OrderReview"></a>Reviewing An Order</h2>
+
+<p>
+  The final screen contains your order information.
+</p>
+
+<p>
+  The application can be set up to send email confirmation of orders.
+  This option can only be set when the application is deployed. See the
+  installation instructions for further information.
+</p>
+
+
+<p><sub>Copyright www.mybatis.org</sub></p>
+
+</div>
+
+</body>
+
+</html>
+
+
+
+================================================
+FILE: src/main/webapp/index.html
+================================================
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>JPetStore Demo</title>
+  <link rel="StyleSheet" href="css/jpetstore.css" type="text/css" media="screen"/>
+</head>
+
+<body>
+<div id="Content">
+  <h2>Welcome to JPetStore 6</h2>
+
+  <p><a href="actions/Catalog.action">Enter the Store</a></p>
+
+  <p><sub>Copyright www.mybatis.org </sub></p>
+
+</div>
+</body>
+</html>
+
+
+
+================================================
+FILE: src/main/webapp/css/jpetstore.css
+================================================
+/**
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+body {
+  margin: 0ex 10ex 0ex 10ex;
+  padding: 0ex;
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+  font-size: 2ex;
+  color: #333;
+  background-color: #444;
+}
+
+pre {
+  font-family: "Courier New", Courier, monospace;
+
+  font-style: normal;
+  background-color: #FFFFFF;
+  white-space: pre
+}
+
+h1 {
+  margin: 1ex 0ex 1ex 0ex;
+  padding: 0ex;
+
+  line-height: 3ex;
+  font-weight: 900;
+  color: #666;
+}
+
+h2 {
+  margin: 2ex 0ex 1ex 0ex;
+  padding: 0ex;
+
+  line-height: 2ex;
+  font-weight: 700;
+  color: #444;
+}
+
+h3 {
+  margin: 1ex 0ex 1ex 0ex;
+  padding: 0ex;
+
+  line-height: 1.6ex;
+  font-weight: 700;
+  color: #222;
+}
+
+p {
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 2ex;
+}
+
+img {
+  border: 0;
+}
+
+li {
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 0ex;
+}
+
+table {
+  border-width: 0;
+  empty-cells: show;
+}
+
+td, th {
+  empty-cells: show;
+  padding: .3ex .3ex;
+  vertical-align: top;
+  text-align: left;
+  border-width: 0;
+  border-spacing: 0;
+  background-color: #ececec
+}
+
+th {
+  font-weight: bold;
+  background-color: #e2e2e2;
+}
+
+a, a:visited, a:link {
+  color: #039;
+
+  text-decoration: none;
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+}
+
+a:hover {
+  color: #69f;
+}
+
+a.Button, a.Button:link, a.Button:visited {
+  padding: .3ex;
+  color: #fff;
+  background-color: #005e21;
+  text-decoration: none;
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+  font-size: 1.5ex;
+}
+
+a.Button:hover {
+  color: #000;
+  background-color: #54c07a;
+}
+
+#Logo {
+  width: 33%;
+  height: 9ex;
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 0ex 0ex 0ex 0ex;
+  border-width: 0ex 0ex .3ex 0px;
+  border-style: solid;
+  border-color: #ccc;
+  float: left;
+  background-color: #000;
+  color: #fff;
+  line-height: 9ex;
+  voice-family: "\"}\"";
+  voice-family: inherit;
+}
+
+body>#Logo {
+  height: 9ex;
+}
+
+#Menu {
+  width: 33%;
+  height: 9ex;
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 0ex 0ex 0ex 0ex;
+  border-width: 0ex 0ex .3ex 0px;
+  border-style: solid;
+  border-color: #ccc;
+  float: left;
+  background-color: #000;
+  color: #eaac00;
+  text-decoration: none;
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+  text-align: center;
+  line-height: 9ex;
+  voice-family: "\"}\"";
+  voice-family: inherit;
+}
+
+#Menu, #Menu a, #Menu a:link, #Menu a:visited, #Menu a:hover {
+  color: #eaac00;
+  text-decoration: none;
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+}
+
+body>#Menu {
+  height: 9ex;
+}
+
+ {
+}
+
+#Search {
+  width: 33%;
+  height: 9ex;
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 0ex 0ex 0ex 0ex;
+  border-width: 0ex 0ex .3ex 0px;
+  border-style: solid;
+  border-color: #ccc;
+  float: left;
+  text-align: center;
+  background-color: #000;
+  color: #eaac00;
+  line-height: 9ex;
+  voice-family: "\"}\"";
+  voice-family: inherit;
+}
+
+body>#Search {
+  height: 9ex;
+}
+
+#Search input {
+  border-width: .1ex .1ex .1ex .1ex;
+  border-style: solid;
+  border-color: #aaa;
+  background-color: #666;
+  color: #eaac00;
+}
+
+#QuickLinks {
+  text-align: center;
+  background-color: #FFF;
+  width: 99%;
+}
+
+#PoweredBy {
+  width: 30%;
+  height: 9ex;
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 0ex 0ex 0ex 0ex;
+  border-width: .3ex 0ex .3ex 0px;
+  border-style: solid;
+  border-color: #ccc;
+  float: left;
+  background-color: #000;
+  color: #fff;
+  line-height: 9ex;
+  voice-family: "\"}\"";
+  voice-family: inherit;
+}
+
+body>#PoweredBy {
+  height: 9ex;
+}
+
+#Banner {
+  width: 69%;
+  height: 9ex;
+  margin: 0ex 0ex 0ex 0ex;
+  padding: 0ex 0ex 0ex 0ex;
+  border-width: .3ex 0ex .3ex 0px;
+  border-style: solid;
+  border-color: #ccc;
+  float: left;
+  background-color: #000;
+  color: #fff;
+  line-height: 9ex;
+  voice-family: "\"}\"";
+  voice-family: inherit;
+}
+
+body>#Banner {
+  height: 9ex;
+}
+
+#Content {
+  margin: 0;
+  padding: 0ex 0ex 0ex 0ex;
+  width: 99%;
+  color: #333;
+  background-color: #FFF;
+  border-width: 0;
+}
+
+#Separator {
+  clear:both;
+  margin: 0;
+  height:0;
+}
+
+#Main {
+  margin: 0;
+  padding: 1ex;
+  color: #333;
+  background-color: #FFF;
+  border-width: 1ex 0ex 2ex 0px;
+  border-style: solid;
+  border-color: #fff;
+}
+
+#Sidebar {
+  float: left;
+  background:inherit;
+  width: 30%;
+}
+
+#MainImage {
+  float: left;
+  background:inherit;
+  text-align:center;
+  width: 50%;
+}
+
+#Catalog {
+  padding: 1ex;
+  background:inherit;
+  text-align:center;
+}
+
+#Catalog input[type="submit"]{
+  padding: .3ex;
+  color: #fff;
+  background-color: #005e21;
+  text-decoration: none;
+  font-family: helvetica, tahoma, arial, verdana, sans-serif;
+  font-size: 1.5ex;
+  border-width:0;
+}
+#Catalog input[type="submit"]:hover {
+  color: #000;
+  background-color: #54c07a;
+  cursor:pointer;
+}
+
+#Catalog table{
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#BackLink{
+  padding: 1ex;
+  float: right;
+  border-width: .1ex 0ex .1ex 0px;
+  border-style: solid;
+  border-color: #000;
+}
+
+#Cart{
+  width: 69.99%;
+  float: left;
+  background-color:#fff;
+}
+
+#MyList{
+  width: 30%;
+  float: left;
+  background-color:#ccc;
+  text-align:left;
+}
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/applicationContext.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+     http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <jdbc:embedded-database id="dataSource">
+        <jdbc:script location="classpath:database/jpetstore-hsqldb-schema.sql"/>
+        <jdbc:script location="classpath:database/jpetstore-hsqldb-dataload.sql"/>
+    </jdbc:embedded-database>
+
+    <!-- transaction manager, use DataSourceTransactionManager" for JDBC local tx -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- enable component scanning and autowire (beware that this does not enable mapper scanning!) -->
+    <context:component-scan base-package="org.mybatis.jpetstore.service" />
+
+    <!-- enable transaction demarcation with annotations -->
+    <tx:annotation-driven />
+
+    <!-- define the SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="typeAliasesPackage" value="org.mybatis.jpetstore.domain" />
+    </bean>
+
+    <!-- scan for mappers and let them be autowired -->
+    <mybatis:scan base-package="org.mybatis.jpetstore.mapper" />
+</beans>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/web.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2025 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee https://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+    version="4.0">
+	<display-name>JPetStore</display-name>
+	<description>Online Pet Store Sample Application</description>
+	<context-param>
+		<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+		<param-value>StripesResources</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<filter>
+		<display-name>Stripes Filter</display-name>
+		<filter-name>StripesFilter</filter-name>
+		<filter-class>net.sourceforge.stripes.controller.StripesFilter</filter-class>
+		<init-param>
+			<param-name>ActionResolver.Packages</param-name>
+			<param-value>org.mybatis.jpetstore.web</param-value>
+		</init-param>
+		<init-param>
+			<param-name>Extension.Packages</param-name>
+			<param-value>net.sourceforge.stripes.integration.spring</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>StripesFilter</filter-name>
+		<servlet-name>StripesDispatcher</servlet-name>
+		<dispatcher>REQUEST</dispatcher>
+	</filter-mapping>
+	<servlet>
+		<servlet-name>StripesDispatcher</servlet-name>
+		<servlet-class>net.sourceforge.stripes.controller.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>StripesDispatcher</servlet-name>
+		<url-pattern>*.action</url-pattern>
+	</servlet-mapping>
+</web-app>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/account/EditAccountForm.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="Catalog"><stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+	focus="">
+
+	<h3>User Information</h3>
+
+	<table>
+		<tr>
+			<td>User ID:</td>
+			<td>${actionBean.username}</td>
+		</tr>
+		<tr>
+			<td>New password:</td>
+			<td><stripes:text name="password" /></td>
+		</tr>
+		<tr>
+			<td>Repeat password:</td>
+			<td><stripes:text name="repeatedPassword" /></td>
+		</tr>
+	</table>
+	<%@ include file="IncludeAccountFields.jsp"%>
+
+	<stripes:submit name="editAccount" value="Save Account Information" />
+
+</stripes:form> <stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.OrderActionBean"
+	event="listOrders">My Orders</stripes:link></div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/account/IncludeAccountFields.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<h3>Account Information</h3>
+
+<table>
+	<tr>
+		<td>First name:</td>
+		<td><stripes:text name="account.firstName" /></td>
+	</tr>
+	<tr>
+		<td>Last name:</td>
+		<td><stripes:text name="account.lastName" /></td>
+	</tr>
+	<tr>
+		<td>Email:</td>
+		<td><stripes:text size="40" name="account.email" /></td>
+	</tr>
+	<tr>
+		<td>Phone:</td>
+		<td><stripes:text name="account.phone" /></td>
+	</tr>
+	<tr>
+		<td>Address 1:</td>
+		<td><stripes:text size="40" name="account.address1" /></td>
+	</tr>
+	<tr>
+		<td>Address 2:</td>
+		<td><stripes:text size="40" name="account.address2" /></td>
+	</tr>
+	<tr>
+		<td>City:</td>
+		<td><stripes:text name="account.city" /></td>
+	</tr>
+	<tr>
+		<td>State:</td>
+		<td><stripes:text size="4" name="account.state" /></td>
+	</tr>
+	<tr>
+		<td>Zip:</td>
+		<td><stripes:text size="10" name="account.zip" /></td>
+	</tr>
+	<tr>
+		<td>Country:</td>
+		<td><stripes:text size="15" name="account.country" /></td>
+	</tr>
+</table>
+
+<h3>Profile Information</h3>
+
+<table>
+	<tr>
+		<td>Language Preference:</td>
+		<td><stripes:select name="account.languagePreference">
+			<stripes:options-collection collection="${actionBean.languages}" />
+		</stripes:select></td>
+	</tr>
+	<tr>
+		<td>Favourite Category:</td>
+		<td><stripes:select name="account.favouriteCategoryId">
+			<stripes:options-collection collection="${actionBean.categories}" />
+		</stripes:select></td>
+	</tr>
+	<tr>
+		<td>Enable MyList</td>
+		<td><stripes:checkbox name="account.listOption" /></td>
+	</tr>
+	<tr>
+		<td>Enable MyBanner</td>
+		<td><stripes:checkbox name="account.bannerOption" /></td>
+	</tr>
+
+</table>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/account/NewAccountForm.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="Catalog"><stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+	focus="">
+
+	<h3>User Information</h3>
+
+	<table>
+		<tr>
+			<td>User ID:</td>
+			<td><stripes:text name="username" /></td>
+		</tr>
+		<tr>
+			<td>New password:</td>
+			<td><stripes:text name="password" /></td>
+		</tr>
+		<tr>
+			<td>Repeat password:</td>
+			<td><stripes:text name="repeatedPassword" /></td>
+		</tr>
+	</table>
+
+	<%@ include file="IncludeAccountFields.jsp"%>
+
+	<stripes:submit name="newAccount" value="Save Account Information" />
+
+</stripes:form></div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/account/SignonForm.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="Catalog"><stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+	focus="">
+
+	<p>Please enter your username and password.</p>
+	<p>Username:<stripes:text name="username" value="j2ee" /> <br />
+	Password:<stripes:password name="password" value="j2ee" /></p>
+	<stripes:submit name="signon" value="Login" />
+
+</stripes:form> Need a user name and password? <stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+	event="newAccountForm">Register Now!</stripes:link></div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/cart/Cart.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	Return to Main Menu</stripes:link></div>
+
+<div id="Catalog">
+
+<div id="Cart">
+
+<h2>Shopping Cart</h2>
+<stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.CartActionBean">
+	<table>
+		<tr>
+			<th><b>Item ID</b></th>
+			<th><b>Product ID</b></th>
+			<th><b>Description</b></th>
+			<th><b>In Stock?</b></th>
+			<th><b>Quantity</b></th>
+			<th><b>List Price</b></th>
+			<th><b>Total Cost</b></th>
+			<th>&nbsp;</th>
+		</tr>
+
+		<c:if test="${actionBean.cart.numberOfItems == 0}">
+			<tr>
+				<td colspan="8"><b>Your cart is empty.</b></td>
+			</tr>
+		</c:if>
+
+		<c:forEach var="cartItem" items="${actionBean.cart.cartItems}">
+			<tr>
+				<td><stripes:link
+					beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+					event="viewItem">
+					<stripes:param name="itemId" value="${cartItem.item.itemId}" />
+				${cartItem.item.itemId}
+			  </stripes:link></td>
+				<td>${cartItem.item.product.productId}</td>
+				<td>${cartItem.item.attribute1} ${cartItem.item.attribute2}
+				${cartItem.item.attribute3} ${cartItem.item.attribute4}
+				${cartItem.item.attribute5} ${cartItem.item.product.name}</td>
+				<td>${cartItem.inStock}</td>
+				<td><stripes:text size="3" name="${cartItem.item.itemId}"
+					value="${cartItem.quantity}" /></td>
+				<td>$<fmt:formatNumber value="${cartItem.item.listPrice}"
+					pattern="#,##0.00" /></td>
+				<td>$<fmt:formatNumber value="${cartItem.total}"
+					pattern="#,##0.00" /></td>
+				<td><stripes:link class="Button"
+					beanclass="org.mybatis.jpetstore.web.actions.CartActionBean"
+					event="removeItemFromCart">
+					<stripes:param name="workingItemId" value="${cartItem.item.itemId}" />
+            	Remove
+            </stripes:link></td>
+			</tr>
+		</c:forEach>
+		<tr>
+			<td colspan="7">Sub Total: $<fmt:formatNumber
+				value="${actionBean.cart.subTotal}" pattern="#,##0.00" /> <stripes:submit
+				name="updateCartQuantities" value="Update Cart" /></td>
+			<td>&nbsp;</td>
+		</tr>
+	</table>
+
+</stripes:form> <c:if test="${actionBean.cart.numberOfItems > 0}">
+	<stripes:link class="Button"
+		beanclass="org.mybatis.jpetstore.web.actions.OrderActionBean"
+		event="newOrderForm">
+      	Proceed to Checkout
+      </stripes:link>
+</c:if></div>
+
+<div id="MyList">
+  <c:if test="${sessionScope.accountBean != null}">
+	<c:if test="${!sessionScope.accountBean.authenticated}">
+	  <c:if test="${!empty sessionScope.accountBean.account.listOption}">
+	    <%@ include file="IncludeMyList.jsp"%>
+      </c:if>
+	</c:if>
+  </c:if>
+</div>
+
+<div id="Separator">&nbsp;</div>
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/cart/Checkout.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CartActionBean">
+	Return to Shopping Cart</stripes:link></div>
+
+<div id="Catalog">
+
+<table>
+	<tr>
+		<td>
+		<h2>Checkout Summary</h2>
+
+		<table>
+
+			<tr>
+				<td><b>Item ID</b></td>
+				<td><b>Product ID</b></td>
+				<td><b>Description</b></td>
+				<td><b>In Stock?</b></td>
+				<td><b>Quantity</b></td>
+				<td><b>List Price</b></td>
+				<td><b>Total Cost</b></td>
+			</tr>
+
+			<c:forEach var="cartItem" items="${actionBean.cart.cartItems}">
+				<tr>
+					<td><stripes:link
+						beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+						event="viewItem">
+						<stripes:param name="itemId" value="${cartItem.item.itemId}" />
+				  ${cartItem.item.itemId}
+			    </stripes:link></td>
+					<td>${cartItem.item.product.productId}</td>
+					<td>${cartItem.item.attribute1} ${cartItem.item.attribute2}
+					${cartItem.item.attribute3} ${cartItem.item.attribute4}
+					${cartItem.item.attribute5} ${cartItem.item.product.name}</td>
+					<td>${cartItem.inStock}</td>
+					<td>${cartItem.quantity}</td>
+					<td><fmt:formatNumber value="${cartItem.item.listPrice}"
+						pattern="$#,##0.00" /></td>
+					<td><fmt:formatNumber value="${cartItem.total}"
+						pattern="$#,##0.00" /></td>
+				</tr>
+			</c:forEach>
+			<tr>
+				<td colspan="7">Sub Total: <fmt:formatNumber
+					value="${actionBean.cart.subTotal}" pattern="$#,##0.00" /></td>
+			</tr>
+		</table>
+
+		<td>&nbsp;</td>
+
+	</tr>
+</table>
+
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/cart/IncludeMyList.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<c:if test="${!empty accountBean.myList}">
+	<p>Pet Favorites <br />
+	Shop for more of your favorite pets here.</p>
+	<ul>
+		<c:forEach var="product" items="${accountBean.myList}">
+			<li><stripes:link
+				beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+				event="viewProduct">
+				<stripes:param name="productId" value="${product.productId}" />
+			${product.name}
+		</stripes:link> (${product.productId})</li>
+		</c:forEach>
+	</ul>
+
+</c:if>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/catalog/Category.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	Return to Main Menu</stripes:link></div>
+
+<div id="Catalog">
+
+<h2>${actionBean.category.name}</h2>
+
+<table>
+	<tr>
+		<th>Product ID</th>
+		<th>Name</th>
+	</tr>
+	<c:forEach var="product" items="${actionBean.productList}">
+		<tr>
+			<td><stripes:link
+				beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+				event="viewProduct">
+				<stripes:param name="productId" value="${product.productId}" />
+				${product.productId}
+			</stripes:link></td>
+			<td>${product.name}</td>
+		</tr>
+	</c:forEach>
+</table>
+
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/catalog/Item.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewProduct">
+	<stripes:param name="productId" value="${actionBean.product.productId}" />
+	Return to ${actionBean.product.productId}
+</stripes:link></div>
+
+<div id="Catalog">
+
+<table>
+	<tr>
+		<td>${actionBean.product.description}</td>
+	</tr>
+	<tr>
+		<td><b> ${actionBean.item.itemId} </b></td>
+	</tr>
+	<tr>
+		<td><b><font size="4"> ${actionBean.item.attribute1}
+		${actionBean.item.attribute2} ${actionBean.item.attribute3}
+		${actionBean.item.attribute4} ${actionBean.item.attribute5}
+		${actionBean.product.name} </font></b></td>
+	</tr>
+	<tr>
+		<td>${actionBean.product.name}</td>
+	</tr>
+	<tr>
+		<td><c:if test="${actionBean.item.quantity <= 0}">
+        Back ordered.
+      </c:if> <c:if test="${actionBean.item.quantity > 0}">
+      	${actionBean.item.quantity} in stock.
+	  </c:if></td>
+	</tr>
+	<tr>
+		<td><fmt:formatNumber value="${actionBean.item.listPrice}"
+			pattern="$#,##0.00" /></td>
+	</tr>
+
+	<tr>
+		<td><stripes:link class="Button"
+			beanclass="org.mybatis.jpetstore.web.actions.CartActionBean"
+			event="addItemToCart">
+			<stripes:param name="workingItemId" value="${actionBean.item.itemId}" />
+       	Add to Cart
+       </stripes:link></td>
+	</tr>
+</table>
+
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/catalog/Main.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="Welcome">
+<div id="WelcomeContent"><c:if
+	test="${sessionScope.accountBean != null }">
+	<c:if test="${sessionScope.accountBean.authenticated}">
+        Welcome ${sessionScope.accountBean.account.firstName}!
+      </c:if>
+</c:if></div>
+</div>
+
+<div id="Main">
+<div id="Sidebar">
+<div id="SidebarContent"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="FISH" />
+	<img src="../images/fish_icon.gif" />
+</stripes:link> <br />
+Saltwater, Freshwater <br />
+<stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="DOGS" />
+	<img src="../images/dogs_icon.gif" />
+</stripes:link> <br />
+Various Breeds <br />
+<stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="CATS" />
+	<img src="../images/cats_icon.gif" />
+</stripes:link> <br />
+Various Breeds, Exotic Varieties <br />
+<stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="REPTILES" />
+	<img src="../images/reptiles_icon.gif" />
+</stripes:link> <br />
+Lizards, Turtles, Snakes <br />
+<stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="BIRDS" />
+	<img src="../images/birds_icon.gif" />
+</stripes:link> <br />
+Exotic Varieties</div>
+</div>
+
+<div id="MainImage">
+<div id="MainImageContent">
+  <map name="estoremap">
+	<area alt="Birds" coords="72,2,280,250"
+		href="Catalog.action?viewCategory=&categoryId=BIRDS" shape="RECT" />
+	<area alt="Fish" coords="2,180,72,250"
+		href="Catalog.action?viewCategory=&categoryId=FISH" shape="RECT" />
+	<area alt="Dogs" coords="60,250,130,320"
+		href="Catalog.action?viewCategory=&categoryId=DOGS" shape="RECT" />
+	<area alt="Reptiles" coords="140,270,210,340"
+		href="Catalog.action?viewCategory=&categoryId=REPTILES" shape="RECT" />
+	<area alt="Cats" coords="225,240,295,310"
+		href="Catalog.action?viewCategory=&categoryId=CATS" shape="RECT" />
+	<area alt="Birds" coords="280,180,350,250"
+		href="Catalog.action?viewCategory=&categoryId=BIRDS" shape="RECT" />
+  </map>
+  <img height="355" src="../images/splash.gif" align="middle"
+	usemap="#estoremap" width="350" /></div>
+</div>
+
+<div id="Separator">&nbsp;</div>
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/catalog/Product.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<jsp:useBean id="catalog"
+	class="org.mybatis.jpetstore.web.actions.CatalogActionBean" />
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId"
+		value="${actionBean.product.categoryId}" />
+	Return to ${actionBean.product.categoryId}
+</stripes:link></div>
+
+<div id="Catalog">
+
+<h2>${actionBean.product.name}</h2>
+
+<table>
+	<tr>
+		<th>Item ID</th>
+		<th>Product ID</th>
+		<th>Description</th>
+		<th>List Price</th>
+		<th>&nbsp;</th>
+	</tr>
+	<c:forEach var="item" items="${actionBean.itemList}">
+		<tr>
+			<td><stripes:link
+				beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+				event="viewItem">
+				<stripes:param name="itemId" value="${item.itemId}" />
+				${item.itemId}
+			</stripes:link></td>
+			<td>${item.product.productId}</td>
+			<td>${item.attribute1} ${item.attribute2} ${item.attribute3}
+			${item.attribute4} ${item.attribute5} ${actionBean.product.name}</td>
+			<td><fmt:formatNumber value="${item.listPrice}"
+				pattern="$#,##0.00" /></td>
+			<td><stripes:link class="Button"
+				beanclass="org.mybatis.jpetstore.web.actions.CartActionBean"
+				event="addItemToCart">
+				<stripes:param name="workingItemId" value="${item.itemId}" />
+        	Add to Cart
+        </stripes:link></td>
+		</tr>
+	</c:forEach>
+	<tr>
+		<td>
+		</td>
+	</tr>
+</table>
+
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/catalog/SearchProducts.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	Return to Main Menu
+</stripes:link></div>
+
+<div id="Catalog">
+
+<table>
+	<tr>
+		<th>&nbsp;</th>
+		<th>Product ID</th>
+		<th>Name</th>
+	</tr>
+	<c:forEach var="product" items="${actionBean.productList}">
+		<tr>
+			<td><stripes:link
+				beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+				event="viewProduct">
+				<stripes:param name="productId" value="${product.productId}" />
+				${product.description}
+			</stripes:link></td>
+			<td><b> <stripes:link
+				beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+				event="viewProduct">
+				<stripes:param name="productId" value="${product.productId}" />
+				<font color="BLACK"> ${product.productId} </font>
+			</stripes:link> </b></td>
+			<td>${product.name}</td>
+		</tr>
+	</c:forEach>
+	<tr>
+		<td></td>
+	</tr>
+
+</table>
+
+</div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/common/Error.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<stripes:messages />
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/common/IncludeBottom.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+</div>
+
+<div id="Footer">
+
+<div id="PoweredBy">&nbsp;<a href="http://www.mybatis.org">www.mybatis.org</a>
+</div>
+
+<div id="Banner"><c:if test="${sessionScope.accountBean != null }">
+	<c:if test="${sessionScope.accountBean.authenticated}">
+		<c:if test="${sessionScope.accountBean.account.bannerOption}">
+          ${sessionScope.accountBean.account.bannerName}
+        </c:if>
+	</c:if>
+</c:if></div>
+
+</div>
+
+</body>
+</html>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/common/IncludeTop.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+<%@ taglib prefix="stripes"
+	uri="http://stripes.sourceforge.net/stripes.tld"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<link rel="StyleSheet" href="../css/jpetstore.css" type="text/css"
+	media="screen" />
+
+<meta name="generator"
+	content="HTML Tidy for Linux/x86 (vers 1st November 2002), see www.w3.org" />
+<title>JPetStore Demo</title>
+<meta content="text/html; charset=windows-1252"
+	http-equiv="Content-Type" />
+<meta http-equiv="Cache-Control" content="max-age=0" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<meta http-equiv="Expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+<meta http-equiv="Pragma" content="no-cache" />
+</head>
+
+<body>
+
+<div id="Header">
+
+<div id="Logo">
+<div id="LogoContent"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	<img src="../images/logo-topbar.gif" />
+</stripes:link></div>
+</div>
+
+<div id="Menu">
+<div id="MenuContent"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CartActionBean"
+	event="viewCart">
+	<img align="middle" name="img_cart" src="../images/cart.gif" />
+</stripes:link> <img align="middle" src="../images/separator.gif" /> <c:if
+	test="${sessionScope.accountBean == null}">
+	<stripes:link
+		beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+		event="signonForm">
+          Sign In
+	    </stripes:link>
+</c:if> <c:if test="${sessionScope.accountBean != null}">
+	<c:if test="${!sessionScope.accountBean.authenticated}">
+		<stripes:link
+			beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+			event="signonForm">
+            Sign In
+	      </stripes:link>
+	</c:if>
+</c:if> <c:if test="${sessionScope.accountBean != null}">
+	<c:if test="${sessionScope.accountBean.authenticated}">
+		<stripes:link
+			beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+			event="signoff">
+            Sign Out
+	      </stripes:link>
+		<img align="middle" src="../images/separator.gif" />
+		<stripes:link
+			beanclass="org.mybatis.jpetstore.web.actions.AccountActionBean"
+			event="editAccountForm">
+            My Account
+	      </stripes:link>
+	</c:if>
+</c:if> <img align="middle" src="../images/separator.gif" /> <a
+	href="../help.html">?</a></div>
+</div>
+
+<div id="Search">
+<div id="SearchContent"><stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	<stripes:text name="keyword" size="14" />
+	<stripes:submit name="searchProducts" value="Search" />
+</stripes:form></div>
+</div>
+
+<div id="QuickLinks"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="FISH" />
+	<img src="../images/sm_fish.gif" />
+</stripes:link> <img src="../images/separator.gif" /> <stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="DOGS" />
+	<img src="../images/sm_dogs.gif" />
+</stripes:link> <img src="../images/separator.gif" /> <stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="REPTILES" />
+	<img src="../images/sm_reptiles.gif" />
+</stripes:link> <img src="../images/separator.gif" /> <stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="CATS" />
+	<img src="../images/sm_cats.gif" />
+</stripes:link> <img src="../images/separator.gif" /> <stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean"
+	event="viewCategory">
+	<stripes:param name="categoryId" value="BIRDS" />
+	<img src="../images/sm_birds.gif" />
+</stripes:link></div>
+
+</div>
+
+<div id="Content"><stripes:messages />
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/order/ConfirmOrder.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="BackLink"><stripes:link
+	beanclass="org.mybatis.jpetstore.web.actions.CatalogActionBean">
+	Return to Main Menu
+	</stripes:link></div>
+
+<div id="Catalog">Please confirm the information below and then
+press continue...
+
+<table>
+	<tr>
+		<th align="center" colspan="2"><font size="4"><b>Order</b></font>
+		<br />
+		<font size="3"><b> <fmt:formatDate
+			value="${actionBean.order.orderDate}" pattern="yyyy/MM/dd hh:mm:ss" /></b></font>
+		</th>
+	</tr>
+
+	<tr>
+		<th colspan="2">Billing Address</th>
+	</tr>
+	<tr>
+		<td>First name:</td>
+		<td><c:out value="${actionBean.order.billToFirstName}" /></td>
+	</tr>
+	<tr>
+		<td>Last name:</td>
+		<td><c:out value="${actionBean.order.billToLastName}" /></td>
+	</tr>
+	<tr>
+		<td>Address 1:</td>
+		<td><c:out value="${actionBean.order.billAddress1}" /></td>
+	</tr>
+	<tr>
+		<td>Address 2:</td>
+		<td><c:out value="${actionBean.order.billAddress2}" /></td>
+	</tr>
+	<tr>
+		<td>City:</td>
+		<td><c:out value="${actionBean.order.billCity}" /></td>
+	</tr>
+	<tr>
+		<td>State:</td>
+		<td><c:out value="${actionBean.order.billState}" /></td>
+	</tr>
+	<tr>
+		<td>Zip:</td>
+		<td><c:out value="${actionBean.order.billZip}" /></td>
+	</tr>
+	<tr>
+		<td>Country:</td>
+		<td><c:out value="${actionBean.order.billCountry}" /></td>
+	</tr>
+	<tr>
+		<th colspan="2">Shipping Address</th>
+	</tr>
+	<tr>
+		<td>First name:</td>
+		<td><c:out value="${actionBean.order.shipToFirstName}" /></td>
+	</tr>
+	<tr>
+		<td>Last name:</td>
+		<td><c:out value="${actionBean.order.shipToLastName}" /></td>
+	</tr>
+	<tr>
+		<td>Address 1:</td>
+		<td><c:out value="${actionBean.order.shipAddress1}" /></td>
+	</tr>
+	<tr>
+		<td>Address 2:</td>
+		<td><c:out value="${actionBean.order.shipAddress2}" /></td>
+	</tr>
+	<tr>
+		<td>City:</td>
+		<td><c:out value="${actionBean.order.shipCity}" /></td>
+	</tr>
+	<tr>
+		<td>State:</td>
+		<td><c:out value="${actionBean.order.shipState}" /></td>
+	</tr>
+	<tr>
+		<td>Zip:</td>
+		<td><c:out value="${actionBean.order.shipZip}" /></td>
+	</tr>
+	<tr>
+		<td>Country:</td>
+		<td><c:out value="${actionBean.order.shipCountry}" /></td>
+	</tr>
+
+</table>
+
+<stripes:link class="Button"
+	beanclass="org.mybatis.jpetstore.web.actions.OrderActionBean"
+	event="newOrder">
+	<stripes:param name="confirmed" value="true" />
+Confirm
+</stripes:link></div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/order/ListOrders.jsp
+================================================
+<%--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<h2>My Orders</h2>
+
+<table>
+	<tr>
+		<th>Order ID</th>
+		<th>Date</th>
+		<th>Total Price</th>
+	</tr>
+
+	<c:forEach var="order" items="${actionBean.orderList}">
+		<tr>
+			<td><stripes:link
+				beanclass="org.mybatis.jpetstore.web.actions.OrderActionBean"
+				event="viewOrder">
+				<stripes:param name="orderId" value="${order.orderId}" />
+			    ${order.orderId}
+			  </stripes:link></td>
+			<td><fmt:formatDate value="${order.orderDate}"
+				pattern="yyyy/MM/dd hh:mm:ss" /></td>
+			<td>$<fmt:formatNumber value="${order.totalPrice}"
+				pattern="#,##0.00" /></td>
+		</tr>
+	</c:forEach>
+</table>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/order/NewOrderForm.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="Catalog"><stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.OrderActionBean">
+
+	<table>
+		<tr>
+			<th colspan=2>Payment Details</th>
+		</tr>
+		<tr>
+			<td>Card Type:</td>
+			<td><stripes:select name="order.cardType">
+				<stripes:options-collection
+					collection="${actionBean.creditCardTypes}" />
+			</stripes:select></td>
+		</tr>
+		<tr>
+			<td>Card Number:</td>
+			<td><stripes:text name="order.creditCard" /> * Use a fake
+			number!</td>
+		</tr>
+		<tr>
+			<td>Expiry Date (MM/YYYY):</td>
+			<td><stripes:text name="order.expiryDate" /></td>
+		</tr>
+		<tr>
+			<th colspan=2>Billing Address</th>
+		</tr>
+
+		<tr>
+			<td>First name:</td>
+			<td><stripes:text name="order.billToFirstName" /></td>
+		</tr>
+		<tr>
+			<td>Last name:</td>
+			<td><stripes:text name="order.billToLastName" /></td>
+		</tr>
+		<tr>
+			<td>Address 1:</td>
+			<td><stripes:text size="40" name="order.billAddress1" /></td>
+		</tr>
+		<tr>
+			<td>Address 2:</td>
+			<td><stripes:text size="40" name="order.billAddress2" /></td>
+		</tr>
+		<tr>
+			<td>City:</td>
+			<td><stripes:text name="order.billCity" /></td>
+		</tr>
+		<tr>
+			<td>State:</td>
+			<td><stripes:text size="4" name="order.billState" /></td>
+		</tr>
+		<tr>
+			<td>Zip:</td>
+			<td><stripes:text size="10" name="order.billZip" /></td>
+		</tr>
+		<tr>
+			<td>Country:</td>
+			<td><stripes:text size="15" name="order.billCountry" /></td>
+		</tr>
+
+		<tr>
+			<td colspan=2><stripes:checkbox name="shippingAddressRequired" />
+			Ship to different address...</td>
+		</tr>
+
+	</table>
+
+	<stripes:submit name="newOrder" value="Continue" />
+
+</stripes:form></div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>
+
+
+
+================================================
+FILE: src/main/webapp/WEB-INF/jsp/order/ShippingForm.jsp
+================================================
+<%--
+
+       Copyright 2010-2023 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+--%>
+<%@ include file="../common/IncludeTop.jsp"%>
+
+<div id="Catalog"><stripes:form
+	beanclass="org.mybatis.jpetstore.web.actions.OrderActionBean">
+
+	<table>
+		<tr>
+			<th colspan=2>Shipping Address</th>
+		</tr>
+
+		<tr>
+			<td>First name:</td>
+			<td><stripes:text name="order.shipToFirstName" /></td>
+		</tr>
+		<tr>
+			<td>Last name:</td>
+			<td><stripes:text name="order.shipToLastName" /></td>
+		</tr>
+		<tr>
+			<td>Address 1:</td>
+			<td><stripes:text size="40" name="order.shipAddress1" /></td>
+		</tr>
+		<tr>
+			<td>Address 2:</td>
+			<td><stripes:text size="40" name="order.shipAddress2" /></td>
+		</tr>
+		<tr>
+			<td>City:</td>
+			<td><stripes:text name="order.shipCity" /></td>
+		</tr>
+		<tr>
+			<td>State:</td>
+			<td><stripes:text size="4" name="order.shipState" /></td>
+		</tr>
+		<tr>
+			<td>Zip:</td>
+			<td><stripes:text size="10" name="order.shipZip" /></td>
+		</tr>
+		<tr>
+			<td>Country:</td>
+			<td><stripes:text size="15" name="order.shipCountry" /></td>
+		</tr>
+
+
+	</table>
+
+	<stripes:submit name="newOrder" value="Continue" />
+
+</stripes:form></div>
+
+<%@ include file="../common/IncludeBottom.jsp"%>

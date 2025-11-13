@@ -1,0 +1,4303 @@
+Directory structure:
+└── mybatis-jpetstore-6/
+    ├── README.md
+    ├── docker-compose.yaml
+    ├── Dockerfile
+    ├── format.xml
+    ├── LICENSE
+    ├── LICENSE_HEADER
+    ├── mvnw
+    ├── mvnw.cmd
+    ├── NOTICE
+    ├── pom.xml
+    ├── renovate.json
+    ├── src/
+    │   ├── main/
+    │   │   ├── java/
+    │   │   │   └── org/
+    │   │   │       └── mybatis/
+    │   │   │           └── jpetstore/
+    │   │   │               ├── domain/
+    │   │   │               │   ├── Account.java
+    │   │   │               │   ├── Cart.java
+    │   │   │               │   ├── CartItem.java
+    │   │   │               │   ├── Category.java
+    │   │   │               │   ├── Item.java
+    │   │   │               │   ├── LineItem.java
+    │   │   │               │   ├── Order.java
+    │   │   │               │   ├── Product.java
+    │   │   │               │   └── Sequence.java
+    │   │   │               ├── mapper/
+    │   │   │               │   ├── AccountMapper.java
+    │   │   │               │   ├── CategoryMapper.java
+    │   │   │               │   ├── ItemMapper.java
+    │   │   │               │   ├── LineItemMapper.java
+    │   │   │               │   ├── OrderMapper.java
+    │   │   │               │   ├── ProductMapper.java
+    │   │   │               │   └── SequenceMapper.java
+    │   │   │               ├── service/
+    │   │   │               │   ├── AccountService.java
+    │   │   │               │   ├── CatalogService.java
+    │   │   │               │   └── OrderService.java
+    │   │   │               └── web/
+    │   │   │                   └── actions/
+    │   │   │                       ├── AbstractActionBean.java
+    │   │   │                       ├── AccountActionBean.java
+    │   │   │                       ├── CartActionBean.java
+    │   │   │                       ├── CatalogActionBean.java
+    │   │   │                       └── OrderActionBean.java
+    │   │   ├── resources/
+    │   │   │   ├── StripesResources.properties
+    │   │   │   ├── database/
+    │   │   │   │   ├── jpetstore-hsqldb-data.sql
+    │   │   │   │   ├── jpetstore-hsqldb-dataload.sql
+    │   │   │   │   └── jpetstore-hsqldb-schema.sql
+    │   │   │   └── org/
+    │   │   │       └── mybatis/
+    │   │   │           └── jpetstore/
+    │   │   │               └── mapper/
+    │   │   │                   ├── AccountMapper.xml
+    │   │   │                   ├── CategoryMapper.xml
+    │   │   │                   ├── ItemMapper.xml
+    │   │   │                   ├── LineItemMapper.xml
+    │   │   │                   ├── OrderMapper.xml
+    │   │   │                   ├── ProductMapper.xml
+    │   │   │                   └── SequenceMapper.xml
+    │   │   └── webapp/
+    │   │       ├── help.html
+    │   │       ├── index.html
+    │   │       ├── css/
+    │   │       │   └── jpetstore.css
+    │   │       └── WEB-INF/
+    │   │           ├── applicationContext.xml
+    │   │           ├── web.xml
+    │   │           └── jsp/
+    │   │               ├── account/
+    │   │               │   ├── EditAccountForm.jsp
+    │   │               │   ├── IncludeAccountFields.jsp
+    │   │               │   ├── NewAccountForm.jsp
+    │   │               │   └── SignonForm.jsp
+    │   │               ├── cart/
+    │   │               │   ├── Cart.jsp
+    │   │               │   ├── Checkout.jsp
+    │   │               │   └── IncludeMyList.jsp
+    │   │               ├── catalog/
+    │   │               │   ├── Category.jsp
+    │   │               │   ├── Item.jsp
+    │   │               │   ├── Main.jsp
+    │   │               │   ├── Product.jsp
+    │   │               │   └── SearchProducts.jsp
+    │   │               ├── common/
+    │   │               │   ├── Error.jsp
+    │   │               │   ├── IncludeBottom.jsp
+    │   │               │   └── IncludeTop.jsp
+    │   │               └── order/
+    │   │                   ├── ConfirmOrder.jsp
+    │   │                   ├── ListOrders.jsp
+    │   │                   ├── NewOrderForm.jsp
+    │   │                   ├── ShippingForm.jsp
+    │   │                   └── ViewOrder.jsp
+    │   ├── site/
+    │   │   ├── site.xml
+    │   │   ├── site_es.xml
+    │   │   ├── site_ja.xml
+    │   │   ├── site_ko.xml
+    │   │   ├── es/
+    │   │   │   └── xdoc/
+    │   │   │       └── index.xml
+    │   │   ├── ja/
+    │   │   │   └── xdoc/
+    │   │   │       └── index.xml
+    │   │   ├── ko/
+    │   │   │   └── xdoc/
+    │   │   │       └── index.xml
+    │   │   ├── resources/
+    │   │   │   └── css/
+    │   │   │       └── site.css
+    │   │   └── xdoc/
+    │   │       └── index.xml
+    │   └── test/
+    │       ├── java/
+    │       │   └── org/
+    │       │       └── mybatis/
+    │       │           └── jpetstore/
+    │       │               ├── ScreenTransitionIT.java
+    │       │               ├── domain/
+    │       │               │   ├── CartTest.java
+    │       │               │   └── OrderTest.java
+    │       │               ├── mapper/
+    │       │               │   ├── AccountMapperTest.java
+    │       │               │   ├── CategoryMapperTest.java
+    │       │               │   ├── ItemMapperTest.java
+    │       │               │   ├── LineItemMapperTest.java
+    │       │               │   ├── MapperTestContext.java
+    │       │               │   ├── OrderMapperTest.java
+    │       │               │   ├── ProductMapperTest.java
+    │       │               │   └── SequenceMapperTest.java
+    │       │               ├── service/
+    │       │               │   ├── AccountServiceTest.java
+    │       │               │   ├── CatalogServiceTest.java
+    │       │               │   └── OrderServiceTest.java
+    │       │               └── web/
+    │       │                   └── actions/
+    │       │                       ├── AccountActionBeanTest.java
+    │       │                       ├── CatalogActionBeanTest.java
+    │       │                       └── OrderActionBeanTest.java
+    │       └── resources/
+    │           └── .gitkeep
+    ├── .github/
+    │   └── workflows/
+    │       ├── ci.yaml
+    │       ├── codeql.yml
+    │       ├── coveralls.yaml
+    │       ├── site.yaml
+    │       ├── sonar.yaml
+    │       ├── sonatype.yaml
+    │       └── support.yaml
+    └── .mvn/
+        ├── extensions.xml
+        ├── maven.config
+        ├── settings.xml
+        └── wrapper/
+            ├── maven-wrapper.properties
+            └── MavenWrapperDownloader.java
+
+================================================
+FILE: README.md
+================================================
+MyBatis JPetStore
+=================
+
+[![Java CI](https://github.com/mybatis/jpetstore-6/actions/workflows/ci.yaml/badge.svg)](https://github.com/mybatis/jpetstore-6/actions/workflows/ci.yaml)
+[![Container Support](https://github.com/mybatis/jpetstore-6/actions/workflows/support.yaml/badge.svg)](https://github.com/mybatis/jpetstore-6/actions/workflows/support.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/mybatis/jpetstore-6/badge.svg?branch=master)](https://coveralls.io/github/mybatis/jpetstore-6?branch=master)
+[![License](https://img.shields.io/:license-apache-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+
+![mybatis-jpetstore](https://mybatis.org/images/mybatis-logo.png)
+
+JPetStore 6 is a full web application built on top of MyBatis 3, Spring 5 and Stripes.
+
+Essentials
+----------
+
+* [See the docs](http://www.mybatis.org/jpetstore-6)
+
+## Other versions that you may want to know about
+
+- JPetstore on top of Spring, Spring MVC, MyBatis 3, and Spring Security https://github.com/making/spring-jpetstore
+- JPetstore with Vaadin and Spring Boot with Java Config https://github.com/igor-baiborodine/jpetstore-6-vaadin-spring-boot
+- JPetstore on MyBatis Spring Boot Starter https://github.com/kazuki43zoo/mybatis-spring-boot-jpetstore
+
+## Run on Application Server
+Running JPetStore sample under Tomcat (using the [cargo-maven2-plugin](https://codehaus-cargo.github.io/cargo/Maven2+plugin.html)).
+
+- Clone this repository
+
+  ```
+  $ git clone https://github.com/mybatis/jpetstore-6.git
+  ```
+
+- Build war file
+
+  ```
+  $ cd jpetstore-6
+  $ ./mvnw clean package
+  ```
+
+- Startup the Tomcat server and deploy web application
+
+  ```
+  $ ./mvnw cargo:run -P tomcat90
+  ```
+
+  > Note:
+  >
+  > We provide maven profiles per application server as follow:
+  >
+  > | Profile        | Description |
+  > | -------------- | ----------- |
+  > | tomcat90       | Running under the Tomcat 9.0 |
+  > | tomcat85       | Running under the Tomcat 8.5 |
+  > | tomee80        | Running under the TomEE 8.0(Java EE 8) |
+  > | tomee71        | Running under the TomEE 7.1(Java EE 7) |
+  > | wildfly26      | Running under the WildFly 26(Java EE 8) |
+  > | wildfly13      | Running under the WildFly 13(Java EE 7) |
+  > | liberty-ee8    | Running under the WebSphere Liberty(Java EE 8) |
+  > | liberty-ee7    | Running under the WebSphere Liberty(Java EE 7) |
+  > | jetty          | Running under the Jetty 9 |
+  > | glassfish5     | Running under the GlassFish 5(Java EE 8) |
+  > | glassfish4     | Running under the GlassFish 4(Java EE 7) |
+  > | resin          | Running under the Resin 4 |
+
+- Run application in browser http://localhost:8080/jpetstore/ 
+- Press Ctrl-C to stop the server.
+
+## Run on Docker
+```
+docker build . -t jpetstore
+docker run -p 8080:8080 jpetstore
+```
+or with Docker Compose:
+```
+docker compose up -d
+```
+
+## Try integration tests
+
+Perform integration tests for screen transition.
+
+```
+$ ./mvnw clean verify -P tomcat90
+```
+
+
+
+================================================
+FILE: docker-compose.yaml
+================================================
+#
+#    Copyright 2010-2023 the original author or authors.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#       https://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+version: "3.9"
+
+services:
+  jpetstore:
+    container_name: jpetstore
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    restart: always
+
+
+
+================================================
+FILE: Dockerfile
+================================================
+#
+#    Copyright 2010-2023 the original author or authors.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#       https://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+FROM openjdk:21
+COPY . /usr/src/myapp
+WORKDIR /usr/src/myapp
+RUN ./mvnw clean package
+CMD ./mvnw cargo:run -P tomcat90
+
+
+
+================================================
+FILE: format.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2022 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE Format>
+<Format>
+ <!-- Dummy format file -->
+</Format>
+
+
+
+================================================
+FILE: LICENSE
+================================================
+                                 Apache License
+                           Version 2.0, January 2004
+                        https://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       https://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
+
+
+================================================
+FILE: LICENSE_HEADER
+================================================
+   Copyright ${license.git.copyrightYears} the original author or authors.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
+
+================================================
+FILE: mvnw
+================================================
+#!/bin/sh
+# ----------------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# Apache Maven Wrapper startup batch script, version 3.3.3
+#
+# Required ENV vars:
+# ------------------
+#   JAVA_HOME - location of a JDK home dir
+#
+# Optional ENV vars
+# -----------------
+#   MAVEN_OPTS - parameters passed to the Java VM when running Maven
+#     e.g. to debug Maven itself, use
+#       set MAVEN_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
+#   MAVEN_SKIP_RC - flag to disable loading of mavenrc files
+# ----------------------------------------------------------------------------
+
+if [ -z "$MAVEN_SKIP_RC" ]; then
+
+  if [ -f /usr/local/etc/mavenrc ]; then
+    . /usr/local/etc/mavenrc
+  fi
+
+  if [ -f /etc/mavenrc ]; then
+    . /etc/mavenrc
+  fi
+
+  if [ -f "$HOME/.mavenrc" ]; then
+    . "$HOME/.mavenrc"
+  fi
+
+fi
+
+# OS specific support.  $var _must_ be set to either true or false.
+cygwin=false
+darwin=false
+mingw=false
+case "$(uname)" in
+CYGWIN*) cygwin=true ;;
+MINGW*) mingw=true ;;
+Darwin*)
+  darwin=true
+  # Use /usr/libexec/java_home if available, otherwise fall back to /Library/Java/Home
+  # See https://developer.apple.com/library/mac/qa/qa1170/_index.html
+  if [ -z "$JAVA_HOME" ]; then
+    if [ -x "/usr/libexec/java_home" ]; then
+      JAVA_HOME="$(/usr/libexec/java_home)"
+      export JAVA_HOME
+    else
+      JAVA_HOME="/Library/Java/Home"
+      export JAVA_HOME
+    fi
+  fi
+  ;;
+esac
+
+if [ -z "$JAVA_HOME" ]; then
+  if [ -r /etc/gentoo-release ]; then
+    JAVA_HOME=$(java-config --jre-home)
+  fi
+fi
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched
+if $cygwin; then
+  [ -n "$JAVA_HOME" ] \
+    && JAVA_HOME=$(cygpath --unix "$JAVA_HOME")
+  [ -n "$CLASSPATH" ] \
+    && CLASSPATH=$(cygpath --path --unix "$CLASSPATH")
+fi
+
+# For Mingw, ensure paths are in UNIX format before anything is touched
+if $mingw; then
+  [ -n "$JAVA_HOME" ] && [ -d "$JAVA_HOME" ] \
+    && JAVA_HOME="$(
+      cd "$JAVA_HOME" || (
+        echo "cannot cd into $JAVA_HOME." >&2
+        exit 1
+      )
+      pwd
+    )"
+fi
+
+if [ -z "$JAVA_HOME" ]; then
+  javaExecutable="$(which javac)"
+  if [ -n "$javaExecutable" ] && ! [ "$(expr "$javaExecutable" : '\([^ ]*\)')" = "no" ]; then
+    # readlink(1) is not available as standard on Solaris 10.
+    readLink=$(which readlink)
+    if [ ! "$(expr "$readLink" : '\([^ ]*\)')" = "no" ]; then
+      if $darwin; then
+        javaHome="$(dirname "$javaExecutable")"
+        javaExecutable="$(cd "$javaHome" && pwd -P)/javac"
+      else
+        javaExecutable="$(readlink -f "$javaExecutable")"
+      fi
+      javaHome="$(dirname "$javaExecutable")"
+      javaHome=$(expr "$javaHome" : '\(.*\)/bin')
+      JAVA_HOME="$javaHome"
+      export JAVA_HOME
+    fi
+  fi
+fi
+
+if [ -z "$JAVACMD" ]; then
+  if [ -n "$JAVA_HOME" ]; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ]; then
+      # IBM's JDK on AIX uses strange locations for the executables
+      JAVACMD="$JAVA_HOME/jre/sh/java"
+    else
+      JAVACMD="$JAVA_HOME/bin/java"
+    fi
+  else
+    JAVACMD="$(
+      \unset -f command 2>/dev/null
+      \command -v java
+    )"
+  fi
+fi
+
+if [ ! -x "$JAVACMD" ]; then
+  echo "Error: JAVA_HOME is not defined correctly." >&2
+  echo "  We cannot execute $JAVACMD" >&2
+  exit 1
+fi
+
+if [ -z "$JAVA_HOME" ]; then
+  echo "Warning: JAVA_HOME environment variable is not set." >&2
+fi
+
+# traverses directory structure from process work directory to filesystem root
+# first directory with .mvn subdirectory is considered project base directory
+find_maven_basedir() {
+  if [ -z "$1" ]; then
+    echo "Path not specified to find_maven_basedir" >&2
+    return 1
+  fi
+
+  basedir="$1"
+  wdir="$1"
+  while [ "$wdir" != '/' ]; do
+    if [ -d "$wdir"/.mvn ]; then
+      basedir=$wdir
+      break
+    fi
+    # workaround for JBEAP-8937 (on Solaris 10/Sparc)
+    if [ -d "${wdir}" ]; then
+      wdir=$(
+        cd "$wdir/.." || exit 1
+        pwd
+      )
+    fi
+    # end of workaround
+  done
+  printf '%s' "$(
+    cd "$basedir" || exit 1
+    pwd
+  )"
+}
+
+# concatenates all lines of a file
+concat_lines() {
+  if [ -f "$1" ]; then
+    # Remove \r in case we run on Windows within Git Bash
+    # and check out the repository with auto CRLF management
+    # enabled. Otherwise, we may read lines that are delimited with
+    # \r\n and produce $'-Xarg\r' rather than -Xarg due to word
+    # splitting rules.
+    tr -s '\r\n' ' ' <"$1"
+  fi
+}
+
+log() {
+  if [ "$MVNW_VERBOSE" = true ]; then
+    printf '%s\n' "$1"
+  fi
+}
+
+BASE_DIR=$(find_maven_basedir "$(dirname "$0")")
+if [ -z "$BASE_DIR" ]; then
+  exit 1
+fi
+
+MAVEN_PROJECTBASEDIR=${MAVEN_BASEDIR:-"$BASE_DIR"}
+export MAVEN_PROJECTBASEDIR
+log "$MAVEN_PROJECTBASEDIR"
+
+trim() {
+  # MWRAPPER-139:
+  #   Trims trailing and leading whitespace, carriage returns, tabs, and linefeeds.
+  #   Needed for removing poorly interpreted newline sequences when running in more
+  #   exotic environments such as mingw bash on Windows.
+  printf "%s" "${1}" | tr -d '[:space:]'
+}
+
+##########################################################################################
+# Extension to allow automatically downloading the maven-wrapper.jar from Maven-central
+# This allows using the maven wrapper in projects that prohibit checking in binary data.
+##########################################################################################
+wrapperJarPath="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar"
+if [ -r "$wrapperJarPath" ]; then
+  log "Found $wrapperJarPath"
+else
+  log "Couldn't find $wrapperJarPath, downloading it ..."
+
+  if [ -n "$MVNW_REPOURL" ]; then
+    wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.3.3/maven-wrapper-3.3.3.jar"
+  else
+    wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.3/maven-wrapper-3.3.3.jar"
+  fi
+  while IFS="=" read -r key value; do
+    case "$key" in wrapperUrl)
+      wrapperUrl=$(trim "${value-}")
+      break
+      ;;
+    esac
+  done <"$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.properties"
+  log "Downloading from: $wrapperUrl"
+
+  if $cygwin; then
+    wrapperJarPath=$(cygpath --path --windows "$wrapperJarPath")
+  fi
+
+  if command -v wget >/dev/null; then
+    log "Found wget ... using wget"
+    [ "$MVNW_VERBOSE" = true ] && QUIET="" || QUIET="--quiet"
+    if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
+      wget ${QUIET:+"$QUIET"} "$wrapperUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
+    else
+      wget ${QUIET:+"$QUIET"} --http-user="$MVNW_USERNAME" --http-password="$MVNW_PASSWORD" "$wrapperUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
+    fi
+  elif command -v curl >/dev/null; then
+    log "Found curl ... using curl"
+    [ "$MVNW_VERBOSE" = true ] && QUIET="" || QUIET="--silent"
+    if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
+      curl ${QUIET:+"$QUIET"} -o "$wrapperJarPath" "$wrapperUrl" -f -L || rm -f "$wrapperJarPath"
+    else
+      curl ${QUIET:+"$QUIET"} --user "$MVNW_USERNAME:$MVNW_PASSWORD" -o "$wrapperJarPath" "$wrapperUrl" -f -L || rm -f "$wrapperJarPath"
+    fi
+  else
+    log "Falling back to using Java to download"
+    javaSource="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/MavenWrapperDownloader.java"
+    javaClass="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/MavenWrapperDownloader.class"
+    # For Cygwin, switch paths to Windows format before running javac
+    if $cygwin; then
+      javaSource=$(cygpath --path --windows "$javaSource")
+      javaClass=$(cygpath --path --windows "$javaClass")
+    fi
+    if [ -e "$javaSource" ]; then
+      if [ ! -e "$javaClass" ]; then
+        log " - Compiling MavenWrapperDownloader.java ..."
+        ("$JAVA_HOME/bin/javac" "$javaSource")
+      fi
+      if [ -e "$javaClass" ]; then
+        log " - Running MavenWrapperDownloader.java ..."
+        ("$JAVA_HOME/bin/java" -cp .mvn/wrapper MavenWrapperDownloader "$wrapperUrl" "$wrapperJarPath") || rm -f "$wrapperJarPath"
+      fi
+    fi
+  fi
+fi
+##########################################################################################
+# End of extension
+##########################################################################################
+
+# If specified, validate the SHA-256 sum of the Maven wrapper jar file
+wrapperSha256Sum=""
+while IFS="=" read -r key value; do
+  case "$key" in wrapperSha256Sum)
+    wrapperSha256Sum=$(trim "${value-}")
+    break
+    ;;
+  esac
+done <"$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.properties"
+if [ -n "$wrapperSha256Sum" ]; then
+  wrapperSha256Result=false
+  if command -v sha256sum >/dev/null; then
+    if echo "$wrapperSha256Sum  $wrapperJarPath" | sha256sum -c - >/dev/null 2>&1; then
+      wrapperSha256Result=true
+    fi
+  elif command -v shasum >/dev/null; then
+    if echo "$wrapperSha256Sum  $wrapperJarPath" | shasum -a 256 -c >/dev/null 2>&1; then
+      wrapperSha256Result=true
+    fi
+  else
+    echo "Checksum validation was requested but neither 'sha256sum' or 'shasum' are available." >&2
+    echo "Please install either command, or disable validation by removing 'wrapperSha256Sum' from your maven-wrapper.properties." >&2
+    exit 1
+  fi
+  if [ $wrapperSha256Result = false ]; then
+    echo "Error: Failed to validate Maven wrapper SHA-256, your Maven wrapper might be compromised." >&2
+    echo "Investigate or delete $wrapperJarPath to attempt a clean download." >&2
+    echo "If you updated your Maven version, you need to update the specified wrapperSha256Sum property." >&2
+    exit 1
+  fi
+fi
+
+MAVEN_OPTS="$(concat_lines "$MAVEN_PROJECTBASEDIR/.mvn/jvm.config") $MAVEN_OPTS"
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin; then
+  [ -n "$JAVA_HOME" ] \
+    && JAVA_HOME=$(cygpath --path --windows "$JAVA_HOME")
+  [ -n "$CLASSPATH" ] \
+    && CLASSPATH=$(cygpath --path --windows "$CLASSPATH")
+  [ -n "$MAVEN_PROJECTBASEDIR" ] \
+    && MAVEN_PROJECTBASEDIR=$(cygpath --path --windows "$MAVEN_PROJECTBASEDIR")
+fi
+
+# Provide a "standardized" way to retrieve the CLI args that will
+# work with both Windows and non-Windows executions.
+MAVEN_CMD_LINE_ARGS="$MAVEN_CONFIG $*"
+export MAVEN_CMD_LINE_ARGS
+
+WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
+
+# shellcheck disable=SC2086 # safe args
+exec "$JAVACMD" \
+  $MAVEN_OPTS \
+  $MAVEN_DEBUG_OPTS \
+  -classpath "$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar" \
+  "-Dmaven.multiModuleProjectDirectory=${MAVEN_PROJECTBASEDIR}" \
+  ${WRAPPER_LAUNCHER} $MAVEN_CONFIG "$@"
+
+
+
+================================================
+FILE: mvnw.cmd
+================================================
+@REM ----------------------------------------------------------------------------
+@REM Licensed to the Apache Software Foundation (ASF) under one
+@REM or more contributor license agreements.  See the NOTICE file
+@REM distributed with this work for additional information
+@REM regarding copyright ownership.  The ASF licenses this file
+@REM to you under the Apache License, Version 2.0 (the
+@REM "License"); you may not use this file except in compliance
+@REM with the License.  You may obtain a copy of the License at
+@REM
+@REM    http://www.apache.org/licenses/LICENSE-2.0
+@REM
+@REM Unless required by applicable law or agreed to in writing,
+@REM software distributed under the License is distributed on an
+@REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+@REM KIND, either express or implied.  See the License for the
+@REM specific language governing permissions and limitations
+@REM under the License.
+@REM ----------------------------------------------------------------------------
+
+@REM ----------------------------------------------------------------------------
+@REM Apache Maven Wrapper startup batch script, version 3.3.3
+@REM
+@REM Required ENV vars:
+@REM JAVA_HOME - location of a JDK home dir
+@REM
+@REM Optional ENV vars
+@REM MAVEN_BATCH_ECHO - set to 'on' to enable the echoing of the batch commands
+@REM MAVEN_BATCH_PAUSE - set to 'on' to wait for a keystroke before ending
+@REM MAVEN_OPTS - parameters passed to the Java VM when running Maven
+@REM     e.g. to debug Maven itself, use
+@REM set MAVEN_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
+@REM MAVEN_SKIP_RC - flag to disable loading of mavenrc files
+@REM ----------------------------------------------------------------------------
+
+@REM Begin all REM lines with '@' in case MAVEN_BATCH_ECHO is 'on'
+@echo off
+@REM set title of command window
+title %0
+@REM enable echoing by setting MAVEN_BATCH_ECHO to 'on'
+@if "%MAVEN_BATCH_ECHO%" == "on"  echo %MAVEN_BATCH_ECHO%
+
+@REM set %HOME% to equivalent of $HOME
+if "%HOME%" == "" (set "HOME=%HOMEDRIVE%%HOMEPATH%")
+
+@REM Execute a user defined script before this one
+if not "%MAVEN_SKIP_RC%" == "" goto skipRcPre
+@REM check for pre script, once with legacy .bat ending and once with .cmd ending
+if exist "%USERPROFILE%\mavenrc_pre.bat" call "%USERPROFILE%\mavenrc_pre.bat" %*
+if exist "%USERPROFILE%\mavenrc_pre.cmd" call "%USERPROFILE%\mavenrc_pre.cmd" %*
+:skipRcPre
+
+@setlocal
+
+set ERROR_CODE=0
+
+@REM To isolate internal variables from possible post scripts, we use another setlocal
+@setlocal
+
+@REM ==== START VALIDATION ====
+if not "%JAVA_HOME%" == "" goto OkJHome
+
+echo. >&2
+echo Error: JAVA_HOME not found in your environment. >&2
+echo Please set the JAVA_HOME variable in your environment to match the >&2
+echo location of your Java installation. >&2
+echo. >&2
+goto error
+
+:OkJHome
+if exist "%JAVA_HOME%\bin\java.exe" goto init
+
+echo. >&2
+echo Error: JAVA_HOME is set to an invalid directory. >&2
+echo JAVA_HOME = "%JAVA_HOME%" >&2
+echo Please set the JAVA_HOME variable in your environment to match the >&2
+echo location of your Java installation. >&2
+echo. >&2
+goto error
+
+@REM ==== END VALIDATION ====
+
+:init
+
+@REM Find the project base dir, i.e. the directory that contains the folder ".mvn".
+@REM Fallback to current working directory if not found.
+
+set MAVEN_PROJECTBASEDIR=%MAVEN_BASEDIR%
+IF NOT "%MAVEN_PROJECTBASEDIR%"=="" goto endDetectBaseDir
+
+set EXEC_DIR=%CD%
+set WDIR=%EXEC_DIR%
+:findBaseDir
+IF EXIST "%WDIR%"\.mvn goto baseDirFound
+cd ..
+IF "%WDIR%"=="%CD%" goto baseDirNotFound
+set WDIR=%CD%
+goto findBaseDir
+
+:baseDirFound
+set MAVEN_PROJECTBASEDIR=%WDIR%
+cd "%EXEC_DIR%"
+goto endDetectBaseDir
+
+:baseDirNotFound
+set MAVEN_PROJECTBASEDIR=%EXEC_DIR%
+cd "%EXEC_DIR%"
+
+:endDetectBaseDir
+
+IF NOT EXIST "%MAVEN_PROJECTBASEDIR%\.mvn\jvm.config" goto endReadAdditionalConfig
+
+@setlocal EnableExtensions EnableDelayedExpansion
+for /F "usebackq delims=" %%a in ("%MAVEN_PROJECTBASEDIR%\.mvn\jvm.config") do set JVM_CONFIG_MAVEN_PROPS=!JVM_CONFIG_MAVEN_PROPS! %%a
+@endlocal & set JVM_CONFIG_MAVEN_PROPS=%JVM_CONFIG_MAVEN_PROPS%
+
+:endReadAdditionalConfig
+
+SET MAVEN_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
+set WRAPPER_JAR="%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.jar"
+set WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
+
+set WRAPPER_URL="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.3/maven-wrapper-3.3.3.jar"
+
+FOR /F "usebackq tokens=1,2 delims==" %%A IN ("%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.properties") DO (
+    IF "%%A"=="wrapperUrl" SET WRAPPER_URL=%%B
+)
+
+@REM Extension to allow automatically downloading the maven-wrapper.jar from Maven-central
+@REM This allows using the maven wrapper in projects that prohibit checking in binary data.
+if exist %WRAPPER_JAR% (
+    if "%MVNW_VERBOSE%" == "true" (
+        echo Found %WRAPPER_JAR%
+    )
+) else (
+    if not "%MVNW_REPOURL%" == "" (
+        SET WRAPPER_URL="%MVNW_REPOURL%/org/apache/maven/wrapper/maven-wrapper/3.3.3/maven-wrapper-3.3.3.jar"
+    )
+    if "%MVNW_VERBOSE%" == "true" (
+        echo Couldn't find %WRAPPER_JAR%, downloading it ...
+        echo Downloading from: %WRAPPER_URL%
+    )
+
+    powershell -Command "&{"^
+		"$webclient = new-object System.Net.WebClient;"^
+		"if (-not ([string]::IsNullOrEmpty('%MVNW_USERNAME%') -and [string]::IsNullOrEmpty('%MVNW_PASSWORD%'))) {"^
+		"$webclient.Credentials = new-object System.Net.NetworkCredential('%MVNW_USERNAME%', '%MVNW_PASSWORD%');"^
+		"}"^
+		"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $webclient.DownloadFile('%WRAPPER_URL%', '%WRAPPER_JAR%')"^
+		"}"
+    if "%MVNW_VERBOSE%" == "true" (
+        echo Finished downloading %WRAPPER_JAR%
+    )
+)
+@REM End of extension
+
+@REM If specified, validate the SHA-256 sum of the Maven wrapper jar file
+SET WRAPPER_SHA_256_SUM=""
+FOR /F "usebackq tokens=1,2 delims==" %%A IN ("%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.properties") DO (
+    IF "%%A"=="wrapperSha256Sum" SET WRAPPER_SHA_256_SUM=%%B
+)
+IF NOT %WRAPPER_SHA_256_SUM%=="" (
+    powershell -Command "&{"^
+       "Import-Module $PSHOME\Modules\Microsoft.PowerShell.Utility -Function Get-FileHash;"^
+       "$hash = (Get-FileHash \"%WRAPPER_JAR%\" -Algorithm SHA256).Hash.ToLower();"^
+       "If('%WRAPPER_SHA_256_SUM%' -ne $hash){"^
+       "  Write-Error 'Error: Failed to validate Maven wrapper SHA-256, your Maven wrapper might be compromised.';"^
+       "  Write-Error 'Investigate or delete %WRAPPER_JAR% to attempt a clean download.';"^
+       "  Write-Error 'If you updated your Maven version, you need to update the specified wrapperSha256Sum property.';"^
+       "  exit 1;"^
+       "}"^
+       "}"
+    if ERRORLEVEL 1 goto error
+)
+
+@REM Provide a "standardized" way to retrieve the CLI args that will
+@REM work with both Windows and non-Windows executions.
+set MAVEN_CMD_LINE_ARGS=%*
+
+%MAVEN_JAVA_EXE% ^
+  %JVM_CONFIG_MAVEN_PROPS% ^
+  %MAVEN_OPTS% ^
+  %MAVEN_DEBUG_OPTS% ^
+  -classpath %WRAPPER_JAR% ^
+  "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR%" ^
+  %WRAPPER_LAUNCHER% %MAVEN_CONFIG% %*
+if ERRORLEVEL 1 goto error
+goto end
+
+:error
+set ERROR_CODE=1
+
+:end
+@endlocal & set ERROR_CODE=%ERROR_CODE%
+
+if not "%MAVEN_SKIP_RC%"=="" goto skipRcPost
+@REM check for post script, once with legacy .bat ending and once with .cmd ending
+if exist "%USERPROFILE%\mavenrc_post.bat" call "%USERPROFILE%\mavenrc_post.bat"
+if exist "%USERPROFILE%\mavenrc_post.cmd" call "%USERPROFILE%\mavenrc_post.cmd"
+:skipRcPost
+
+@REM pause the script if MAVEN_BATCH_PAUSE is set to 'on'
+if "%MAVEN_BATCH_PAUSE%"=="on" pause
+
+if "%MAVEN_TERMINATE_CMD%"=="on" exit %ERROR_CODE%
+
+cmd /C exit /B %ERROR_CODE%
+
+
+
+================================================
+FILE: NOTICE
+================================================
+MyBatis JPetStore
+Copyright 2010-2023
+
+This product includes software developed by
+The MyBatis Team (http://mybatis.org/).
+
+iBATIS
+   This product includes software developed by
+   The Apache Software Foundation (http://www.apache.org/).
+
+   Copyright 2010 The Apache Software Foundation
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+OGNL
+//--------------------------------------------------------------------------
+//  Copyright (c) 2004, Drew Davidson and Luke Blanshard
+//  All rights reserved.
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are
+//  met:
+//
+//  Redistributions of source code must retain the above copyright notice,
+//  this list of conditions and the following disclaimer.
+//  Redistributions in binary form must reproduce the above copyright
+//  notice, this list of conditions and the following disclaimer in the
+//  documentation and/or other materials provided with the distribution.
+//  Neither the name of the Drew Davidson nor the names of its contributors
+//  may be used to endorse or promote products derived from this software
+//  without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+//  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+//  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+//  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+//  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+//  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+//  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+//  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+//  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+//  THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+//  DAMAGE.
+//--------------------------------------------------------------------------
+
+
+
+================================================
+FILE: pom.xml
+================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2010-2025 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          https://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis-parent</artifactId>
+    <version>50</version>
+    <relativePath />
+  </parent>
+
+  <groupId>org.mybatis</groupId>
+  <artifactId>jpetstore</artifactId>
+  <version>6.1.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <name>JPetStore Demo 6</name>
+  <url>https://www.mybatis.org/jpetstore-6/</url>
+
+  <scm>
+    <connection>scm:git:ssh://git@github.com/mybatis/jpetstore-6.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/mybatis/jpetstore-6.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/mybatis/jpetstore-6/</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub Issue Management</system>
+    <url>https://github.com/mybatis/jpetstore-6/issues</url>
+  </issueManagement>
+  <ciManagement>
+    <system>GitHub Actions</system>
+    <url>https://github.com/mybatis/jpetstore-6/actions</url>
+  </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>gh-pages-scm</id>
+      <name>Mybatis GitHub Pages</name>
+      <url>scm:git:ssh://git@github.com/mybatis/jpetstore-6.git</url>
+    </site>
+  </distributionManagement>
+
+  <properties>
+    <!-- Java Usage -->
+    <java.version>17</java.version>
+    <java.release.version>17</java.release.version>
+
+    <cargo.maven.containerId>tomcat${tomcat.major-version}x</cargo.maven.containerId>
+    <cargo.maven.containerUrl>https://archive.apache.org/dist/tomcat/tomcat-${tomcat.major-version}/v${tomcat.version}/bin/apache-tomcat-${tomcat.version}.zip</cargo.maven.containerUrl>
+    <tomcat.major-version />
+    <tomcat.version />
+
+    <cargo-maven3-plugin.version>1.10.21</cargo-maven3-plugin.version>
+    <clirr.comparisonVersion>6.0.2</clirr.comparisonVersion>
+
+    <slf4j.version>2.0.17</slf4j.version>
+    <spring.version>6.2.10</spring.version>
+    <assertj.version>3.27.4</assertj.version>
+    <byte-buddy.version>1.17.7</byte-buddy.version>
+    <mockito.version>5.19.0</mockito.version>
+    <hsqldb.version>2.7.4</hsqldb.version>
+    <module.name>org.mybatis.jpetstore</module.name>
+
+    <!-- Reproducible Builds -->
+    <project.build.outputTimestamp>1670877034</project.build.outputTimestamp>
+
+    <!-- Surefire Setup -->
+    <argLine>-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>3.5.19</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis-spring</artifactId>
+      <version>3.0.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <!-- Keep spring-web at 5.3.39 until jakarta upgrade occurs -->
+      <version>5.3.39</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.stripes</groupId>
+      <artifactId>stripes</artifactId>
+      <version>1.6.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.taglibs</groupId>
+      <artifactId>taglibs-standard-spec</artifactId>
+      <version>1.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.taglibs</groupId>
+      <artifactId>taglibs-standard-impl</artifactId>
+      <version>1.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet.jsp</groupId>
+      <artifactId>jakarta.servlet.jsp-api</artifactId>
+      <version>2.3.6</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>4.0.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <version>${hsqldb.version}</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>${byte-buddy.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <version>${byte-buddy.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.13.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.codeborne</groupId>
+      <artifactId>selenide</artifactId>
+      <version>7.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>htmlunit3-driver</artifactId>
+      <version>4.35.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>sonatype-oss-snapshots</id>
+      <name>Sonatype OSS Snapshots Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>sonatype-oss-snapshots</id>
+      <name>Sonatype OSS Snapshots Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+    <finalName>jpetstore</finalName>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.4.0</version>
+          <configuration>
+            <archive>
+              <manifestEntries>
+                <Dependencies>jdk.unsupported</Dependencies>
+              </manifestEntries>
+            </archive>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>3.5.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <configuration>
+            <locales>default,es,ja,ko</locales>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <configuration>
+            <overwrite>true</overwrite>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.cargo</groupId>
+          <artifactId>cargo-maven3-plugin</artifactId>
+          <version>${cargo-maven3-plugin.version}</version>
+          <configuration>
+            <container>
+              <containerId>${cargo.maven.containerId}</containerId>
+              <zipUrlInstaller>
+                <url>${cargo.maven.containerUrl}</url>
+              </zipUrlInstaller>
+            </container>
+            <daemon>
+              <properties>
+                <cargo.daemon.url>http://localhost:18000</cargo.daemon.url>
+                <cargo.daemon.handleid>${project.artifactId}</cargo.daemon.handleid>
+              </properties>
+            </daemon>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven3-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>start-container</id>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+          </execution>
+          <execution>
+            <id>stop-container</id>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+            <phase>post-integration-test</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Profiles for Application Server -->
+    <profile>
+      <id>tomcat9</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <tomcat.major-version>9</tomcat.major-version>
+        <tomcat.version>9.0.105</tomcat.version>
+      </properties>
+    </profile>
+    <profile>
+      <!-- TODO: Remove after we switch to jakarta as end of life -->
+      <id>tomee80</id>
+      <properties>
+        <tomee.major-version>8</tomee.major-version>
+        <tomee.version>8.0.16</tomee.version>
+        <cargo.maven.containerId>tomee${tomee.major-version}x</cargo.maven.containerId>
+        <cargo.maven.containerUrl>https://repo1.maven.org/maven2/org/apache/tomee/apache-tomee/${tomee.version}/apache-tomee-${tomee.version}-plume.zip</cargo.maven.containerUrl>
+      </properties>
+    </profile>
+    <profile>
+      <id>wildfly26</id>
+      <!-- TODO: Remove after we switch to jakarta as end of life -->
+      <properties>
+        <wildfly.major-version>26</wildfly.major-version>
+        <wildfly.version>26.1.3.Final</wildfly.version>
+        <cargo.maven.containerId>wildfly${wildfly.major-version}x</cargo.maven.containerId>
+        <cargo.maven.containerUrl>https://github.com/wildfly/wildfly/releases/download/${wildfly.version}/wildfly-${wildfly.version}.zip</cargo.maven.containerUrl>
+      </properties>
+    </profile>
+    <profile>
+      <id>liberty-ee8</id>
+      <properties>
+        <liberty.version>25.0.0.5</liberty.version>
+        <cargo.maven.containerId>liberty</cargo.maven.containerId>
+        <cargo.maven.containerUrl>https://repo1.maven.org/maven2/com/ibm/websphere/appserver/runtime/wlp-javaee8/${liberty.version}/wlp-javaee8-${liberty.version}.zip</cargo.maven.containerUrl>
+      </properties>
+    </profile>
+    <profile>
+      <id>jetty</id>
+      <properties>
+        <jetty.major-version>12</jetty.major-version>
+        <jetty.version>12.0.21</jetty.version>
+        <cargo.maven.containerId>jetty${jetty.major-version}x</cargo.maven.containerId>
+        <cargo.maven.containerUrl>https://repo1.maven.org/maven2/org/eclipse/jetty/ee8/jetty-ee8-home/12.0.21/${jetty.version}/jetty-ee8-home-${jetty.version}.tar.gz</cargo.maven.containerUrl>
+      </properties>
+    </profile>
+    <profile>
+      <id>glassfish5</id>
+      <properties>
+        <glassfish.major-version>5</glassfish.major-version>
+        <glassfish.version>5.1.0</glassfish.version>
+        <cargo.maven.containerId>glassfish${glassfish.major-version}x</cargo.maven.containerId>
+        <cargo.maven.containerUrl>https://repo.maven.apache.org/maven2/org/glassfish/main/distributions/glassfish/${glassfish.version}/glassfish-${glassfish.version}.zip</cargo.maven.containerUrl>
+      </properties>
+    </profile>
+    <profile>
+      <id>resin</id>
+      <properties>
+        <resin.major-version>4</resin.major-version>
+        <resin.version>4.0.67</resin.version>
+        <cargo.maven.containerId>resin${resin.major-version}x</cargo.maven.containerId>
+        <cargo.maven.containerUrl>https://www.caucho.com/download/resin-${resin.version}.zip</cargo.maven.containerUrl>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>
+
+
+
+================================================
+FILE: renovate.json
+================================================
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ]
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Account.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+
+import net.sourceforge.stripes.validation.Validate;
+
+/**
+ * The Class Account.
+ *
+ * @author Eduardo Macarron
+ */
+public class Account implements Serializable {
+
+  private static final long serialVersionUID = 8751282105532159742L;
+
+  private String username;
+  private String password;
+  private String email;
+  private String firstName;
+  private String lastName;
+  private String status;
+  private String address1;
+  private String address2;
+  private String city;
+  private String state;
+  private String zip;
+  private String country;
+  private String phone;
+  private String favouriteCategoryId;
+  private String languagePreference;
+  private boolean listOption;
+  private boolean bannerOption;
+  private String bannerName;
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  @Validate(required = true, on = { "newAccount", "editAccount" })
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  @Validate(required = true, on = { "newAccount", "editAccount" })
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public String getAddress1() {
+    return address1;
+  }
+
+  public void setAddress1(String address1) {
+    this.address1 = address1;
+  }
+
+  public String getAddress2() {
+    return address2;
+  }
+
+  public void setAddress2(String address2) {
+    this.address2 = address2;
+  }
+
+  public String getCity() {
+    return city;
+  }
+
+  public void setCity(String city) {
+    this.city = city;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  public String getZip() {
+    return zip;
+  }
+
+  public void setZip(String zip) {
+    this.zip = zip;
+  }
+
+  public String getCountry() {
+    return country;
+  }
+
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getFavouriteCategoryId() {
+    return favouriteCategoryId;
+  }
+
+  public void setFavouriteCategoryId(String favouriteCategoryId) {
+    this.favouriteCategoryId = favouriteCategoryId;
+  }
+
+  public String getLanguagePreference() {
+    return languagePreference;
+  }
+
+  public void setLanguagePreference(String languagePreference) {
+    this.languagePreference = languagePreference;
+  }
+
+  public boolean isListOption() {
+    return listOption;
+  }
+
+  public void setListOption(boolean listOption) {
+    this.listOption = listOption;
+  }
+
+  public boolean isBannerOption() {
+    return bannerOption;
+  }
+
+  public void setBannerOption(boolean bannerOption) {
+    this.bannerOption = bannerOption;
+  }
+
+  public String getBannerName() {
+    return bannerName;
+  }
+
+  public void setBannerName(String bannerName) {
+    this.bannerName = bannerName;
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Cart.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The Class Cart.
+ *
+ * @author Eduardo Macarron
+ */
+public class Cart implements Serializable {
+
+  private static final long serialVersionUID = 8329559983943337176L;
+
+  private final Map<String, CartItem> itemMap = Collections.synchronizedMap(new HashMap<>());
+  private final List<CartItem> itemList = new ArrayList<>();
+
+  public Iterator<CartItem> getCartItems() {
+    return itemList.iterator();
+  }
+
+  public List<CartItem> getCartItemList() {
+    return itemList;
+  }
+
+  public int getNumberOfItems() {
+    return itemList.size();
+  }
+
+  public Iterator<CartItem> getAllCartItems() {
+    return itemList.iterator();
+  }
+
+  public boolean containsItemId(String itemId) {
+    return itemMap.containsKey(itemId);
+  }
+
+  /**
+   * Adds the item.
+   *
+   * @param item
+   *          the item
+   * @param isInStock
+   *          the is in stock
+   */
+  public void addItem(Item item, boolean isInStock) {
+    CartItem cartItem = itemMap.get(item.getItemId());
+    if (cartItem == null) {
+      cartItem = new CartItem();
+      cartItem.setItem(item);
+      cartItem.setQuantity(0);
+      cartItem.setInStock(isInStock);
+      itemMap.put(item.getItemId(), cartItem);
+      itemList.add(cartItem);
+    }
+    cartItem.incrementQuantity();
+  }
+
+  /**
+   * Removes the item by id.
+   *
+   * @param itemId
+   *          the item id
+   *
+   * @return the item
+   */
+  public Item removeItemById(String itemId) {
+    CartItem cartItem = itemMap.remove(itemId);
+    if (cartItem == null) {
+      return null;
+    } else {
+      itemList.remove(cartItem);
+      return cartItem.getItem();
+    }
+  }
+
+  /**
+   * Increment quantity by item id.
+   *
+   * @param itemId
+   *          the item id
+   */
+  public void incrementQuantityByItemId(String itemId) {
+    CartItem cartItem = itemMap.get(itemId);
+    cartItem.incrementQuantity();
+  }
+
+  public void setQuantityByItemId(String itemId, int quantity) {
+    CartItem cartItem = itemMap.get(itemId);
+    cartItem.setQuantity(quantity);
+  }
+
+  /**
+   * Gets the sub total.
+   *
+   * @return the sub total
+   */
+  public BigDecimal getSubTotal() {
+    return itemList.stream()
+        .map(cartItem -> cartItem.getItem().getListPrice().multiply(new BigDecimal(cartItem.getQuantity())))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/CartItem.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Optional;
+
+/**
+ * The Class CartItem.
+ *
+ * @author Eduardo Macarron
+ */
+public class CartItem implements Serializable {
+
+  private static final long serialVersionUID = 6620528781626504362L;
+
+  private Item item;
+  private int quantity;
+  private boolean inStock;
+  private BigDecimal total;
+
+  public boolean isInStock() {
+    return inStock;
+  }
+
+  public void setInStock(boolean inStock) {
+    this.inStock = inStock;
+  }
+
+  public BigDecimal getTotal() {
+    return total;
+  }
+
+  public Item getItem() {
+    return item;
+  }
+
+  public void setItem(Item item) {
+    this.item = item;
+    calculateTotal();
+  }
+
+  public int getQuantity() {
+    return quantity;
+  }
+
+  public void setQuantity(int quantity) {
+    this.quantity = quantity;
+    calculateTotal();
+  }
+
+  public void incrementQuantity() {
+    quantity++;
+    calculateTotal();
+  }
+
+  private void calculateTotal() {
+    total = Optional.ofNullable(item).map(Item::getListPrice).map(v -> v.multiply(new BigDecimal(quantity)))
+        .orElse(null);
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Category.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+
+/**
+ * The Class Category.
+ *
+ * @author Eduardo Macarron
+ */
+public class Category implements Serializable {
+
+  private static final long serialVersionUID = 3992469837058393712L;
+
+  private String categoryId;
+  private String name;
+  private String description;
+
+  public String getCategoryId() {
+    return categoryId;
+  }
+
+  public void setCategoryId(String categoryId) {
+    this.categoryId = categoryId.trim();
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @Override
+  public String toString() {
+    return getCategoryId();
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Item.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+/**
+ * The Class Item.
+ *
+ * @author Eduardo Macarron
+ */
+public class Item implements Serializable {
+
+  private static final long serialVersionUID = -2159121673445254631L;
+
+  private String itemId;
+  private String productId;
+  private BigDecimal listPrice;
+  private BigDecimal unitCost;
+  private int supplierId;
+  private String status;
+  private String attribute1;
+  private String attribute2;
+  private String attribute3;
+  private String attribute4;
+  private String attribute5;
+  private Product product;
+  private int quantity;
+
+  public String getItemId() {
+    return itemId;
+  }
+
+  public void setItemId(String itemId) {
+    this.itemId = itemId.trim();
+  }
+
+  public int getQuantity() {
+    return quantity;
+  }
+
+  public void setQuantity(int quantity) {
+    this.quantity = quantity;
+  }
+
+  public Product getProduct() {
+    return product;
+  }
+
+  public void setProduct(Product product) {
+    this.product = product;
+  }
+
+  public int getSupplierId() {
+    return supplierId;
+  }
+
+  public void setSupplierId(int supplierId) {
+    this.supplierId = supplierId;
+  }
+
+  public BigDecimal getListPrice() {
+    return listPrice;
+  }
+
+  public void setListPrice(BigDecimal listPrice) {
+    this.listPrice = listPrice;
+  }
+
+  public BigDecimal getUnitCost() {
+    return unitCost;
+  }
+
+  public void setUnitCost(BigDecimal unitCost) {
+    this.unitCost = unitCost;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public String getAttribute1() {
+    return attribute1;
+  }
+
+  public void setAttribute1(String attribute1) {
+    this.attribute1 = attribute1;
+  }
+
+  public String getAttribute2() {
+    return attribute2;
+  }
+
+  public void setAttribute2(String attribute2) {
+    this.attribute2 = attribute2;
+  }
+
+  public String getAttribute3() {
+    return attribute3;
+  }
+
+  public void setAttribute3(String attribute3) {
+    this.attribute3 = attribute3;
+  }
+
+  public String getAttribute4() {
+    return attribute4;
+  }
+
+  public void setAttribute4(String attribute4) {
+    this.attribute4 = attribute4;
+  }
+
+  public String getAttribute5() {
+    return attribute5;
+  }
+
+  public void setAttribute5(String attribute5) {
+    this.attribute5 = attribute5;
+  }
+
+  @Override
+  public String toString() {
+    return "(" + getItemId() + "-" + getProduct().getProductId() + ")";
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/LineItem.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Optional;
+
+/**
+ * The Class LineItem.
+ *
+ * @author Eduardo Macarron
+ */
+public class LineItem implements Serializable {
+
+  private static final long serialVersionUID = 6804536240033522156L;
+
+  private int orderId;
+  private int lineNumber;
+  private int quantity;
+  private String itemId;
+  private BigDecimal unitPrice;
+  private Item item;
+  private BigDecimal total;
+
+  public LineItem() {
+  }
+
+  /**
+   * Instantiates a new line item.
+   *
+   * @param lineNumber
+   *          the line number
+   * @param cartItem
+   *          the cart item
+   */
+  public LineItem(int lineNumber, CartItem cartItem) {
+    this.lineNumber = lineNumber;
+    this.quantity = cartItem.getQuantity();
+    this.itemId = cartItem.getItem().getItemId();
+    this.unitPrice = cartItem.getItem().getListPrice();
+    this.item = cartItem.getItem();
+    calculateTotal();
+  }
+
+  public int getOrderId() {
+    return orderId;
+  }
+
+  public void setOrderId(int orderId) {
+    this.orderId = orderId;
+  }
+
+  public int getLineNumber() {
+    return lineNumber;
+  }
+
+  public void setLineNumber(int lineNumber) {
+    this.lineNumber = lineNumber;
+  }
+
+  public String getItemId() {
+    return itemId;
+  }
+
+  public void setItemId(String itemId) {
+    this.itemId = itemId;
+  }
+
+  public BigDecimal getUnitPrice() {
+    return unitPrice;
+  }
+
+  public void setUnitPrice(BigDecimal unitprice) {
+    this.unitPrice = unitprice;
+  }
+
+  public BigDecimal getTotal() {
+    return total;
+  }
+
+  public Item getItem() {
+    return item;
+  }
+
+  public void setItem(Item item) {
+    this.item = item;
+    calculateTotal();
+  }
+
+  public int getQuantity() {
+    return quantity;
+  }
+
+  public void setQuantity(int quantity) {
+    this.quantity = quantity;
+    calculateTotal();
+  }
+
+  private void calculateTotal() {
+    total = Optional.ofNullable(item).map(Item::getListPrice).map(v -> v.multiply(new BigDecimal(quantity)))
+        .orElse(null);
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Order.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * The Class Order.
+ *
+ * @author Eduardo Macarron
+ */
+public class Order implements Serializable {
+
+  private static final long serialVersionUID = 6321792448424424931L;
+
+  private int orderId;
+  private String username;
+  private Date orderDate;
+  private String shipAddress1;
+  private String shipAddress2;
+  private String shipCity;
+  private String shipState;
+  private String shipZip;
+  private String shipCountry;
+  private String billAddress1;
+  private String billAddress2;
+  private String billCity;
+  private String billState;
+  private String billZip;
+  private String billCountry;
+  private String courier;
+  private BigDecimal totalPrice;
+  private String billToFirstName;
+  private String billToLastName;
+  private String shipToFirstName;
+  private String shipToLastName;
+  private String creditCard;
+  private String expiryDate;
+  private String cardType;
+  private String locale;
+  private String status;
+  private List<LineItem> lineItems = new ArrayList<>();
+
+  public int getOrderId() {
+    return orderId;
+  }
+
+  public void setOrderId(int orderId) {
+    this.orderId = orderId;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public Date getOrderDate() {
+    return orderDate;
+  }
+
+  public void setOrderDate(Date orderDate) {
+    this.orderDate = orderDate;
+  }
+
+  public String getShipAddress1() {
+    return shipAddress1;
+  }
+
+  public void setShipAddress1(String shipAddress1) {
+    this.shipAddress1 = shipAddress1;
+  }
+
+  public String getShipAddress2() {
+    return shipAddress2;
+  }
+
+  public void setShipAddress2(String shipAddress2) {
+    this.shipAddress2 = shipAddress2;
+  }
+
+  public String getShipCity() {
+    return shipCity;
+  }
+
+  public void setShipCity(String shipCity) {
+    this.shipCity = shipCity;
+  }
+
+  public String getShipState() {
+    return shipState;
+  }
+
+  public void setShipState(String shipState) {
+    this.shipState = shipState;
+  }
+
+  public String getShipZip() {
+    return shipZip;
+  }
+
+  public void setShipZip(String shipZip) {
+    this.shipZip = shipZip;
+  }
+
+  public String getShipCountry() {
+    return shipCountry;
+  }
+
+  public void setShipCountry(String shipCountry) {
+    this.shipCountry = shipCountry;
+  }
+
+  public String getBillAddress1() {
+    return billAddress1;
+  }
+
+  public void setBillAddress1(String billAddress1) {
+    this.billAddress1 = billAddress1;
+  }
+
+  public String getBillAddress2() {
+    return billAddress2;
+  }
+
+  public void setBillAddress2(String billAddress2) {
+    this.billAddress2 = billAddress2;
+  }
+
+  public String getBillCity() {
+    return billCity;
+  }
+
+  public void setBillCity(String billCity) {
+    this.billCity = billCity;
+  }
+
+  public String getBillState() {
+    return billState;
+  }
+
+  public void setBillState(String billState) {
+    this.billState = billState;
+  }
+
+  public String getBillZip() {
+    return billZip;
+  }
+
+  public void setBillZip(String billZip) {
+    this.billZip = billZip;
+  }
+
+  public String getBillCountry() {
+    return billCountry;
+  }
+
+  public void setBillCountry(String billCountry) {
+    this.billCountry = billCountry;
+  }
+
+  public String getCourier() {
+    return courier;
+  }
+
+  public void setCourier(String courier) {
+    this.courier = courier;
+  }
+
+  public BigDecimal getTotalPrice() {
+    return totalPrice;
+  }
+
+  public void setTotalPrice(BigDecimal totalPrice) {
+    this.totalPrice = totalPrice;
+  }
+
+  public String getBillToFirstName() {
+    return billToFirstName;
+  }
+
+  public void setBillToFirstName(String billToFirstName) {
+    this.billToFirstName = billToFirstName;
+  }
+
+  public String getBillToLastName() {
+    return billToLastName;
+  }
+
+  public void setBillToLastName(String billToLastName) {
+    this.billToLastName = billToLastName;
+  }
+
+  public String getShipToFirstName() {
+    return shipToFirstName;
+  }
+
+  public void setShipToFirstName(String shipFoFirstName) {
+    this.shipToFirstName = shipFoFirstName;
+  }
+
+  public String getShipToLastName() {
+    return shipToLastName;
+  }
+
+  public void setShipToLastName(String shipToLastName) {
+    this.shipToLastName = shipToLastName;
+  }
+
+  public String getCreditCard() {
+    return creditCard;
+  }
+
+  public void setCreditCard(String creditCard) {
+    this.creditCard = creditCard;
+  }
+
+  public String getExpiryDate() {
+    return expiryDate;
+  }
+
+  public void setExpiryDate(String expiryDate) {
+    this.expiryDate = expiryDate;
+  }
+
+  public String getCardType() {
+    return cardType;
+  }
+
+  public void setCardType(String cardType) {
+    this.cardType = cardType;
+  }
+
+  public String getLocale() {
+    return locale;
+  }
+
+  public void setLocale(String locale) {
+    this.locale = locale;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public void setLineItems(List<LineItem> lineItems) {
+    this.lineItems = lineItems;
+  }
+
+  public List<LineItem> getLineItems() {
+    return lineItems;
+  }
+
+  /**
+   * Inits the order.
+   *
+   * @param account
+   *          the account
+   * @param cart
+   *          the cart
+   */
+  public void initOrder(Account account, Cart cart) {
+
+    username = account.getUsername();
+    orderDate = new Date();
+
+    shipToFirstName = account.getFirstName();
+    shipToLastName = account.getLastName();
+    shipAddress1 = account.getAddress1();
+    shipAddress2 = account.getAddress2();
+    shipCity = account.getCity();
+    shipState = account.getState();
+    shipZip = account.getZip();
+    shipCountry = account.getCountry();
+
+    billToFirstName = account.getFirstName();
+    billToLastName = account.getLastName();
+    billAddress1 = account.getAddress1();
+    billAddress2 = account.getAddress2();
+    billCity = account.getCity();
+    billState = account.getState();
+    billZip = account.getZip();
+    billCountry = account.getCountry();
+
+    totalPrice = cart.getSubTotal();
+
+    creditCard = "999 9999 9999 9999";
+    expiryDate = "12/03";
+    cardType = "Visa";
+    courier = "UPS";
+    locale = "CA";
+    status = "P";
+
+    Iterator<CartItem> i = cart.getAllCartItems();
+    while (i.hasNext()) {
+      CartItem cartItem = i.next();
+      addLineItem(cartItem);
+    }
+
+  }
+
+  public void addLineItem(CartItem cartItem) {
+    LineItem lineItem = new LineItem(lineItems.size() + 1, cartItem);
+    addLineItem(lineItem);
+  }
+
+  public void addLineItem(LineItem lineItem) {
+    lineItems.add(lineItem);
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Product.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+
+/**
+ * The Class Product.
+ *
+ * @author Eduardo Macarron
+ */
+public class Product implements Serializable {
+
+  private static final long serialVersionUID = -7492639752670189553L;
+
+  private String productId;
+  private String categoryId;
+  private String name;
+  private String description;
+
+  public String getProductId() {
+    return productId;
+  }
+
+  public void setProductId(String productId) {
+    this.productId = productId.trim();
+  }
+
+  public String getCategoryId() {
+    return categoryId;
+  }
+
+  public void setCategoryId(String categoryId) {
+    this.categoryId = categoryId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/domain/Sequence.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.domain;
+
+import java.io.Serializable;
+
+/**
+ * The Class Sequence.
+ *
+ * @author Eduardo Macarron
+ */
+public class Sequence implements Serializable {
+
+  private static final long serialVersionUID = 8278780133180137281L;
+
+  private String name;
+  private int nextId;
+
+  public Sequence() {
+  }
+
+  public Sequence(String name, int nextId) {
+    this.name = name;
+    this.nextId = nextId;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public int getNextId() {
+    return nextId;
+  }
+
+  public void setNextId(int nextId) {
+    this.nextId = nextId;
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/AccountMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import org.mybatis.jpetstore.domain.Account;
+
+/**
+ * The Interface AccountMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface AccountMapper {
+
+  Account getAccountByUsername(String username);
+
+  Account getAccountByUsernameAndPassword(String username, String password);
+
+  void insertAccount(Account account);
+
+  void insertProfile(Account account);
+
+  void insertSignon(Account account);
+
+  void updateAccount(Account account);
+
+  void updateProfile(Account account);
+
+  void updateSignon(Account account);
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/CategoryMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import java.util.List;
+
+import org.mybatis.jpetstore.domain.Category;
+
+/**
+ * The Interface CategoryMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface CategoryMapper {
+
+  List<Category> getCategoryList();
+
+  Category getCategory(String categoryId);
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/ItemMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.mybatis.jpetstore.domain.Item;
+
+/**
+ * The Interface ItemMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface ItemMapper {
+
+  void updateInventoryQuantity(Map<String, Object> param);
+
+  int getInventoryQuantity(String itemId);
+
+  List<Item> getItemListByProduct(String productId);
+
+  Item getItem(String itemId);
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/LineItemMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import java.util.List;
+
+import org.mybatis.jpetstore.domain.LineItem;
+
+/**
+ * The Interface LineItemMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface LineItemMapper {
+
+  List<LineItem> getLineItemsByOrderId(int orderId);
+
+  void insertLineItem(LineItem lineItem);
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/OrderMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import java.util.List;
+
+import org.mybatis.jpetstore.domain.Order;
+
+/**
+ * The Interface OrderMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface OrderMapper {
+
+  List<Order> getOrdersByUsername(String username);
+
+  Order getOrder(int orderId);
+
+  void insertOrder(Order order);
+
+  void insertOrderStatus(Order order);
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/ProductMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import java.util.List;
+
+import org.mybatis.jpetstore.domain.Product;
+
+/**
+ * The Interface ProductMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface ProductMapper {
+
+  List<Product> getProductListByCategory(String categoryId);
+
+  Product getProduct(String productId);
+
+  List<Product> searchProductList(String keywords);
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/mapper/SequenceMapper.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.mapper;
+
+import org.mybatis.jpetstore.domain.Sequence;
+
+/**
+ * The Interface SequenceMapper.
+ *
+ * @author Eduardo Macarron
+ */
+public interface SequenceMapper {
+
+  Sequence getSequence(Sequence sequence);
+
+  void updateSequence(Sequence sequence);
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/service/AccountService.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.service;
+
+import java.util.Optional;
+
+import org.mybatis.jpetstore.domain.Account;
+import org.mybatis.jpetstore.mapper.AccountMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * The Class AccountService.
+ *
+ * @author Eduardo Macarron
+ */
+@Service
+public class AccountService {
+
+  private final AccountMapper accountMapper;
+
+  public AccountService(AccountMapper accountMapper) {
+    this.accountMapper = accountMapper;
+  }
+
+  public Account getAccount(String username) {
+    return accountMapper.getAccountByUsername(username);
+  }
+
+  public Account getAccount(String username, String password) {
+    return accountMapper.getAccountByUsernameAndPassword(username, password);
+  }
+
+  /**
+   * Insert account.
+   *
+   * @param account
+   *          the account
+   */
+  @Transactional
+  public void insertAccount(Account account) {
+    accountMapper.insertAccount(account);
+    accountMapper.insertProfile(account);
+    accountMapper.insertSignon(account);
+  }
+
+  /**
+   * Update account.
+   *
+   * @param account
+   *          the account
+   */
+  @Transactional
+  public void updateAccount(Account account) {
+    accountMapper.updateAccount(account);
+    accountMapper.updateProfile(account);
+
+    Optional.ofNullable(account.getPassword()).filter(password -> password.length() > 0)
+        .ifPresent(password -> accountMapper.updateSignon(account));
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/service/CatalogService.java
+================================================
+/*
+ *    Copyright 2010-2023 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mybatis.jpetstore.domain.Category;
+import org.mybatis.jpetstore.domain.Item;
+import org.mybatis.jpetstore.domain.Product;
+import org.mybatis.jpetstore.mapper.CategoryMapper;
+import org.mybatis.jpetstore.mapper.ItemMapper;
+import org.mybatis.jpetstore.mapper.ProductMapper;
+import org.springframework.stereotype.Service;
+
+/**
+ * The Class CatalogService.
+ *
+ * @author Eduardo Macarron
+ */
+@Service
+public class CatalogService {
+
+  private final CategoryMapper categoryMapper;
+  private final ItemMapper itemMapper;
+  private final ProductMapper productMapper;
+
+  public CatalogService(CategoryMapper categoryMapper, ItemMapper itemMapper, ProductMapper productMapper) {
+    this.categoryMapper = categoryMapper;
+    this.itemMapper = itemMapper;
+    this.productMapper = productMapper;
+  }
+
+  public List<Category> getCategoryList() {
+    return categoryMapper.getCategoryList();
+  }
+
+  public Category getCategory(String categoryId) {
+    return categoryMapper.getCategory(categoryId);
+  }
+
+  public Product getProduct(String productId) {
+    return productMapper.getProduct(productId);
+  }
+
+  public List<Product> getProductListByCategory(String categoryId) {
+    return productMapper.getProductListByCategory(categoryId);
+  }
+
+  /**
+   * Search product list.
+   *
+   * @param keywords
+   *          the keywords
+   *
+   * @return the list
+   */
+  public List<Product> searchProductList(String keywords) {
+    List<Product> products = new ArrayList<>();
+    for (String keyword : keywords.split("\\s+")) {
+      products.addAll(productMapper.searchProductList("%" + keyword.toLowerCase() + "%"));
+    }
+    return products;
+  }
+
+  public List<Item> getItemListByProduct(String productId) {
+    return itemMapper.getItemListByProduct(productId);
+  }
+
+  public Item getItem(String itemId) {
+    return itemMapper.getItem(itemId);
+  }
+
+  public boolean isItemInStock(String itemId) {
+    return itemMapper.getInventoryQuantity(itemId) > 0;
+  }
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/service/OrderService.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.mybatis.jpetstore.domain.Item;
+import org.mybatis.jpetstore.domain.Order;
+import org.mybatis.jpetstore.domain.Sequence;
+import org.mybatis.jpetstore.mapper.ItemMapper;
+import org.mybatis.jpetstore.mapper.LineItemMapper;
+import org.mybatis.jpetstore.mapper.OrderMapper;
+import org.mybatis.jpetstore.mapper.SequenceMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * The Class OrderService.
+ *
+ * @author Eduardo Macarron
+ */
+@Service
+public class OrderService {
+
+  private final ItemMapper itemMapper;
+  private final OrderMapper orderMapper;
+  private final SequenceMapper sequenceMapper;
+  private final LineItemMapper lineItemMapper;
+
+  public OrderService(ItemMapper itemMapper, OrderMapper orderMapper, SequenceMapper sequenceMapper,
+      LineItemMapper lineItemMapper) {
+    this.itemMapper = itemMapper;
+    this.orderMapper = orderMapper;
+    this.sequenceMapper = sequenceMapper;
+    this.lineItemMapper = lineItemMapper;
+  }
+
+  /**
+   * Insert order.
+   *
+   * @param order
+   *          the order
+   */
+  @Transactional
+  public void insertOrder(Order order) {
+    order.setOrderId(getNextId("ordernum"));
+    order.getLineItems().forEach(lineItem -> {
+      String itemId = lineItem.getItemId();
+      Integer increment = lineItem.getQuantity();
+      Map<String, Object> param = new HashMap<>(2);
+      param.put("itemId", itemId);
+      param.put("increment", increment);
+      itemMapper.updateInventoryQuantity(param);
+    });
+
+    orderMapper.insertOrder(order);
+    orderMapper.insertOrderStatus(order);
+    order.getLineItems().forEach(lineItem -> {
+      lineItem.setOrderId(order.getOrderId());
+      lineItemMapper.insertLineItem(lineItem);
+    });
+  }
+
+  /**
+   * Gets the order.
+   *
+   * @param orderId
+   *          the order id
+   *
+   * @return the order
+   */
+  @Transactional
+  public Order getOrder(int orderId) {
+    Order order = orderMapper.getOrder(orderId);
+    order.setLineItems(lineItemMapper.getLineItemsByOrderId(orderId));
+
+    order.getLineItems().forEach(lineItem -> {
+      Item item = itemMapper.getItem(lineItem.getItemId());
+      item.setQuantity(itemMapper.getInventoryQuantity(lineItem.getItemId()));
+      lineItem.setItem(item);
+    });
+
+    return order;
+  }
+
+  /**
+   * Gets the orders by username.
+   *
+   * @param username
+   *          the username
+   *
+   * @return the orders by username
+   */
+  public List<Order> getOrdersByUsername(String username) {
+    return orderMapper.getOrdersByUsername(username);
+  }
+
+  /**
+   * Gets the next id.
+   *
+   * @param name
+   *          the name
+   *
+   * @return the next id
+   */
+  public int getNextId(String name) {
+    Sequence sequence = sequenceMapper.getSequence(new Sequence(name, -1));
+    if (sequence == null) {
+      throw new RuntimeException(
+          "Error: A null sequence was returned from the database (could not get next " + name + " sequence).");
+    }
+    Sequence parameterObject = new Sequence(name, sequence.getNextId() + 1);
+    sequenceMapper.updateSequence(parameterObject);
+    return sequence.getNextId();
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/web/actions/AbstractActionBean.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import java.io.Serializable;
+
+import net.sourceforge.stripes.action.ActionBean;
+import net.sourceforge.stripes.action.ActionBeanContext;
+import net.sourceforge.stripes.action.SimpleMessage;
+
+/**
+ * The Class AbstractActionBean.
+ *
+ * @author Eduardo Macarron
+ */
+public abstract class AbstractActionBean implements ActionBean, Serializable {
+
+  private static final long serialVersionUID = -1767714708233127983L;
+
+  protected static final String ERROR = "/WEB-INF/jsp/common/Error.jsp";
+
+  protected transient ActionBeanContext context;
+
+  protected void setMessage(String value) {
+    context.getMessages().add(new SimpleMessage(value));
+  }
+
+  @Override
+  public ActionBeanContext getContext() {
+    return context;
+  }
+
+  @Override
+  public void setContext(ActionBeanContext context) {
+    this.context = context;
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/web/actions/AccountActionBean.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.RedirectResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SessionScope;
+import net.sourceforge.stripes.integration.spring.SpringBean;
+import net.sourceforge.stripes.validation.Validate;
+
+import org.mybatis.jpetstore.domain.Account;
+import org.mybatis.jpetstore.domain.Product;
+import org.mybatis.jpetstore.service.AccountService;
+import org.mybatis.jpetstore.service.CatalogService;
+
+/**
+ * The Class AccountActionBean.
+ *
+ * @author Eduardo Macarron
+ */
+@SessionScope
+public class AccountActionBean extends AbstractActionBean {
+
+  private static final long serialVersionUID = 5499663666155758178L;
+
+  private static final String NEW_ACCOUNT = "/WEB-INF/jsp/account/NewAccountForm.jsp";
+  private static final String EDIT_ACCOUNT = "/WEB-INF/jsp/account/EditAccountForm.jsp";
+  private static final String SIGNON = "/WEB-INF/jsp/account/SignonForm.jsp";
+
+  private static final List<String> LANGUAGE_LIST;
+  private static final List<String> CATEGORY_LIST;
+
+  @SpringBean
+  private transient AccountService accountService;
+  @SpringBean
+  private transient CatalogService catalogService;
+
+  private Account account = new Account();
+  private List<Product> myList;
+  private boolean authenticated;
+
+  static {
+    LANGUAGE_LIST = Collections.unmodifiableList(Arrays.asList("english", "japanese"));
+    CATEGORY_LIST = Collections.unmodifiableList(Arrays.asList("FISH", "DOGS", "REPTILES", "CATS", "BIRDS"));
+  }
+
+  public Account getAccount() {
+    return this.account;
+  }
+
+  public String getUsername() {
+    return account.getUsername();
+  }
+
+  @Validate(required = true, on = { "signon", "newAccount", "editAccount" })
+  public void setUsername(String username) {
+    account.setUsername(username);
+  }
+
+  public String getPassword() {
+    return account.getPassword();
+  }
+
+  @Validate(required = true, on = { "signon", "newAccount", "editAccount" })
+  public void setPassword(String password) {
+    account.setPassword(password);
+  }
+
+  public List<Product> getMyList() {
+    return myList;
+  }
+
+  public void setMyList(List<Product> myList) {
+    this.myList = myList;
+  }
+
+  public List<String> getLanguages() {
+    return LANGUAGE_LIST;
+  }
+
+  public List<String> getCategories() {
+    return CATEGORY_LIST;
+  }
+
+  public Resolution newAccountForm() {
+    return new ForwardResolution(NEW_ACCOUNT);
+  }
+
+  /**
+   * New account.
+   *
+   * @return the resolution
+   */
+  public Resolution newAccount() {
+    accountService.insertAccount(account);
+    account = accountService.getAccount(account.getUsername());
+    myList = catalogService.getProductListByCategory(account.getFavouriteCategoryId());
+    authenticated = true;
+    return new RedirectResolution(CatalogActionBean.class);
+  }
+
+  /**
+   * Edits the account form.
+   *
+   * @return the resolution
+   */
+  public Resolution editAccountForm() {
+    return new ForwardResolution(EDIT_ACCOUNT);
+  }
+
+  /**
+   * Edits the account.
+   *
+   * @return the resolution
+   */
+  public Resolution editAccount() {
+    accountService.updateAccount(account);
+    account = accountService.getAccount(account.getUsername());
+    myList = catalogService.getProductListByCategory(account.getFavouriteCategoryId());
+    return new RedirectResolution(CatalogActionBean.class);
+  }
+
+  /**
+   * Signon form.
+   *
+   * @return the resolution
+   */
+  @DefaultHandler
+  public Resolution signonForm() {
+    return new ForwardResolution(SIGNON);
+  }
+
+  /**
+   * Signon.
+   *
+   * @return the resolution
+   */
+  public Resolution signon() {
+
+    account = accountService.getAccount(getUsername(), getPassword());
+
+    if (account == null) {
+      String value = "Invalid username or password.  Signon failed.";
+      setMessage(value);
+      clear();
+      return new ForwardResolution(SIGNON);
+    } else {
+      account.setPassword(null);
+      myList = catalogService.getProductListByCategory(account.getFavouriteCategoryId());
+      authenticated = true;
+      HttpSession s = context.getRequest().getSession();
+      // this bean is already registered as /actions/Account.action
+      s.setAttribute("accountBean", this);
+      return new RedirectResolution(CatalogActionBean.class);
+    }
+  }
+
+  /**
+   * Signoff.
+   *
+   * @return the resolution
+   */
+  public Resolution signoff() {
+    context.getRequest().getSession().invalidate();
+    clear();
+    return new RedirectResolution(CatalogActionBean.class);
+  }
+
+  /**
+   * Checks if is authenticated.
+   *
+   * @return true, if is authenticated
+   */
+  public boolean isAuthenticated() {
+    return authenticated && account != null && account.getUsername() != null;
+  }
+
+  /**
+   * Clear.
+   */
+  public void clear() {
+    account = new Account();
+    myList = null;
+    authenticated = false;
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/web/actions/CartActionBean.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import java.util.Iterator;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SessionScope;
+import net.sourceforge.stripes.integration.spring.SpringBean;
+
+import org.mybatis.jpetstore.domain.Cart;
+import org.mybatis.jpetstore.domain.CartItem;
+import org.mybatis.jpetstore.domain.Item;
+import org.mybatis.jpetstore.service.CatalogService;
+
+/**
+ * The Class CartActionBean.
+ *
+ * @author Eduardo Macarron
+ */
+@SessionScope
+public class CartActionBean extends AbstractActionBean {
+
+  private static final long serialVersionUID = -4038684592582714235L;
+
+  private static final String VIEW_CART = "/WEB-INF/jsp/cart/Cart.jsp";
+  private static final String CHECK_OUT = "/WEB-INF/jsp/cart/Checkout.jsp";
+
+  @SpringBean
+  private transient CatalogService catalogService;
+
+  private Cart cart = new Cart();
+  private String workingItemId;
+
+  public Cart getCart() {
+    return cart;
+  }
+
+  public void setCart(Cart cart) {
+    this.cart = cart;
+  }
+
+  public void setWorkingItemId(String workingItemId) {
+    this.workingItemId = workingItemId;
+  }
+
+  /**
+   * Adds the item to cart.
+   *
+   * @return the resolution
+   */
+  public Resolution addItemToCart() {
+    if (cart.containsItemId(workingItemId)) {
+      cart.incrementQuantityByItemId(workingItemId);
+    } else {
+      // isInStock is a "real-time" property that must be updated
+      // every time an item is added to the cart, even if other
+      // item details are cached.
+      boolean isInStock = catalogService.isItemInStock(workingItemId);
+      Item item = catalogService.getItem(workingItemId);
+      cart.addItem(item, isInStock);
+    }
+
+    return new ForwardResolution(VIEW_CART);
+  }
+
+  /**
+   * Removes the item from cart.
+   *
+   * @return the resolution
+   */
+  public Resolution removeItemFromCart() {
+
+    Item item = cart.removeItemById(workingItemId);
+
+    if (item == null) {
+      setMessage("Attempted to remove null CartItem from Cart.");
+      return new ForwardResolution(ERROR);
+    } else {
+      return new ForwardResolution(VIEW_CART);
+    }
+  }
+
+  /**
+   * Update cart quantities.
+   *
+   * @return the resolution
+   */
+  public Resolution updateCartQuantities() {
+    HttpServletRequest request = context.getRequest();
+
+    Iterator<CartItem> cartItems = getCart().getAllCartItems();
+    while (cartItems.hasNext()) {
+      CartItem cartItem = cartItems.next();
+      String itemId = cartItem.getItem().getItemId();
+      try {
+        int quantity = Integer.parseInt(request.getParameter(itemId));
+        getCart().setQuantityByItemId(itemId, quantity);
+        if (quantity < 1) {
+          cartItems.remove();
+        }
+      } catch (Exception e) {
+        // ignore parse exceptions on purpose
+      }
+    }
+
+    return new ForwardResolution(VIEW_CART);
+  }
+
+  public ForwardResolution viewCart() {
+    return new ForwardResolution(VIEW_CART);
+  }
+
+  public ForwardResolution checkOut() {
+    return new ForwardResolution(CHECK_OUT);
+  }
+
+  public void clear() {
+    cart = new Cart();
+    workingItemId = null;
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/web/actions/CatalogActionBean.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import java.util.List;
+
+import net.sourceforge.stripes.action.DefaultHandler;
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.SessionScope;
+import net.sourceforge.stripes.integration.spring.SpringBean;
+
+import org.mybatis.jpetstore.domain.Category;
+import org.mybatis.jpetstore.domain.Item;
+import org.mybatis.jpetstore.domain.Product;
+import org.mybatis.jpetstore.service.CatalogService;
+
+/**
+ * The Class CatalogActionBean.
+ *
+ * @author Eduardo Macarron
+ */
+@SessionScope
+public class CatalogActionBean extends AbstractActionBean {
+
+  private static final long serialVersionUID = 5849523372175050635L;
+
+  private static final String MAIN = "/WEB-INF/jsp/catalog/Main.jsp";
+  private static final String VIEW_CATEGORY = "/WEB-INF/jsp/catalog/Category.jsp";
+  private static final String VIEW_PRODUCT = "/WEB-INF/jsp/catalog/Product.jsp";
+  private static final String VIEW_ITEM = "/WEB-INF/jsp/catalog/Item.jsp";
+  private static final String SEARCH_PRODUCTS = "/WEB-INF/jsp/catalog/SearchProducts.jsp";
+
+  @SpringBean
+  private transient CatalogService catalogService;
+
+  private String keyword;
+
+  private String categoryId;
+  private Category category;
+  private List<Category> categoryList;
+
+  private String productId;
+  private Product product;
+  private List<Product> productList;
+
+  private String itemId;
+  private Item item;
+  private List<Item> itemList;
+
+  public String getKeyword() {
+    return keyword;
+  }
+
+  public void setKeyword(String keyword) {
+    this.keyword = keyword;
+  }
+
+  public String getCategoryId() {
+    return categoryId;
+  }
+
+  public void setCategoryId(String categoryId) {
+    this.categoryId = categoryId;
+  }
+
+  public String getProductId() {
+    return productId;
+  }
+
+  public void setProductId(String productId) {
+    this.productId = productId;
+  }
+
+  public String getItemId() {
+    return itemId;
+  }
+
+  public void setItemId(String itemId) {
+    this.itemId = itemId;
+  }
+
+  public Category getCategory() {
+    return category;
+  }
+
+  public void setCategory(Category category) {
+    this.category = category;
+  }
+
+  public Product getProduct() {
+    return product;
+  }
+
+  public void setProduct(Product product) {
+    this.product = product;
+  }
+
+  public Item getItem() {
+    return item;
+  }
+
+  public void setItem(Item item) {
+    this.item = item;
+  }
+
+  public List<Category> getCategoryList() {
+    return categoryList;
+  }
+
+  public void setCategoryList(List<Category> categoryList) {
+    this.categoryList = categoryList;
+  }
+
+  public List<Product> getProductList() {
+    return productList;
+  }
+
+  public void setProductList(List<Product> productList) {
+    this.productList = productList;
+  }
+
+  public List<Item> getItemList() {
+    return itemList;
+  }
+
+  public void setItemList(List<Item> itemList) {
+    this.itemList = itemList;
+  }
+
+  @DefaultHandler
+  public ForwardResolution viewMain() {
+    return new ForwardResolution(MAIN);
+  }
+
+  /**
+   * View category.
+   *
+   * @return the forward resolution
+   */
+  public ForwardResolution viewCategory() {
+    if (categoryId != null) {
+      productList = catalogService.getProductListByCategory(categoryId);
+      category = catalogService.getCategory(categoryId);
+    }
+    return new ForwardResolution(VIEW_CATEGORY);
+  }
+
+  /**
+   * View product.
+   *
+   * @return the forward resolution
+   */
+  public ForwardResolution viewProduct() {
+    if (productId != null) {
+      itemList = catalogService.getItemListByProduct(productId);
+      product = catalogService.getProduct(productId);
+    }
+    return new ForwardResolution(VIEW_PRODUCT);
+  }
+
+  /**
+   * View item.
+   *
+   * @return the forward resolution
+   */
+  public ForwardResolution viewItem() {
+    item = catalogService.getItem(itemId);
+    product = item.getProduct();
+    return new ForwardResolution(VIEW_ITEM);
+  }
+
+  /**
+   * Search products.
+   *
+   * @return the forward resolution
+   */
+  public ForwardResolution searchProducts() {
+    if (keyword == null || keyword.length() < 1) {
+      setMessage("Please enter a keyword to search for, then press the search button.");
+      return new ForwardResolution(ERROR);
+    } else {
+      productList = catalogService.searchProductList(keyword.toLowerCase());
+      return new ForwardResolution(SEARCH_PRODUCTS);
+    }
+  }
+
+  /**
+   * Clear.
+   */
+  public void clear() {
+    keyword = null;
+
+    categoryId = null;
+    category = null;
+    categoryList = null;
+
+    productId = null;
+    product = null;
+    productList = null;
+
+    itemId = null;
+    item = null;
+    itemList = null;
+  }
+
+}
+
+
+
+================================================
+FILE: src/main/java/org/mybatis/jpetstore/web/actions/OrderActionBean.java
+================================================
+/*
+ *    Copyright 2010-2022 the original author or authors.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+package org.mybatis.jpetstore.web.actions;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import net.sourceforge.stripes.action.ForwardResolution;
+import net.sourceforge.stripes.action.Resolution;
+import net.sourceforge.stripes.action.SessionScope;
+import net.sourceforge.stripes.integration.spring.SpringBean;
+
+import org.mybatis.jpetstore.domain.Order;
+import org.mybatis.jpetstore.service.OrderService;
+
+/**
+ * The Class OrderActionBean.
+ *
+ * @author Eduardo Macarron
+ */
+@SessionScope
+public class OrderActionBean extends AbstractActionBean {
+
+  private static final long serialVersionUID = -6171288227470176272L;
+
+  private static final String CONFIRM_ORDER = "/WEB-INF/jsp/order/ConfirmOrder.jsp";
+  private static final String LIST_ORDERS = "/WEB-INF/jsp/order/ListOrders.jsp";
+  private static final String NEW_ORDER = "/WEB-INF/jsp/order/NewOrderForm.jsp";
+  private static final String SHIPPING = "/WEB-INF/jsp/order/ShippingForm.jsp";
+  private static final String VIEW_ORDER = "/WEB-INF/jsp/order/ViewOrder.jsp";
+
+  private static final List<String> CARD_TYPE_LIST;
+
+  @SpringBean
+  private transient OrderService orderService;
+
+  private Order order = new Order();
+  private boolean shippingAddressRequired;
+  private boolean confirmed;
+  private List<Order> orderList;
+
+  static {
+    CARD_TYPE_LIST = Collections.unmodifiableList(Arrays.asList("Visa", "MasterCard", "American Express"));
+  }
+
+  public int getOrderId() {
+    return order.getOrderId();
+  }
+
+  public void setOrderId(int orderId) {
+    order.setOrderId(orderId);
+  }
+
+  public Order getOrder() {
+    return order;
+  }
+
+  public void setOrder(Order order) {
+    this.order = order;
+  }
+
+  public boolean isShippingAddressRequired() {
+    return shippingAddressRequired;
+  }
+
+  public void setShippingAddressRequired(boolean shippingAddressRequired) {
+    this.shippingAddressRequired = shippingAddressRequired;
+  }
+
+  public boolean isConfirmed() {
+    return confirmed;
+  }
+
+  public void setConfirmed(boolean confirmed) {
+    this.confirmed = confirmed;
+  }
+
+  public List<String> getCreditCardTypes() {
+    return CARD_TYPE_LIST;
+  }
+
+  public List<Order> getOrderList() {
+    return orderList;
+  }
+
+  /**
+   * List orders.
+   *
+   * @return the resolution
+   */
+  public Resolution listOrders() {
+    HttpSession session = context.getRequest().getSession();
+    AccountActionBean accountBean = (AccountActionBean) session.getAttribute("/actions/Account.action");
+    orderList = orderService.getOrdersByUsername(accountBean.getAccount().getUsername());
+    return new ForwardResolution(LIST_ORDERS);
+  }
+
+  /**
+   * New order form.
+   *
+   * @return the resolution
+   */
+  public Resolution newOrderForm() {
+    HttpSession session = context.getRequest().getSession();
+    AccountActionBean accountBean = (AccountActionBean) session.getAttribute("/actions/Account.action");
+    CartActionBean cartBean = (CartActionBean) session.getAttribute("/actions/Cart.action");
+
+    clear();
+    if (accountBean == null || !accountBean.isAuthenticated()) {
+      setMessage("You must sign on before attempting to check out.  Please sign on and try checking out again.");
+      return new ForwardResolution(AccountActionBean.class);
+    } else if (cartBean != null) {
+      order.initOrder(accountBean.getAccount(), cartBean.getCart());
+      return new ForwardResolution(NEW_ORDER);
+    } else {
+      setMessage("An order could not be created because a cart could not be found.");
+      return new ForwardResolution(ERROR);
+    }
+  }
+
+  /**
+   * New order.
+   *
+   * @return the resolution
+   */
+  public Resolution newOrder() {
+    HttpSession session = context.getRequest().getSession();
+
+    if (shippingAddressRequired) {
+      shippingAddressRequired = false;
+      return new ForwardResolution(SHIPPING);
+    } else if (!isConfirmed()) {
+      return new ForwardResolution(CONFIRM_ORDER);
+    } else if (getOrder() != null) {
+
+      orderService.insertOrder(order);
+
+      CartActionBean cartBean = (CartActionBean) session.getAttribute("/actions/Cart.action");
+      cartBean.clear();
+
+      setMessage("Thank you, your order has been submitted.");
+
+      return new ForwardResolution(VIEW_ORDER);
+    } else {
+      setMessage("An error occurred processing your order (order was null).");
+      return new ForwardResolution(ERROR);
+    }
+  }
+
+  /**
+   * View order.
+   *
+   * @return the resolution
+   */
+  public Resolution viewOrder() {
+    HttpSession session = context.getRequest().getSession();
+
+    AccountActionBean accountBean = (AccountActionBean) session.getAttribute("accountBean");
+
+    order = orderService.getOrder(order.getOrderId());
+
+    if (accountBean.getAccount().getUsername().equals(order.getUsername())) {
+      return new ForwardResolution(VIEW_ORDER);
+    } else {
+      order = null;
+      setMessage("You may only view your own orders.");
+      return new ForwardResolution(ERROR);
+    }
+  }
+
+  /**
+   * Clear.
+   */
+  public void clear() {
+    order = new Order();
+    shippingAddressRequired = false;
+    confirmed = false;
+    orderList = null;
+  }
+
+}

@@ -1,0 +1,6 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Web Frontend** | Java 17, JSP | Stripes, Spring (for DI), JSTL | HSQLDB (via Service Layer) | HTTP (Browser-to-Server), Synchronous Java Method Calls (to Services) | Model-View-Controller (MVC), Server-Side Rendering, Stateful Session, Dependency Injection |
+| **Account Service** | Java 17 | Spring (DI, Transaction Management), MyBatis | HSQLDB | Synchronous Java Method Calls (In-Process) | Service Layer, Transactional Service, Data Mapper, Dependency Injection |
+| **Catalog Service** | Java 17 | Spring (DI, Transaction Management), MyBatis | HSQLDB | Synchronous Java Method Calls (In-Process) | Service Layer, Data Mapper, Dependency Injection |
+| **Order Service** | Java 17 | Spring (DI, Transaction Management), MyBatis | HSQLDB | Synchronous Java Method Calls (In-Process) | Service Layer, Transactional Service (Saga-like logic within a monolith transaction), Data Mapper, Dependency Injection |
