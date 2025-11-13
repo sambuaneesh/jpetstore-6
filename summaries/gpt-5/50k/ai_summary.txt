@@ -1,0 +1,345 @@
+Comprehensive Architectural Summary – MyBatis JPetStore 6 (Merged)
+
+High-level architecture and technology stack
+- Style: Monolithic, layered Java web application (MVC).
+- Layers:
+  - Presentation: Stripes ActionBeans (action-based MVC) + JSPs with JSTL/taglibs.
+  - Service: Spring-managed services with @Transactional boundaries.
+  - Persistence: MyBatis 3 with XML mappers and mybatis-spring integration.
+  - Database: Embedded HSQLDB (in-memory) by default; schema and seed data initialized at startup.
+- Packaging and deployment:
+  - WAR, deployable to Servlet 4.0-compatible containers (Tomcat and others via Maven Cargo profiles).
+  - Dockerfile builds image (OpenJDK 21) and runs the app via cargo Tomcat profile; default port 8080.
+- Base package: org.mybatis.jpetstore
+
+Frameworks and dependencies (notable versions and notes)
+- Stripes MVC 1.6.0; DispatcherServlet mapped to *.action; Spring integration via stripes-spring.
+- Spring Framework:
+  - DI/Transactions/DataSource: spring-context/jdbc 6.2.x.
+  - Web: spring-web 5.3.x retained for servlet compatibility with Stripes.
+  - (Some site docs reference Spring 4 historically; code uses newer Spring components.)
+- MyBatis 3.5.x + mybatis-spring 3.0.x; mapper XMLs use type aliases and second-level cache per mapper.
+- Servlet/JSP APIs: jakarta.servlet-api 4.0.4 (provided).
+- Database: HSQLDB (embedded for demo and tests).
+- Testing: JUnit 5, Mockito, AssertJ, Selenide/Selenium (UI tests), Spring TestContext.
+- Logging: slf4j-simple.
+
+Core packages and components
+- Domain model (org.mybatis.jpetstore.domain)
+  - Account: username, password, email, firstName, lastName, status, address1, address2, city, state, zip, country, phone, languagePreference, favouriteCategoryId, listOption (boolean), bannerOption (boolean), bannerName.
+  - Category: categoryId, name, description (often includes HTML for image tags).
+  - Product: productId, categoryId, name, description.
+  - Item: itemId, productId, listPrice, unitCost, supplierId, status, attribute1-5, Product product (nested), quantity (used especially when enriching orders with current stock).
+  - Cart: session-scoped shopping cart; holds CartItem entries; add/remove/update quantities; computes subtotal.
+  - CartItem: holds Item, quantity, inStock flag, cached line total.
+  - Order: orderId, orderDate, username, creditCard, cardType, expiryDate, courier, locale, status, totalPrice; billing and shipping name/address fields; List<LineItem>.
+    - initOrder(Account, Cart): seeds defaults (creditCard “999 9999 9999 9999”, cardType “Visa”, expiryDate “12/03”, courier “UPS”, locale “CA”, status “P”), copies account to billing/shipping, builds line items from cart (lineNumber starting at 1), sets totalPrice = cart subtotal.
+  - LineItem: orderId, lineNumber, itemId, quantity, unitPrice, Item item; total derived as unitPrice × quantity.
+  - Sequence: name, nextId; used for order number generation.
+- Persistence (org.mybatis.jpetstore.mapper)
+  - AccountMapper
+    - getAccountByUsername(username), getAccountByUsernameAndPassword(username, password).
+    - insertAccount(Account), updateAccount(Account).
+    - insertProfile(Account), updateProfile(Account) with boolean-to-int bindings for listOption/bannerOption.
+    - insertSignon(Account), updateSignon(Account).
+  - CategoryMapper
+    - getCategoryList(), getCategory(categoryId).
+  - ProductMapper
+    - getProductListByCategory(categoryId), getProduct(productId), searchProductList(likePattern) using lower(name) LIKE.
+  - ItemMapper
+    - getItemListByProduct(productId) (joins Product for nested mapping).
+    - getItem(itemId) (joins PRODUCT + INVENTORY to include quantity).
+    - getInventoryQuantity(itemId): int.
+    - updateInventoryQuantity({itemId, increment}): decrements inventory by increment (naming “increment” but business meaning is consumption).
+  - OrderMapper
+    - getOrdersByUsername(username), getOrder(orderId) (joins orderstatus), insertOrder(Order), insertOrderStatus(Order).
+  - LineItemMapper
+    - getLineItemsByOrderId(orderId), insertLineItem(LineItem).
+  - SequenceMapper
+    - getSequence(Sequence{name, nextId=-1}), updateSequence(Sequence{name, nextId}).
+  - Mapper XML characteristics:
+    - Type aliases configured for domain package.
+    - <cache/> enabled in each mapper XML for second-level caching.
+- Service layer (org.mybatis.jpetstore.service)
+  - AccountService (@Service; @Transactional where noted)
+    - Depends on AccountMapper.
+    - getAccount(username), getAccount(username, password).
+    - insertAccount(Account): inserts into ACCOUNT, PROFILE, SIGNON as a single transaction.
+    - updateAccount(Account): updates ACCOUNT, PROFILE; updates SIGNON only if password present.
+  - CatalogService (@Service)
+    - Depends on CategoryMapper, ItemMapper, ProductMapper.
+    - getCategoryList(), getCategory(id), getProduct(id), getProductListByCategory(catId), getItemListByProduct(prodId), getItem(id).
+    - searchProductList(keywords): splits on whitespace; for each token t calls productMapper.searchProductList("%t%"); concatenates results in token order; no deduplication.
+    - isItemInStock(itemId): true if itemMapper.getInventoryQuantity(itemId) > 0.
+  - OrderService (@Service; @Transactional as noted)
+    - Depends on ItemMapper, OrderMapper, LineItemMapper, SequenceMapper.
+    - getOrdersByUsername(username).
+    - getOrder(orderId) [@Transactional]: loads Order; loads line items; for each line item, loads Item and its current inventory quantity; sets Item into LineItem and item.quantity from inventory.
+    - getNextId(name): sequenceMapper.getSequence; if null -> RuntimeException (“Error: A null sequence was returned from the database (could not get next order sequence).”); returns current nextId; updates sequence to nextId+1.
+    - insertOrder(Order) [@Transactional]:
+      - orderId = getNextId("ordernum"); set on Order and each LineItem.
+      - Decrement inventory for each line via itemMapper.updateInventoryQuantity({itemId, increment=quantity}).
+      - Insert order header and order status; insert each line.
+- Web layer (org.mybatis.jpetstore.web.actions; Stripes ActionBeans, session-scoped)
+  - AbstractActionBean: base with ActionBeanContext, helper methods for messages, common error view path (/WEB-INF/jsp/common/Error.jsp).
+  - AccountActionBean (@SessionScope)
+    - Injected AccountService and CatalogService (via Stripes-Spring).
+    - State: Account account, List<Product> myList, boolean authenticated.
+    - Events:
+      - signonForm (DefaultHandler): shows signon form.
+      - signon(username, password): authenticate; on success clear password; load myList from favourite category; set session attribute "accountBean" pointing to this bean; redirect to CatalogActionBean.
+      - newAccountForm; newAccount: create ACCOUNT/PROFILE/SIGNON; reload account; load myList; authenticated=true; redirect to Catalog.
+      - editAccountForm; editAccount: update ACCOUNT/PROFILE; optional password update; refresh myList; redirect to Catalog.
+      - signoff: invalidate session; clear bean state; redirect to Catalog.
+    - Validation: @Validate on setters for username/password/firstName/lastName.
+  - CatalogActionBean (@SessionScope)
+    - Injected CatalogService.
+    - State: keyword; categoryId/category; productId/product; itemId/item; productList; itemList; categoryList.
+    - Events:
+      - viewMain (DefaultHandler): main catalog.
+      - viewCategory(categoryId): loads productList and category.
+      - viewProduct(productId): loads itemList and product.
+      - viewItem(itemId): loads item and product.
+      - searchProducts(keyword): returns results or Error.jsp if keyword empty.
+  - CartActionBean (@SessionScope)
+    - Injected CatalogService.
+    - State: Cart cart; String workingItemId.
+    - Events:
+      - viewCart: shows Cart.jsp.
+      - addItemToCart(workingItemId): if already present, increment; else get Item and stock flag, add; forward to Cart.jsp.
+      - removeItemFromCart(workingItemId): remove; forward to Cart.jsp or Error.jsp if not present.
+      - updateCartQuantities: request params keyed by itemId -> quantity; remove if quantity < 1; forward to Cart.jsp.
+      - checkOut: Checkout.jsp.
+    - clear(): reset cart and workingItemId.
+  - OrderActionBean (@SessionScope)
+    - Injected OrderService.
+    - State: Order order; boolean shippingAddressRequired; boolean confirmed; List<Order> orderList.
+    - Events:
+      - listOrders: get AccountActionBean from session; list orders by username -> ListOrders.jsp.
+      - newOrderForm: requires authenticated session; get Account and Cart beans from session; order.initOrder(account, cart) -> NewOrderForm.jsp.
+      - newOrder: if shippingAddressRequired -> ShippingForm.jsp; else if not confirmed -> ConfirmOrder.jsp; else insert order (OrderService.insertOrder), clear cart, add success message -> ViewOrder.jsp.
+      - viewOrder(order.orderId): loads Order; only allow if username matches session account; else Error.jsp.
+- HTTP routing and session usage
+  - Stripes DispatcherServlet mapped to *.action; StripesFilter configured with ActionResolver.Packages=org.mybatis.jpetstore.web and Spring integration extension.
+  - ActionBeans are @SessionScope. Additionally, "accountBean" is explicitly placed into session for menu/banner usage; other beans can be retrieved by action path keys (e.g., "/actions/Account.action", "/actions/Cart.action").
+  - Entry point: index.html routes to actions/Catalog.action.
+
+JSP views (under /WEB-INF/jsp)
+- Common includes
+  - common/IncludeTop.jsp: taglibs, header/logo to CatalogActionBean, menu with cart link, sign in/out via AccountActionBean, “My Account,” help; search form posting to CatalogActionBean.searchProducts; quick links to categories; message display.
+  - common/IncludeBottom.jsp: footer and optional banner via sessionScope.accountBean.account.bannerOption/bannerName.
+  - common/Error.jsp: displays Stripes messages/errors.
+- Catalog
+  - catalog/Main.jsp: category quick links and image map to viewCategory (FISH, DOGS, CATS, REPTILES, BIRDS).
+  - catalog/Category.jsp: lists products; links to viewProduct(productId).
+  - catalog/Product.jsp: lists items with Add to Cart (CartActionBean.addItemToCart).
+  - catalog/Item.jsp: item details, availability (quantity > 0), price, add-to-cart.
+  - catalog/SearchProducts.jsp: lists search results.
+- Cart and checkout
+  - cart/Cart.jsp: per-line itemId link (to viewItem), productId, description, inStock, editable quantity (input name=itemId), listPrice, line total, remove link; subtotal; Update Cart (updateCartQuantities); Proceed to Checkout (newOrderForm).
+  - cart/Checkout.jsp: order preview before creating order state.
+  - cart/IncludeMyList.jsp: user favorite products (accountBean.myList) shown if listOption enabled.
+- Order
+  - order/NewOrderForm.jsp: payment and billing fields; checkbox shippingAddressRequired.
+  - order/ShippingForm.jsp: shipping address fields.
+  - order/ConfirmOrder.jsp: shows billing/shipping and order date; Confirm link newOrder?confirmed=true.
+  - order/ListOrders.jsp: shows past orders with links to viewOrder.
+  - order/ViewOrder.jsp: shows order details, payment, shipping, status, courier, line items, totals.
+
+Database schema and initialization
+- Initialization scripts:
+  - Schema: src/main/resources/database/jpetstore-hsqldb-schema.sql.
+  - Data: src/main/resources/database/jpetstore-hsqldb-dataload.sql (also combined -data.sql variant).
+- Tables (uppercase names; types omitted for brevity):
+  - SIGNON(username PK, password).
+  - ACCOUNT(userid PK, email, firstname, lastname, status, addr1, addr2, city, state, zip, country, phone).
+  - PROFILE(userid PK, langpref, favcategory, mylistopt int, banneropt int).
+  - BANNERDATA(favcategory PK, bannername).
+  - CATEGORY(catid PK, name, descn).
+  - PRODUCT(productid PK, category (FK CATEGORY.catid), name, descn).
+  - ITEM(itemid PK, productid (FK PRODUCT.productid), listprice, unitcost, supplier (FK SUPPLIER.suppid), status, attr1..attr5).
+  - SUPPLIER(suppid PK, name, status, addr1, addr2, city, state, zip, phone).
+  - INVENTORY(itemid PK (FK ITEM.itemid), qty).
+  - ORDERS(orderid PK, userid, orderdate, shipaddr1/2, shipcity/state/zip/country, billaddr1/2, billcity/state/zip/country, courier, totalprice, billtofirstname/lastname, shiptofirstname/lastname, creditcard, exprdate, cardtype, locale).
+  - ORDERSTATUS(orderid, linenum, timestamp, status) – in this model, a row seeded at insert time; filesystem/tests show use of orderid as linenum for status inserts.
+  - LINEITEM(orderid, linenum, itemid, quantity, unitprice).
+  - SEQUENCE(name PK, nextid) – e.g., SEQUENCE('ordernum',1000).
+- Relationships (explicit FKs not always declared):
+  - ACCOUNT 1–1 PROFILE; ACCOUNT 1–1 SIGNON.
+  - PROFILE.favcategory joins BANNERDATA.favcategory for bannerName in account queries.
+  - PRODUCT N–1 CATEGORY.
+  - ITEM N–1 PRODUCT; ITEM N–1 SUPPLIER.
+  - INVENTORY 1–1 ITEM.
+  - ORDERS N–1 ACCOUNT (by userid; FK may be absent in schema).
+  - LINEITEM N–1 ORDERS; LINEITEM N–1 ITEM.
+  - ORDERSTATUS 1–1 ORDERS (status timeline; simplified).
+- Seed data:
+  - Users j2ee/j2ee, ACID/ACID; categories and catalog data populated; inventory quantities; sequence initialized.
+
+Transactions, concurrency, and caching
+- Transaction management:
+  - Spring DataSourceTransactionManager; @Transactional on service methods.
+  - AccountService: account/profile/signon operations grouped in one transaction.
+  - OrderService.insertOrder: one transaction for sequence allocation, inventory decrements, order insertions (header, status, lines).
+  - OrderService.getOrder: transactional read across multiple selects to assemble the complete order view.
+- Concurrency considerations:
+  - Sequence allocation is SELECT then UPDATE; without locking or atomic DB sequence, concurrent inserts can race under weak isolation.
+  - Inventory update decrements blindly; no check prevents negative stock at DB layer.
+- Caching:
+  - MyBatis second-level cache per mapper via <cache/>; may reduce DB reads on hot queries.
+
+Security and session management
+- Authentication: custom SIGNON table; plain text passwords; comparison by direct lookup; after signon, password nulled from session Account.
+- Authorization: user may view only their own orders (OrderActionBean check against session account username).
+- Session scope: ActionBeans are session-scoped; user/cart/order state is kept in server-side session. No CSRF/XSS protection provided by code; JSPs render server-side forms without anti-CSRF tokens.
+
+Configuration and runtime setup
+- Spring application context (src/main/webapp/WEB-INF/applicationContext.xml):
+  - Embedded HSQLDB DataSource initialized with schema and data scripts.
+  - DataSourceTransactionManager.
+  - Component scanning: org.mybatis.jpetstore.service.
+  - @Transactional enabled (<tx:annotation-driven/>).
+  - SqlSessionFactoryBean; typeAliasesPackage = org.mybatis.jpetstore.domain.
+  - MyBatis mapper scanning: base-package="org.mybatis.jpetstore.mapper".
+- Web configuration (web.xml):
+  - Servlet 4.0 descriptor.
+  - JSTL fmt localization context: StripesResources.
+  - Spring ContextLoaderListener.
+  - StripesFilter with ActionResolver.Packages=org.mybatis.jpetstore.web and Spring integration extension.
+  - Stripes DispatcherServlet mapped to *.action.
+- Build and deployment:
+  - Maven project; packaging WAR; finalName: jpetstore.
+  - Cargo plugin profiles for multiple app servers (Tomcat9 default; also TomEE, WildFly, Liberty EE8, Jetty EE8, GlassFish 5, Resin).
+  - Dockerfile: FROM openjdk:21; runs ./mvnw clean package; CMD mvn cargo:run -P tomcat90; exposes 8080.
+
+Testing and CI/CD
+- Unit and integration tests:
+  - Domain tests (Cart, Order.initOrder behavior).
+  - Mapper tests with EmbeddedDatabaseBuilder (HSQL), SqlSessionFactoryBean, @MapperScan; JdbcTemplate assertions.
+  - Service tests using Mockito to mock mappers; assert search tokenization, isItemInStock, getOrder enrichment, sequence behavior, insertOrder behavior.
+  - UI flow tests with Selenide/Selenium validating full navigation and purchase flow (assumes baseUrl http://localhost:8080/jpetstore).
+- CI/CD (GitHub Actions):
+  - Java CI across OSes and JDK versions (17, 21, 24, 25-ea).
+  - CodeQL, Jacoco/Coveralls, SonarCloud, site build to gh-pages, Sonatype Central deploy on master.
+  - Container support tests for multiple app servers via Maven profiles.
+- Maven wrapper 3.9.11; profiler extension fr.jcgay.maven:maven-profiler:3.3.
+- Settings for Sonatype, GitHub Pages, NVD; credentials from CI secrets.
+
+End-to-end data flows
+- Catalog browsing:
+  - GET /actions/Catalog.action (viewMain) -> category quick links.
+  - viewCategory(categoryId): CatalogService.getProductListByCategory + getCategory -> Category.jsp.
+  - viewProduct(productId): getItemListByProduct + getProduct -> Product.jsp.
+  - viewItem(itemId): getItem (includes product and quantity) -> Item.jsp.
+- Search:
+  - POST/GET searchProducts(keyword): keyword tokenized; ProductMapper.searchProductList for each token; concatenated list returned -> SearchProducts.jsp or Error.jsp if empty input.
+- Cart:
+  - Add to cart: CartActionBean.addItemToCart(workingItemId) -> isItemInStock + getItem -> Cart.addItem.
+  - Update quantities: parse request params keyed by itemId -> set or remove on quantity < 1 -> Cart.jsp.
+  - Remove: removeItemFromCart(workingItemId).
+- Authentication and account management:
+  - Signon: AccountService.getAccount(username,password) join across SIGNON/ACCOUNT/PROFILE/BANNERDATA; on success clear password, load myList based on favouriteCategoryId.
+  - New/edit account: insert/update ACCOUNT/PROFILE/SIGNON per AccountService rules.
+  - Signoff: invalidate session; clear bean state.
+- Ordering:
+  - newOrderForm: requires authenticated account; order.initOrder(account, cart).
+  - newOrder: step through shippingAddressRequired and confirmed flags; finalize by OrderService.insertOrder:
+    - orderId via SEQUENCE “ordernum” (select-then-update).
+    - For each line: decrement inventory via updateInventoryQuantity(increment=quantity).
+    - Insert ORDERS, ORDERSTATUS, LINEITEM rows; clear CartActionBean.cart.
+  - viewOrder(orderId): load order and lines, enrich with Item and current inventory quantity; allow only for current user.
+
+Business logic details and algorithms
+- Cart:
+  - addItem(item, inStock): increments if exists; else new CartItem.
+  - Line total = item.listPrice × quantity (BigDecimal).
+  - Subtotal = sum of line totals.
+- Catalog search:
+  - Tokenize input by whitespace; for each token call ProductMapper.searchProductList("%token%"); concatenate results in token order; no dedup.
+- Stock check:
+  - isItemInStock(itemId) -> getInventoryQuantity(itemId) > 0.
+- Order initialization:
+  - Copies Account data into billing/shipping; sets defaults (creditCard “999 9999 9999 9999”, cardType “Visa”, expiryDate “12/03”, courier “UPS”, locale “CA”, status “P”); totalPrice from cart subtotal; lineNumber starts at 1.
+- Sequence/ID allocation:
+  - getNextId(name): reads sequence row; throws if null; returns current nextId and updates DB to nextId+1 (non-atomic pattern).
+
+API surface (current MVC actions; REST candidates for decomposition)
+- Dispatcher: *.action
+- /actions/Account.action
+  - GET signonForm (default), POST signon(username,password), GET newAccountForm, POST newAccount(account.*, preferences), GET editAccountForm, POST editAccount(account.*, optional password), GET/POST signoff.
+- /actions/Catalog.action
+  - GET viewMain (default), viewCategory(categoryId), viewProduct(productId), viewItem(itemId), GET/POST searchProducts(keyword).
+- /actions/Cart.action
+  - GET viewCart, GET checkOut, POST addItemToCart(workingItemId), POST removeItemFromCart(workingItemId), POST updateCartQuantities({itemId: qty}).
+- /actions/Order.action
+  - GET listOrders, GET newOrderForm, POST newOrder(order fields; shippingAddressRequired?; confirmed=true to finalize), GET viewOrder(order.orderId).
+
+Data ownership and coupling (critical for microservice decomposition)
+- Account domain:
+  - Owns ACCOUNT, PROFILE, SIGNON; authentication and user preferences (languagePreference, favouriteCategoryId, banner options, myList support).
+- Catalog domain:
+  - Owns CATEGORY, PRODUCT, ITEM and read-model behavior; provides inventory reads (INVENTORY).
+- Inventory domain (sub-domain of Catalog today):
+  - INVENTORY table; updateInventoryQuantity invoked by OrderService to decrement stock.
+- Ordering domain:
+  - Owns ORDERS, ORDERSTATUS, LINEITEM; orchestrates order placement, reads and writes to Inventory; uses SEQUENCE for order numbers.
+- Cross-domain coupling:
+  - OrderService calls ItemMapper.getItem and getInventoryQuantity to enrich orders and adjust stock during order creation; this is coupling from Ordering into Catalog/Inventory.
+  - Sequence table is a shared cross-cutting mechanism; currently not safe for distributed use.
+
+Non-functional notes and constraints
+- Servlet and Stripes versions require care: Stripes is javax-based; app uses jakarta servlet API 4.0.4 with working bridge in this demo.
+- Performance:
+  - MyBatis second-level cache can benefit read-heavy operations; ensure coherence if split into services.
+- Internationalization: JSTL fmt used for date/number formatting; localization bundle StripesResources referenced.
+- Security limitations:
+  - Plain-text passwords; no password hashing/salting; no CSRF protection; minimal authorization checks.
+- Logging minimal (slf4j-simple).
+
+Considerations and plan points for microservice decomposition
+- Candidate services and ownership
+  - Account service: Authentication, profile management; owns ACCOUNT/PROFILE/SIGNON. Expose authentication APIs and profile CRUD.
+  - Catalog service: Categories, products, items; search and browsing; owns CATEGORY/PRODUCT/ITEM. Also expose item details for ordering.
+  - Inventory service: Owns INVENTORY; responsible for stock queries and adjustments. Today mixed into ItemMapper; must be extracted with a clear API: getInventory(itemId), adjustInventory(itemId, delta), isInStock(itemId).
+  - Ordering service: Orders, statuses, line items; owns ORDERS/ORDERSTATUS/LINEITEM; orchestrates order placement and interacts with Inventory and (optionally) Catalog for item validation/enrichment.
+  - ID generation strategy: Replace shared SEQUENCE with service-local generators (DB sequences/auto-increment/UUIDs/snowflake) or a dedicated ID service. Avoid select-then-update race conditions.
+  - Cart service: Currently session in-memory; could remain client/session-based or become an external service keyed by user/session.
+- API contracts to introduce
+  - Catalog API:
+    - GET /categories, GET /categories/{id}
+    - GET /products?categoryId=..., GET /products/{id}
+    - GET /items?productId=..., GET /items/{id}
+  - Inventory API:
+    - GET /inventory/{itemId}
+    - POST /inventory/{itemId}/adjust {delta: -n} with idempotency key
+    - Optional reservation endpoints for stronger consistency (reserve/confirm/cancel)
+  - Ordering API:
+    - POST /orders (payload with username, payment and addresses, line items {itemId, quantity, unitPrice})
+    - GET /orders?username=..., GET /orders/{id}
+  - Account API:
+    - POST /auth/signon, POST /auth/signoff, POST/PUT /accounts/{username}, GET /accounts/{username}
+- Data consistency and transactions
+  - Current single-DB ACID transaction for order placement spans inventory decrement and order inserts; in microservices, adopt saga/outbox pattern or orchestration:
+    - Ordering initiates order creation (status PENDING), calls Inventory to adjust stock (negative delta) with idempotency; on success, finalize order (status CONFIRMED); on failure, cancel.
+    - Alternatively, Inventory publishes stock-changed events; Ordering consumes to finalize.
+  - Read models:
+    - Ordering currently loads full Item and live quantity on order retrieval; in microservices, either:
+      - Make synchronous calls to Catalog/Inventory per line item (adds latency), or
+      - Maintain denormalized item snapshot on order lines (name, price, etc.) to avoid cross-service reads; optionally enrich asynchronously for UI.
+- Caching in distributed context
+  - Replace MyBatis second-level cache with per-service caches; consider cache invalidation on events if necessary.
+- Authentication/authorization
+  - Introduce centralized auth (e.g., token-based) replacing session-scoped ActionBeans for stateless APIs; UI could remain server-side or move to SPA with REST calls.
+- Messaging and idempotency
+  - For Inventory adjustments and order placement, ensure idempotent APIs; use unique operation IDs to prevent double-decrement on retries.
+- Database split
+  - Each service maintains its own schema; remove cross-service FK dependencies; use asynchronous events or synchronous APIs to maintain consistency.
+
+Gaps, caveats, and known issues
+- Sequence allocation pattern is non-atomic; replace when moving to services or even within the monolith if concurrency is a concern.
+- Inventory update permits negative stock; introduce DB constraints or service-side checks/optimistic locking.
+- Product search returns duplicate products if tokens overlap; decide on deduplication if required.
+- Security: plain-text passwords and lack of CSRF/XSS defenses; needs remediation in any serious deployment.
+- Stripes and Jakarta interoperability relies on legacy integration; evaluate framework modernization if targeting newer Jakarta EE baselines.
+
+This consolidated summary preserves all components, contracts, schemas, algorithms, flows, and deployment/test details necessary to analyze the current monolith and design microservice boundaries, APIs, data ownership, and consistency mechanisms.

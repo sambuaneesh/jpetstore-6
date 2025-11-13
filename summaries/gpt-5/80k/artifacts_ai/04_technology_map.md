@@ -1,0 +1,10 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+|---|---|---|---|---|---|
+| Presentation Layer (Stripes ActionBeans + JSP/JSTL) | Java, JSP | Stripes 1.6.0, JSTL, Stripes Taglibs | None | HTTP over Servlet 4.0 (DispatcherServlet, StripesFilter); session-scoped state | MVC (action-based), Front Controller, Session-scoped conversational state, View Helper |
+| Account Service | Java | Spring Framework 6.x (Core/Context, Tx) | HSQLDB via MyBatis (JDBC) | In-process calls from ActionBeans; Spring @Transactional AOP to mappers | Service Layer, Transaction Script, Dependency Injection |
+| Catalog Service | Java | Spring Framework 6.x (Core/Context, Tx) | HSQLDB via MyBatis (JDBC) | In-process; calls MyBatis mappers | Service Layer, Transaction Script, Dependency Injection |
+| Order Service | Java | Spring Framework 6.x (Core/Context, Tx) | HSQLDB via MyBatis (JDBC) | In-process; orchestrates multiple mappers within a single transaction | Service Layer, Transaction Script, Orchestration, Sequence-table ID generation |
+| Persistence Layer — MyBatis Mappers | Java + XML | MyBatis 3.5.19, MyBatis-Spring 3.0.5 | HSQLDB 2.7.x | JDBC via MyBatis SqlSession; per-mapper 2nd-level cache | Data Mapper, Repository/DAO, Result Mapping, Second-level Cache |
+| Domain Model (POJOs) | Java | None | None | In-process POJOs shared across layers | Anemic Domain Model (POJOs), Entities/Value Objects |
+| Database | SQL | HSQLDB 2.7.x, Spring EmbeddedDatabase | HSQLDB 2.7.x (embedded, in-memory) | JDBC | Relational schema, Sequence Table, Join-based reads |
+| Transactions & Caching Infra | Java + XML config | Spring Tx (DataSourceTransactionManager, @Transactional), MyBatis 2nd-level cache | N/A | In-process AOP proxies; cache within MyBatis per mapper | Declarative Transaction Management (AOP), Per-mapper Second-level Cache |

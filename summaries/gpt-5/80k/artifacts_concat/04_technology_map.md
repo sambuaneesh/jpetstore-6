@@ -1,0 +1,13 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+|---|---|---|---|---|---|
+| Presentation (Stripes ActionBeans) | Java | Stripes 1.6, Spring (Stripes-Spring integration), Servlet API 4.0 | N/A | HTTP requests (*.action) via Stripes Dispatcher; in-process DI to services; session attributes | Action-based MVC, Front Controller, Session-scoped Controller, Layered Architecture |
+| View Layer (JSP/JSTL) | JSP/EL, HTML/CSS | JSP 2.x, JSTL, Stripes taglibs | N/A | Server-side rendering in servlet container; binds to ActionBeans via tags | MVC View, Template/Include |
+| Account Service | Java | Spring Core/Context, Spring Tx (@Service, @Transactional) | HSQLDB (via MyBatis) | In-process calls to AccountMapper (Spring DI); transactional boundaries | Service Layer, Transaction Script, Layered Architecture |
+| Catalog Service | Java | Spring Core/Context, Spring Tx (@Service) | HSQLDB (via MyBatis) | In-process calls to Product/Category/Item mappers; transactional reads | Service Layer, Transaction Script, Layered Architecture |
+| Order Service | Java | Spring Core/Context, Spring Tx (@Service, @Transactional) | HSQLDB (via MyBatis) | In-process calls to Order/LineItem/Item/Sequence mappers; transactional writes | Service Layer, Transaction Script, Sequence Table ID generation, Layered Architecture |
+| Account Persistence (AccountMapper) | Java + SQL (XML) | MyBatis 3, MyBatis-Spring | HSQLDB | JDBC via MyBatis SqlSession | DAO/Repository, Data Mapper, MyBatis 2nd-level cache |
+| Catalog Persistence (Category/Product/Item Mappers) | Java + SQL (XML) | MyBatis 3, MyBatis-Spring | HSQLDB | JDBC via MyBatis SqlSession | DAO/Repository, Data Mapper, MyBatis 2nd-level cache |
+| Order Persistence (Order/LineItem Mappers) | Java + SQL (XML) | MyBatis 3, MyBatis-Spring | HSQLDB | JDBC via MyBatis SqlSession | DAO/Repository, Data Mapper, MyBatis 2nd-level cache |
+| Sequence Persistence (SequenceMapper) | Java + SQL (XML) | MyBatis 3, MyBatis-Spring | HSQLDB | JDBC via MyBatis SqlSession | Sequence Table, Repository/Data Mapper |
+| Domain Model (POJOs) | Java | Plain POJOs (type aliases in MyBatis); light validation annotations | N/A | In-memory objects passed across layers | Anemic Domain Model, Entities & Value Objects |
+| Database/Storage | SQL | HSQLDB 2.7 (embedded), Spring EmbeddedDatabase, JDBC | HSQLDB | In-process JDBC (no network); initialized via schema/data scripts | Relational schema, Sequence Table, ACID transactions, Indexes |

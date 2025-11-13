@@ -1,0 +1,15 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+|---|---|---|---|---|---|
+| Web/Presentation (Stripes ActionBeans + JSP) | Java, JSP (JSTL) | Stripes 1.6.0, Jakarta Servlet 4.0.4, JSP/JSTL | None | HTTP over Servlet; session state | MVC (action-based), Front Controller, Page Controller, Template View, Session-scoped controllers |
+| Account Domain (AccountService/ActionBean/Mappers) | Java, SQL/XML | Spring 6.2 (context, tx), MyBatis 3.5.x, mybatis-spring 3.0.x, Stripes | HSQLDB: SIGNON, ACCOUNT, PROFILE, BANNERDATA | In-process method calls; JDBC via MyBatis | Service Layer, Transaction Script, Data Mapper, Dependency Injection, Second-level cache (per mapper) |
+| Catalog Domain (CatalogService/ActionBean/Mappers) | Java, SQL/XML | Spring 6.2, MyBatis 3.5.x, mybatis-spring 3.0.x, Stripes | HSQLDB: CATEGORY, PRODUCT, ITEM, SUPPLIER | In-process; JDBC via MyBatis | Service Layer, Data Mapper, Read-model queries, Second-level cache, Simple search tokenization |
+| Inventory Subdomain (within Catalog) | Java, SQL/XML | Spring 6.2, MyBatis 3.5.x, mybatis-spring 3.0.x | HSQLDB: INVENTORY | In-process; JDBC via MyBatis | Data Mapper, Table Data Gateway (updateInventoryQuantity), Transaction Script (decrement on order) |
+| Ordering Domain (OrderService/ActionBean/Mappers) | Java, SQL/XML | Spring 6.2 (tx), MyBatis 3.5.x, mybatis-spring 3.0.x, Stripes | HSQLDB: ORDERS, ORDERSTATUS, LINEITEM, SEQUENCE | In-process; JDBC via MyBatis | Service Layer, Transaction Script, Sequence Table (select-then-update), Unit of Work (Spring Tx), Aggregate (Order with LineItems) |
+| Cart (Session) | Java, JSP | Stripes, JSP/JSTL | None | HTTP session | Session State, Domain Model (Cart/CartItem) |
+| Persistence Infrastructure | Java, XML | MyBatis 3.5.x, mybatis-spring 3.0.x | HSQLDB | JDBC | Data Mapper, Type Aliases, Second-level Cache |
+| DI/Transactions & Configuration | Java, XML | Spring Context 6.2.x, Spring JDBC, DataSourceTransactionManager | HSQLDB (via Spring DataSource) | In-process AOP proxies | Dependency Injection (IoC), Declarative Transactions, AOP, Factory/Configuration |
+| HTTP Routing/Filters | Java, XML | Stripes Filter/DispatcherServlet, Jakarta Servlet 4.0 | N/A | HTTP | Front Controller, Filter Chain |
+| Database/Schema | SQL | HSQLDB Embedded | HSQLDB (in-memory) | JDBC | Relational model, Table-per-entity, Seed/init scripts, Sequence table |
+| Build/Packaging/Deployment | XML, Dockerfile | Maven (WAR), Cargo plugin (Tomcat 9+), Docker (OpenJDK 21) | N/A | Containerized HTTP runtime | WAR packaging, Immutable image, Environment-specific profiles |
+| Testing | Java | JUnit 5, Mockito, AssertJ, Spring TestContext, Selenide/Selenium, JaCoCo | Embedded HSQLDB (tests) | In-process; WebDriver over HTTP for UI | xUnit, Test Doubles, Integration tests, UI end-to-end tests |
+| Logging | Java | SLF4J + slf4j-simple | N/A | stdout/stderr | Logging Facade |
