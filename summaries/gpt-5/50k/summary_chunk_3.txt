@@ -1,0 +1,260 @@
+Architectural summary (Codebase Chunk 3 of 3)
+
+Scope of this chunk
+- This part of the repository exposes the service layer contracts and behavior through unit tests, the existence and responsibilities of the web action layer, data models referenced by those services, and the build/deployment automation (CI/CD and Maven wrapper/settings).
+- Although implementations are not shown here, the tests provide reliable insight into component boundaries, method signatures, dependencies, and business logic that are critical for microservice decomposition.
+
+Core components and responsibilities
+
+1) Service layer
+- CatalogService
+  - Responsibilities:
+    - Product search by keyword(s)
+    - Retrieval of categories, products, items
+    - Stock availability checking
+  - Public methods inferred from tests:
+    - List<Product> searchProductList(String keywords)
+      - Tokenizes the keywords by whitespace.
+      - For each token t, calls productMapper.searchProductList("%" + t + "%").
+      - Concatenates results in order of tokens and returns combined list (no dedup explicitly asserted).
+    - List<Category> getCategoryList()
+      - Delegates to categoryMapper.getCategoryList()
+    - Category getCategory(String categoryId)
+      - Delegates to categoryMapper.getCategory(categoryId)
+    - Product getProduct(String productId)
+      - Delegates to productMapper.getProduct(productId)
+    - List<Product> getProductListByCategory(String categoryId)
+      - Delegates to productMapper.getProductListByCategory(categoryId)
+    - List<Item> getItemListByProduct(String productId)
+      - Delegates to itemMapper.getItemListByProduct(productId)
+    - Item getItem(String itemId)
+      - Delegates to itemMapper.getItem(itemId)
+    - boolean isItemInStock(String itemId)
+      - Delegates to itemMapper.getInventoryQuantity(itemId)
+      - Returns true if quantity > 0, false otherwise
+  - Dependencies:
+    - ProductMapper, CategoryMapper, ItemMapper (MyBatis mappers)
+
+- OrderService
+  - Responsibilities:
+    - Order retrieval (with line items and item stock state)
+    - Listing orders by username
+    - Order creation (including order ID sequencing, line-item persistence, inventory update)
+    - Sequence/ID generation
+  - Public methods inferred from tests:
+    - Order getOrder(int orderId)
+      - orderMapper.getOrder(orderId)
+      - lineItemMapper.getLineItemsByOrderId(orderId)
+      - For each LineItem:
+        - itemMapper.getItem(lineItem.itemId) and set into lineItem
+        - itemMapper.getInventoryQuantity(lineItem.itemId), then set the retrieved quantity into lineItem.item.quantity
+    - List<Order> getOrdersByUsername(String username)
+      - Delegates to orderMapper.getOrdersByUsername(username)
+    - int getNextId(String sequenceName)
+      - sequenceMapper.getSequence(new Sequence(sequenceName, -1))
+      - If null, throws RuntimeException with message: "Error: A null sequence was returned from the database (could not get next order sequence)."
+      - Otherwise, returns sequence.nextId and calls sequenceMapper.updateSequence(new Sequence(sequenceName, nextId + 1))
+    - void insertOrder(Order order)
+      - Uses getNextId("ordernum") to set order.orderId
+      - orderMapper.insertOrder(order)
+      - orderMapper.insertOrderStatus(order)
+      - For each LineItem in order:
+        - lineItem.setOrderId(orderId)
+        - lineItemMapper.insertLineItem(lineItem)
+        - itemMapper.updateInventoryQuantity({ "itemId": lineItem.itemId, "increment": lineItem.quantity })
+          - Note: “increment” is positive in the tests; the implementation likely interprets this for decrementing inventory on-hand (naming mismatch), but only the parameter contract is asserted here
+  - Dependencies:
+    - ItemMapper, OrderMapper, LineItemMapper, SequenceMapper (MyBatis mappers)
+
+2) Persistence/data access layer (MyBatis mappers)
+- CategoryMapper
+  - Methods:
+    - List<Category> getCategoryList()
+    - Category getCategory(String categoryId)
+- ProductMapper
+  - Methods:
+    - Product getProduct(String productId)
+    - List<Product> getProductListByCategory(String categoryId)
+    - List<Product> searchProductList(String likePattern) where likePattern is a "%token%" string
+- ItemMapper
+  - Methods:
+    - List<Item> getItemListByProduct(String productId)
+    - Item getItem(String itemId)
+    - int getInventoryQuantity(String itemId)
+    - void updateInventoryQuantity(Map<String, Object> params) with keys:
+      - "itemId": String
+      - "increment": int
+- OrderMapper
+  - Methods:
+    - Order getOrder(int orderId)
+    - List<Order> getOrdersByUsername(String username)
+    - void insertOrder(Order order)
+    - void insertOrderStatus(Order order)
+- LineItemMapper
+  - Methods:
+    - List<LineItem> getLineItemsByOrderId(int orderId)
+    - void insertLineItem(LineItem lineItem)
+- SequenceMapper
+  - Methods:
+    - Sequence getSequence(Sequence param) where param contains (name, nextId=-1) to select by name
+    - void updateSequence(Sequence seq) where seq contains (name, nextId incremented by 1)
+
+3) Domain/data models (selected fields inferred from tests)
+- Account
+  - Fields (all default to null by test assertions): username, password, firstName, lastName, email, phone, address1, address2, city, state, zip, country, languagePreference, favouriteCategoryId, bannerName, status
+- Category
+  - Not asserted in tests; assumed to be an ID, name/description model
+- Product
+  - Not asserted in tests; belongs to Category
+- Item
+  - Fields: itemId (inferred through usage), quantity (used to hold current inventory quantity on the Item object when loading an Order)
+- Order
+  - Fields: orderId (int), List<LineItem> lineItems
+  - Methods: addLineItem(LineItem)
+- LineItem
+  - Fields: orderId (set on insert), itemId (String), quantity (int), item (Item)
+- Sequence
+  - Fields: name (String), nextId (int)
+
+4) Web/presentation layer (Action beans)
+- AccountActionBean
+  - Responsibility: Handles account-related interactions in the web layer (framework appears to be an ActionBean-style MVC, likely Stripes-like)
+  - Observed behaviors:
+    - getAccount() returns a non-null Account instance (empty/default values)
+    - getMyList() returns null by default
+    - getUsername(), getPassword() return null by default
+    - isAuthenticated() returns false by default
+    - getContext() is present and returns null in tests (indicates ActionBeanContext integration point)
+- CatalogActionBean
+  - Responsibility: Handles catalog browsing/search actions
+  - Observed getters (all return null by default):
+    - getItemList(), getProductList(), getCategoryList()
+    - getItem(), getProduct(), getCategory()
+    - getItemId(), getProductId(), getCategoryId()
+    - getKeyword()
+  - getContext() present; returns null by default
+- OrderActionBean
+  - Responsibility: Handles order-related web interactions
+  - Observed getters/flags (default values):
+    - getOrderList() returns null
+    - isShippingAddressRequired() returns false
+    - isConfirmed() returns false
+  - getContext() present; returns null by default
+
+Service dependencies and communication patterns
+- The architecture is layered and synchronous:
+  - Web action layer calls service layer directly (inferred).
+  - Service layer calls MyBatis mappers (DAO) for database interactions.
+  - No inter-service communication or messaging is evidenced here; the current system appears monolithic with in-process calls.
+- Sequence/ID generation is DB-backed via SequenceMapper, following a select-then-update pattern per sequence name.
+
+Key business logic and algorithms
+- Catalog search:
+  - Input: free-text keywords string (e.g., "a b")
+  - Algorithm: split by spaces, for each token t call ProductMapper.searchProductList("%t%"), collect and concatenate product lists. Order of concatenation matches token order. No dedup logic is asserted in tests.
+- Stock check:
+  - isItemInStock(itemId) returns true if ItemMapper.getInventoryQuantity(itemId) > 0.
+- Order retrieval:
+  - getOrder(orderId): loads Order and its LineItems; for each LineItem, loads Item and current inventory quantity; sets quantity on the Item object embedded in LineItem.
+- ID generation:
+  - getNextId(name): selects Sequence by name using a parameter Sequence(name, -1); if null, throws a descriptive RuntimeException; otherwise returns current nextId and updates the DB record to nextId+1.
+- Order creation:
+  - insertOrder(order): obtains orderId via getNextId("ordernum"); persists order and order status; for each LineItem sets orderId and persists it; updates inventory via ItemMapper.updateInventoryQuantity({"itemId": ..., "increment": lineItem.quantity}).
+
+APIs and interfaces surfaced (internal)
+- Service methods (as above) form the internal application API used by controllers/action beans.
+- Mapper interfaces define the persistence interface contracts used by services.
+- No explicit HTTP routes/endpoints are visible in this chunk; action beans imply MVC actions, but URL mappings are not shown here.
+
+Database schema implications
+- Entities and relationships inferred:
+  - Category (1) — (many) Product
+  - Product (1) — (many) Item
+  - Order (1) — (many) LineItem
+  - LineItem — references Item by itemId; stores quantity; has a back-reference to Order via orderId
+  - Inventory: tracked per Item; getInventoryQuantity(itemId) returns integer stock-on-hand
+  - Sequence table for ID generation: key by name (e.g., "ordernum", "order"), nextId integer incremented during use
+- Update semantics:
+  - Inventory update called with params {itemId, increment}; test uses +quantity. The actual SQL may decrement available stock by this value; the name “increment” is used in tests but the business meaning is “consume quantity”.
+- Account holds standard profile/contact fields; used by AccountActionBean.
+
+Configuration and deployment details
+- Build tool: Maven with Maven Wrapper (3.9.11). Additional Maven profiler extension included (fr.jcgay.maven:maven-profiler:3.3).
+- Java versions: CI tests on JDK 17, 21, 24, 25-ea (matrix); container support tests on JDK 17. Sonar/CodeQL use JDK 21.
+- CI/CD GitHub Actions workflows:
+  - Java CI (ci.yaml): runs unit tests across OS (Ubuntu, macOS, Windows) and Java versions; uses -Dlicense.skip=true.
+  - CodeQL analysis (codeql.yml): security and quality analysis for Java/Kotlin.
+  - Coveralls (coveralls.yaml): code coverage reporting for push/PR (Jacoco).
+  - SonarCloud (sonar.yaml): static analysis and coverage reporting to SonarCloud on master branch.
+  - Sonatype deploy (sonatype.yaml): deploys artifacts to Sonatype Central when pushing to master (skips on release commits).
+  - Site build (site.yaml): builds and publishes project site to gh-pages on pushes to the site branch.
+  - Container Support (support.yaml): runs tests with Maven profiles for multiple app servers: tomcat9, tomee80, wildfly26, liberty-ee8, jetty, glassfish5, resin. Indicates WAR packaging and support for various Java EE/Jakarta EE servers via profiles.
+- Maven settings (.mvn/settings.xml):
+  - Servers configured for central (Sonatype), gh-pages-scm (site publish), Github (site), NVD (dependency-check plugin).
+  - Credentials sourced from environment variables/secrets (CI_DEPLOY_USERNAME/PASSWORD, GITHUB_TOKEN, NVD_API_KEY).
+- Execution flags:
+  - Tests use -Dlicense.skip=true and --no-transfer-progress.
+- No Dockerfiles or microservice runtime configs found in this chunk; deployment targets are classic app servers via Maven profiles.
+
+Architectural patterns and frameworks
+- Layered architecture:
+  - Presentation: Action beans (MVC style), with a context object (ActionBeanContext-like).
+  - Service layer: Business logic orchestration (CatalogService, OrderService).
+  - Persistence layer: MyBatis mappers (CategoryMapper, ProductMapper, ItemMapper, OrderMapper, LineItemMapper, SequenceMapper).
+- Data access: MyBatis (mapper interfaces suggest SQL mapping XML or annotations present elsewhere).
+- Testing frameworks:
+  - JUnit 5 (Jupiter), Mockito (for mocking mappers), AssertJ (fluent assertions).
+- ID generation pattern:
+  - Database-backed sequence table, explicit select-then-update.
+
+Service boundaries and dependencies (for microservice decomposition)
+- Catalog domain (Candidate microservice: Catalog)
+  - Entities: Category, Product, Item (and inventory).
+  - Operations: list/search products; get categories; list items by product; stock checks.
+  - Dependencies: CategoryMapper, ProductMapper, ItemMapper. Does not depend on Order domain.
+- Order domain (Candidate microservice: Ordering)
+  - Entities: Order, LineItem; uses Items for inventory and product data at order time.
+  - Operations: create order (with ID generation), retrieve order by ID (enriches line items with item details and current inventory), list orders by username.
+  - Dependencies: OrderMapper, LineItemMapper, SequenceMapper; additionally depends on ItemMapper for:
+    - Enrichment (loading Item details and current quantity)
+    - Inventory update during order creation
+  - Cross-domain coupling:
+    - Reads and writes inventory in the Catalog domain via ItemMapper. In a microservice split, this would need to become an API call or an event-driven consistency mechanism. Also, reading item details on order retrieval implies a need for a read model or cached denormalized data in Ordering.
+- Account domain (Candidate microservice: Account/User)
+  - Entity: Account with standard user profile attributes.
+  - Web action indicates user/session/authentication concerns, but no service behavior is shown here. In a microservice split, this service would own account data and authentication logic.
+
+Communication patterns to consider in a microservice split
+- Currently direct method calls to shared mappers and a shared database.
+- For microservices:
+  - Catalog service would expose APIs for:
+    - getItem(itemId), getInventoryQuantity(itemId), updateInventoryQuantity(itemId, delta)
+    - search products, list categories/products/items
+  - Ordering service would call Catalog service synchronously (or use events) for:
+    - Reserving/decrementing inventory when placing an order
+    - Fetching item details for order lines (or maintain its own denormalized product/item read model)
+  - A dedicated ID generation approach may use database sequences within each service boundary or a centralized ID service; current SequenceMapper implies a shared DB table.
+  - Action beans/controllers would be refactored to call service APIs over HTTP/GRPC instead of in-process services.
+
+Open integration points and unknowns
+- HTTP endpoints/routes for action beans are not visible here; URL mappings and view rendering are defined elsewhere.
+- Actual SQL mappings for mappers are not shown; the exact schema (table names, constraints, FK relationships) must be confirmed from mapper XML/annotations.
+- Authentication/session management specifics are not present here.
+
+Summary of critical interfaces and data contracts (as seen in tests)
+- CatalogService:
+  - searchProductList(String keywords) → List<Product>
+  - getCategoryList() → List<Category>
+  - getCategory(String categoryId) → Category
+  - getProduct(String productId) → Product
+  - getProductListByCategory(String categoryId) → List<Product>
+  - getItemListByProduct(String productId) → List<Item>
+  - getItem(String itemId) → Item
+  - isItemInStock(String itemId) → boolean (via inventoryQuantity > 0)
+- OrderService:
+  - getOrder(int orderId) → Order (with lineItems; lineItem.item enriched; item.quantity set to available stock)
+  - getOrdersByUsername(String username) → List<Order>
+  - getNextId(String sequenceName) → int (throws RuntimeException if sequence not found; updates nextId)
+  - insertOrder(Order order) → void (sets orderId from "ordernum" sequence; persists order/status/line items; updates inventory via updateInventoryQuantity({itemId, increment}))
+
+This structured view should provide sufficient detail to analyze and plan a microservice decomposition, especially around separating Catalog (product/catalog/inventory) and Ordering (orders/line-items/ID generation) while addressing the current tight coupling via shared mappers and database.
