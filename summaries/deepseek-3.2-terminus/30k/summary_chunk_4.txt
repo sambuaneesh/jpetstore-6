@@ -1,0 +1,260 @@
+# JPetStore Application - Architectural Summary (Part 4/4)
+
+## Overview
+This final chunk contains comprehensive test suites and CI/CD configuration for the JPetStore application, providing critical insights into the system's architecture, data models, and deployment patterns.
+
+## Test Architecture & Patterns
+
+### Testing Framework Stack
+- **JUnit 5** - Primary testing framework
+- **Mockito** - Mocking framework for service layer tests
+- **AssertJ** - Fluent assertions library
+- **Spring Test Context** - Integration testing support
+- **HSQLDB** - In-memory database for testing
+
+### Test Configuration (`MapperTestContext.java`)
+```java
+@Configuration
+@MapperScan("org.mybatis.jpetstore.mapper")
+public class MapperTestContext {
+    @Bean
+    DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("database/jpetstore-hsqldb-schema.sql")
+            .addScript("database/jpetstore-hsqldb-dataload.sql")
+            .build();
+    }
+    
+    @Bean
+    SqlSessionFactoryBean sqlSessionFactory() {
+        factoryBean.setTypeAliasesPackage("org.mybatis.jpetstore.domain");
+    }
+}
+```
+
+## Domain Model Test Coverage
+
+### Order Domain (`OrderTest.java`)
+**Key Business Logic:**
+- `Order.initOrder(Account, Cart)` - Initializes order from account and cart
+- Copies shipping/billing addresses from account
+- Calculates total price from cart items
+- Sets default values: credit card, courier (UPS), locale (CA), status (P)
+
+### Database Schema (Inferred from Tests)
+
+#### Account Tables:
+```sql
+ACCOUNT: (USERID, EMAIL, FIRSTNAME, LASTNAME, STATUS, ADDR1, ADDR2, CITY, STATE, ZIP, COUNTRY, PHONE)
+PROFILE: (USERID, LANGPREF, FAVCATEGORY, MYLISTOPT, BANNEROPT)  
+SIGNON: (USERNAME, PASSWORD)
+```
+
+#### Catalog Tables:
+```sql
+CATEGORY: (CATID, NAME, DESCN)
+PRODUCT: (PRODUCTID, CATEGORY, NAME, DESCN)  
+ITEM: (ITEMID, PRODUCTID, LISTPRICE, UNITCOST, SUPPLIERID, STATUS, ATTR1-ATTR5)
+INVENTORY: (ITEMID, QTY)
+```
+
+#### Order Tables:
+```sql
+ORDERS: (ORDERID, USERID, ORDERDATE, SHIPADDR1, SHIPADDR2, SHIPCITY, SHIPSTATE, 
+         SHIPZIP, SHIPCOUNTRY, BILLADDR1, BILLADDR2, BILLCITY, BILLSTATE, 
+         BILLZIP, BILLCOUNTRY, COURIER, TOTALPRICE, BILLTOFIRSTNAME, 
+         BILLTOLASTNAME, SHIPTOFIRSTNAME, SHIPTOLASTNAME, CREDITCARD, 
+         EXPRDATE, CARDTYPE, LOCALE)
+ORDERSTATUS: (ORDERID, LINENUM, TIMESTAMP, STATUS)
+LINEITEM: (ORDERID, LINENUM, ITEMID, QUANTITY, UNITPRICE)
+SEQUENCE: (NAME, NEXTID)
+```
+
+## Service Layer Architecture
+
+### Account Service (`AccountServiceTest.java`)
+**Responsibilities:**
+- User account management (create, update, authenticate)
+- Profile and preference management
+
+**Service Methods:**
+- `insertAccount(Account)` - Creates new account with profile and credentials
+- `updateAccount(Account)` - Updates account, profile, and password
+- `getAccount(username)` - Retrieves account by username
+- `getAccount(username, password)` - Authenticates and retrieves account
+
+### Catalog Service (`CatalogServiceTest.java`)
+**Responsibilities:**
+- Product catalog browsing and search
+- Inventory management
+- Category and product hierarchy
+
+**Service Methods:**
+- `searchProductList(keywords)` - Searches across multiple keywords
+- `getCategoryList()` - Returns all product categories
+- `getProductListByCategory(categoryId)` - Products by category
+- `getItemListByProduct(productId)` - Items/variants for a product
+- `isItemInStock(itemId)` - Inventory availability check
+
+### Order Service (`OrderServiceTest.java`)
+**Responsibilities:**
+- Order lifecycle management
+- Inventory updates during order creation
+- Sequence generation for order IDs
+
+**Key Business Logic:**
+```java
+// Order creation sequence
+int orderId = getNextId("ordernum");
+order.setOrderId(orderId);
+orderMapper.insertOrder(order);
+orderMapper.insertOrderStatus(order);
+
+for (LineItem item : order.getLineItems()) {
+    lineItemMapper.insertLineItem(item);
+    // Update inventory
+    Map<String, Object> param = new HashMap<>();
+    param.put("itemId", item.getItemId());
+    param.put("increment", item.getQuantity());
+    itemMapper.updateInventoryQuantity(param);
+}
+```
+
+## Data Access Layer (Mapper Tests)
+
+### Mapper Contracts:
+
+#### AccountMapper
+- `getAccountByUsername(username)`
+- `getAccountByUsernameAndPassword(username, password)`
+- `insertAccount(account)`, `insertProfile(account)`, `insertSignon(account)`
+- Corresponding update methods
+
+#### CategoryMapper
+- `getCategoryList()` - Returns all categories
+- `getCategory(categoryId)` - Single category with description
+
+#### ProductMapper  
+- `getProductListByCategory(categoryId)`
+- `getProduct(productId)`
+- `searchProductList(keywordPattern)` - SQL LIKE pattern matching
+
+#### ItemMapper
+- `getItemListByProduct(productId)` - Items with product details
+- `getItem(itemId)` - Item with full product hierarchy
+- `getInventoryQuantity(itemId)`
+- `updateInventoryQuantity(params)` - params: {itemId, increment}
+
+#### OrderMapper
+- `insertOrder(order)` - Full order creation
+- `insertOrderStatus(order)` - Status tracking
+- `getOrdersByUsername(username)` - User order history
+- `getOrder(orderId)` - Order with details
+
+#### LineItemMapper
+- `insertLineItem(lineItem)`
+- `getLineItemsByOrderId(orderId)`
+
+#### SequenceMapper
+- `getSequence(sequence)` - For ID generation
+- `updateSequence(sequence)` - Increment sequence
+
+## Web Layer Architecture
+
+### Action Beans (MVC Pattern)
+
+#### AccountActionBean
+- Manages user authentication state
+- Handles login/logout workflows
+- User registration and profile management
+
+#### CatalogActionBean  
+- Product browsing and search functionality
+- Category navigation
+- Item detail views
+
+#### OrderActionBean
+- Shopping cart management
+- Order creation and confirmation
+- Order history viewing
+
+## CI/CD & Deployment Configuration
+
+### GitHub Actions Workflows:
+
+#### 1. Java CI (`ci.yaml`)
+- **Matrix Strategy:** Tests across multiple OS (Ubuntu, macOS, Windows), Java versions (17, 21, 24, 25-ea)
+- **Cache Strategy:** Maven dependency caching
+- **Build Command:** `./mvnw test -B -V --no-transfer-progress`
+
+#### 2. Security Scanning (`codeql.yml`)
+- CodeQL analysis for Java/Kotlin
+- Scheduled weekly security scanning
+- Automated security vulnerability detection
+
+#### 3. Coverage Reporting (`coveralls.yaml`)
+- JaCoCo test coverage analysis
+- Coveralls integration for PR and push events
+- Coverage reporting to GitHub
+
+#### 4. Site Deployment (`site.yaml`)
+- Maven site generation and staging
+- Automated deployment to GitHub Pages
+- Triggered on pushes to 'site' branch
+
+#### 5. SonarCloud Analysis (`sonar.yaml`)
+- SonarQube quality gate enforcement
+- Code quality and security metrics
+- JaCoCo integration for coverage
+
+#### 6. Sonatype Deployment (`sonatype.yaml`)
+- Automated deployment to Maven Central
+- Release management for master branch
+- Secure credential management
+
+#### 7. Container Support Testing (`support.yaml`)
+- Multi-container testing across application servers:
+  - Tomcat 9, TomEE 8.0, WildFly 26
+  - Liberty EE8, Jetty, GlassFish 5, Resin
+- Cross-platform compatibility validation
+
+### Maven Configuration
+
+#### Build Extensions:
+- **Maven Profiler** - Build performance monitoring
+
+#### Security Settings:
+- Checksum verification for dependencies
+- Secure artifact downloading
+
+#### Deployment Configuration:
+- Sonatype deployment credentials
+- GitHub Pages deployment
+- NVD API access for vulnerability scanning
+
+## Microservice Decomposition Insights
+
+### Potential Service Boundaries:
+
+1. **User Service** - Account management, authentication, profiles
+2. **Catalog Service** - Products, categories, search, inventory
+3. **Order Service** - Order processing, status tracking, line items
+4. **Sequence Service** - Distributed ID generation
+
+### Data Consistency Patterns:
+- Inventory updates during order creation require transactional consistency
+- Order status tracking with timeline
+- User session management across services
+
+### Integration Points:
+- Catalog service provides product data to Order service
+- User service provides account data to Order service  
+- Shared sequence generation for order IDs
+
+### Deployment Considerations:
+- Multi-container support tested across major application servers
+- Database migration strategies with HSQLDB for testing
+- Secure credential management for deployments
+
+This comprehensive test suite and CI/CD configuration provides strong foundations for microservice decomposition with clear service boundaries, well-defined data models, and robust deployment patterns.

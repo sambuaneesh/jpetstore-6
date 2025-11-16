@@ -1,0 +1,178 @@
+Based on my analysis of Codebase Chunk 3, here is a comprehensive architectural summary for microservice decomposition analysis:
+
+## ARCHITECTURAL SUMMARY - CHUNK 3
+
+### 1. COMPONENTS AND RESPONSIBILITIES
+
+**Frontend Components:**
+- **ViewOrder.jsp**: Order display component showing complete order details including payment information, billing/shipping addresses, and line items
+- **CatalogActionBean**: Stripes action bean for catalog operations and navigation
+- **OrderActionBean**: Stripes action bean for order management operations
+
+**Domain Components:**
+- **Cart/CartItem**: Shopping cart domain model with quantity management and pricing calculations
+- **Order**: Complete order domain model with line items, addresses, and payment details
+- **LineItem**: Individual order line items with product details and pricing
+- **Item**: Product item domain model with attributes and pricing
+
+**Test Components:**
+- **ScreenTransitionIT**: End-to-end integration tests for UI workflows
+- **CartTest**: Unit tests for cart domain logic and calculations
+
+### 2. API ENDPOINTS AND INTERFACES
+
+**Web Interface Endpoints:**
+- `/order/ViewOrder.jsp` - Order details display
+- `*.action` - Stripes action endpoints pattern
+- Catalog navigation links for item details
+
+**Service Interfaces (from documentation):**
+- **OrderService**: Order creation and management
+- **CatalogService**: Product catalog operations
+- **Mapper Interfaces**: Data access layer contracts
+
+### 3. DATABASE SCHEMAS AND DATA MODELS
+
+**Order Data Model:**
+```sql
+ORDERS Table:
+- ORDERID (PK)
+- USERID (username)
+- ORDERDATE
+- SHIPADDR1, SHIPADDR2, SHIPCITY, SHIPSTATE, SHIPZIP, SHIPCOUNTRY
+- BILLADDR1, BILLADDR2, BILLCITY, BILLSTATE, BILLZIP, BILLCOUNTRY
+- COURIER, TOTALPRICE, BILLTOFIRSTNAME, BILLTOLASTNAME
+- SHIPTOFIRSTNAME, SHIPTOLASTNAME, CREDITCARD, EXPRDATE, CARDTYPE, LOCALE
+
+ORDERSTATUS Table:
+- ORDERID (FK)
+- STATUS
+- LINENUM
+
+LINEITEM Table:
+- ORDERID (FK)
+- LINENUM
+- ITEMID, QUANTITY, UNITPRICE
+```
+
+**Domain Object Relationships:**
+- Order 1→N LineItem
+- LineItem 1→1 Item
+- Item 1→1 Product
+
+### 4. SERVICE DEPENDENCIES AND COMMUNICATION PATTERNS
+
+**Layer Dependencies:**
+- Presentation → Service Layer → Mapper Layer → Database
+- Stripes ActionBeans → Spring Services → MyBatis Mappers
+
+**Key Service Dependencies:**
+- OrderService depends on: ItemMapper, OrderMapper, LineItemMapper
+- Transactional boundaries managed at service layer
+
+**Communication Patterns:**
+- Synchronous in-process calls between layers
+- Declarative transaction management via Spring @Transactional
+- Dependency injection via Spring @Autowired and Stripes @SpringBean
+
+### 5. KEY BUSINESS LOGIC AND ALGORITHMS
+
+**Order Processing Logic:**
+- Sequential order ID generation using `getNextId("ordernum")`
+- Inventory quantity updates during order placement
+- Order total calculation from line items
+- Order status management
+
+**Cart Management Logic:**
+- Quantity-based pricing calculations
+- Subtotal aggregation across multiple items
+- Stock availability tracking (inStock flag)
+- Item addition/removal with quantity updates
+
+**Pricing Calculations:**
+```java
+// Line item total calculation
+BigDecimal total = unitPrice.multiply(new BigDecimal(quantity));
+// Cart subtotal aggregation
+BigDecimal subTotal = sum(lineItem.getTotal())
+```
+
+### 6. CONFIGURATION AND DEPLOYMENT DETAILS
+
+**Framework Configuration:**
+- **Stripes**: Action resolver packages, Spring interceptor
+- **Spring**: Component scanning, transaction management, data source
+- **MyBatis**: SqlSessionFactory, mapper scanning, type aliases
+
+**Database Configuration:**
+- Embedded HSQL database for development
+- Schema initialization via SQL scripts:
+  - `jpetstore-hsqldb-schema.sql`
+  - `jpetstore-hsqldb-dataload.sql`
+
+**Test Configuration:**
+- Selenide for UI testing with Chrome browser
+- Headless mode for CI/CD
+- Base URL: `http://localhost:8080/jpetstore`
+- 10-second timeout configuration
+
+### 7. ARCHITECTURAL PATTERNS AND FRAMEWORKS
+
+**Primary Frameworks:**
+- **Stripes**: MVC web framework
+- **Spring 4**: Dependency injection and transaction management
+- **MyBatis 3**: ORM and data access
+- **JSP/JSTL**: View templating
+
+**Architectural Patterns:**
+- **Layered Architecture**: Presentation → Business Logic → Data Access
+- **Dependency Injection**: Spring-managed beans throughout
+- **Declarative Transactions**: @Transactional annotations
+- **Mapper Pattern**: MyBatis interfaces for data access
+
+**Integration Patterns:**
+- Stripes-Spring integration via SpringInterceptor
+- MyBatis-Spring integration via SqlSessionFactoryBean
+- Component scanning for automatic bean discovery
+
+### 8. TESTING STRATEGY
+
+**Integration Tests (ScreenTransitionIT):**
+- Full user workflow testing (login → browse → cart → checkout)
+- Multi-language support verification
+- Navigation flow validation
+- Order creation and verification
+
+**Unit Tests (CartTest):**
+- Domain logic validation
+- Pricing calculation accuracy
+- Cart state management
+- Boundary condition testing
+
+### 9. INTERNATIONALIZATION SUPPORT
+
+**Multi-language Documentation:**
+- English, Spanish, Japanese, Korean documentation
+- Country flag icons for language selection
+- Localized site configurations
+
+### MICROSERVICE DECOMPOSITION INSIGHTS
+
+**Potential Service Boundaries:**
+1. **Order Service**: Order management, payment processing, status tracking
+2. **Cart Service**: Shopping cart operations, pricing calculations
+3. **Catalog Service**: Product information, inventory management
+4. **User Service**: Authentication, profile management
+
+**Data Ownership:**
+- Orders and LineItems belong to Order Service domain
+- Cart and CartItems belong to Cart Service domain  
+- Items and Products belong to Catalog Service domain
+
+**Integration Points:**
+- Cart → Catalog for item validation and pricing
+- Order → Cart for order creation from cart
+- Order → Catalog for inventory updates
+- All services → User for authentication
+
+This architecture demonstrates a well-structured monolithic application that can be decomposed into domain-based microservices with clear boundaries and well-defined integration patterns.

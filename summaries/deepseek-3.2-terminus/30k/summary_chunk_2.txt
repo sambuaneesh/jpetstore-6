@@ -1,0 +1,204 @@
+# JPetStore - Codebase Chunk 2 Architectural Summary
+
+## Overview
+This chunk represents a comprehensive e-commerce pet store application built with Java/Spring/MyBatis stack, featuring user management, product catalog, shopping cart, and order processing capabilities.
+
+## Core Components & Responsibilities
+
+### 1. Database Layer
+**Primary Tables:**
+- **SUPPLIER**: Vendor information (supplier ID, contact details, status)
+- **SIGNON**: User authentication (username, password)
+- **ACCOUNT**: User profile and contact information
+- **PROFILE**: User preferences (language, favorite category, display options)
+- **BANNERDATA**: Category-based banner content
+- **CATEGORY**: Product categories (pets by type: FISH, DOGS, CATS, etc.)
+- **PRODUCT**: Product master data within categories
+- **ITEM**: Individual sellable items with variants/attributes
+- **INVENTORY**: Stock quantity tracking
+- **ORDERS**: Order headers with billing/shipping info
+- **ORDERSTATUS**: Order lifecycle tracking
+- **LINEITEM**: Order line items
+- **SEQUENCE**: ID generation for orders
+
+### 2. Data Access Layer (MyBatis Mappers)
+
+#### AccountMapper
+- `getAccountByUsername()` - Retrieve complete user account with profile
+- `getAccountByUsernameAndPassword()` - Authentication
+- `updateAccount()`, `insertAccount()` - CRUD operations
+- `updateProfile()`, `insertProfile()` - User preference management
+- `updateSignon()`, `insertSignon()` - Password management
+
+#### CategoryMapper
+- `getCategory()` - Single category by ID
+- `getCategoryList()` - All categories
+
+#### ProductMapper  
+- `getProduct()` - Single product details
+- `getProductListByCategory()` - Category-based product listing
+- `searchProductList()` - Product search by name
+
+#### ItemMapper
+- `getItemListByProduct()` - Items for a product
+- `getItem()` - Item details with inventory
+- `getInventoryQuantity()` - Stock level check
+- `updateInventoryQuantity()` - Stock management
+
+#### OrderMapper
+- `getOrder()` - Order details with status
+- `getOrdersByUsername()` - User order history
+- `insertOrder()`, `insertOrderStatus()` - Order creation
+
+#### LineItemMapper
+- `getLineItemsByOrderId()` - Order line items
+- `insertLineItem()` - Add items to orders
+
+#### SequenceMapper
+- `getSequence()`, `updateSequence()` - Order ID generation
+
+### 3. Web Interface Layer (JSP Views)
+
+#### User Management
+- **SignonForm.jsp** - Login page
+- **NewAccountForm.jsp** - User registration
+- **EditAccountForm.jsp** - Profile management
+- **IncludeAccountFields.jsp** - Reusable account form fields
+
+#### Product Catalog
+- **Main.jsp** - Homepage with category navigation
+- **Category.jsp** - Products by category
+- **Product.jsp** - Product details with items
+- **Item.jsp** - Individual item view
+- **SearchProducts.jsp** - Search results
+
+#### Shopping Cart
+- **Cart.jsp** - Shopping cart management
+- **Checkout.jsp** - Order summary
+- **IncludeMyList.jsp** - User favorites
+
+#### Order Processing
+- **NewOrderForm.jsp** - Billing/shipping information
+- **ShippingForm.jsp** - Separate shipping address
+- **ConfirmOrder.jsp** - Order confirmation
+- **ListOrders.jsp** - Order history
+
+#### Common Components
+- **IncludeTop.jsp** - Header with navigation, search, user menu
+- **IncludeBottom.jsp** - Footer with banner display
+- **Error.jsp** - Error handling
+
+### 4. Configuration & Framework
+
+#### Application Context (applicationContext.xml)
+- **Embedded HSQLDB** with schema and data initialization
+- **Spring Transaction Management** with DataSourceTransactionManager
+- **MyBatis Integration** with SqlSessionFactory and mapper scanning
+- **Component Scanning** for services in `org.mybatis.jpetstore.service`
+
+#### Web Configuration (web.xml)
+- **Stripes Framework** MVC configuration
+- **Spring ContextLoaderListener** for DI
+- **JSTL** for internationalization
+- URL pattern: `*.action` routed through StripesDispatcher
+
+#### Presentation Layer
+- **CSS**: jpetstore.css - Comprehensive styling for e-commerce layout
+- **Static Pages**: help.html (user guide), index.html (entry point)
+
+## Key Business Logic Areas
+
+### User Management
+- Complete registration flow with account/profile/signon tables
+- Password management and authentication
+- User preferences (language, favorite categories, display options)
+
+### Product Catalog
+- Hierarchical organization: Categories → Products → Items
+- Inventory management with stock tracking
+- Product search functionality
+- Attribute-based item variations
+
+### Shopping Experience
+- Session-based shopping cart
+- Real-time inventory checks
+- Category-based banner personalization
+- Favorites list (MyList) functionality
+
+### Order Processing
+- Multi-step checkout process
+- Separate billing/shipping addresses
+- Order status tracking
+- Order history per user
+
+## Data Models & Relationships
+
+### Primary Entity Relationships:
+```
+User (ACCOUNT) ←→ PROFILE ←→ BANNERDATA (by favorite category)
+CATEGORY ← PRODUCT ← ITEM ← INVENTORY
+    ↑
+    └── SUPPLIER
+USER → ORDERS → ORDERSTATUS
+    ↓
+LINEITEM → ITEM
+```
+
+### Key Foreign Keys:
+- PRODUCT.category → CATEGORY.catid
+- ITEM.productid → PRODUCT.productid  
+- ITEM.supplier → SUPPLIER.suppid
+- ORDERS.userid → ACCOUNT.userid
+- LINEITEM.orderid → ORDERS.orderid
+- LINEITEM.itemid → ITEM.itemid
+
+## Service Dependencies & Communication
+
+### Internal Dependencies:
+- **Web Layer** → **Service Layer** → **Data Access Layer**
+- All database access through MyBatis mappers
+- Spring-managed transaction boundaries
+- Session-based user state management
+
+### External Integration Points:
+- Credit card processing (placeholder - uses fake numbers)
+- Potential email confirmation system (configurable)
+
+## Configuration & Deployment
+
+### Database:
+- **HSQLDB** embedded database
+- Schema auto-creation on startup
+- Sample data pre-loaded for demonstration
+
+### Frameworks & Technologies:
+- **Spring Framework** - DI and transaction management
+- **MyBatis** - ORM and data access
+- **Stripes** - MVC web framework
+- **JSP/JSTL** - View templating
+- **HSQLDB** - Database engine
+
+### Deployment Characteristics:
+- Traditional WAR deployment to servlet container
+- Embedded database (suitable for development/demo)
+- Session-based authentication
+- No external service dependencies in current configuration
+
+## Microservice Decomposition Insights
+
+### Potential Service Boundaries:
+1. **User Service** - Authentication, profiles, preferences
+2. **Catalog Service** - Categories, products, items, search
+3. **Inventory Service** - Stock management, availability
+4. **Order Service** - Order processing, status tracking
+5. **Shopping Cart Service** - Session cart management
+
+### Data Ownership Patterns:
+- Clear domain boundaries between user, catalog, and order data
+- Inventory as separate concern from product catalog
+- Shopping cart as ephemeral vs. orders as persistent
+
+### Integration Points:
+- User context needed across multiple services
+- Inventory checks during cart operations
+- Order creation spanning user, cart, and inventory domains

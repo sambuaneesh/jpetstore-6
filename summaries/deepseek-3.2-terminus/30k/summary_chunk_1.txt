@@ -1,0 +1,207 @@
+# MyBatis JPetStore - Architectural Summary (Part 1/4)
+
+## Overview
+MyBatis JPetStore is a full-stack web application built on **MyBatis 3**, **Spring 5**, and **Stripes MVC framework**. This is a traditional monolithic e-commerce application for pet supplies with comprehensive shopping cart and order management functionality.
+
+## Application Architecture
+
+### Core Technologies Stack
+- **Framework**: Stripes MVC (Web), Spring 5 (DI, Transactions), MyBatis 3 (ORM)
+- **Database**: HSQLDB (in-memory database)
+- **Build Tool**: Maven
+- **Java Version**: 17
+- **Packaging**: WAR
+- **Container**: Multiple support (Tomcat 9, WildFly, Jetty, GlassFish, etc.)
+
+## Domain Model Components
+
+### Core Domain Entities
+
+#### Account
+- **Purpose**: User account management
+- **Key Fields**: username, password, email, personal info, preferences
+- **Validation**: Stripes validation for required fields on forms
+- **Relations**: Links to orders and shopping cart
+
+#### Cart & CartItem
+- **Purpose**: Shopping cart management
+- **Key Features**: 
+  - Thread-safe cart operations using synchronized maps
+  - Quantity management with BigDecimal calculations
+  - Subtotal calculation using stream reduction
+- **Business Logic**: Inventory stock validation during cart operations
+
+#### Product Catalog Hierarchy
+1. **Category** → **Product** → **Item**
+   - **Category**: Classification (FISH, DOGS, REPTILES, CATS, BIRDS)
+   - **Product**: General product information
+   - **Item**: Specific inventory items with pricing and attributes
+
+#### Order & LineItem
+- **Purpose**: Order processing and management
+- **Key Features**:
+  - Order initialization from cart and account data
+  - Line item creation from cart items
+  - Total price calculation
+  - Order status tracking
+
+## Data Access Layer
+
+### Mapper Interfaces & Responsibilities
+
+#### AccountMapper
+- `getAccountByUsername(String username)`
+- `getAccountByUsernameAndPassword(String username, String password)`
+- `insertAccount(Account account)`, `insertProfile(Account account)`, `insertSignon(Account account)`
+- Corresponding update operations
+
+#### Catalog Mappers
+- **CategoryMapper**: Category listing and retrieval
+- **ProductMapper**: Product search, category-based listing, keyword search
+- **ItemMapper**: Inventory management, stock queries, item retrieval
+
+#### Order Processing Mappers
+- **OrderMapper**: Order CRUD operations, user order history
+- **LineItemMapper**: Order line item management
+- **SequenceMapper**: ID sequence generation for orders
+
+### Database Schema (HSQLDB)
+- **Tables**: account, profile, signon, category, product, item, inventory, order, lineitem, sequence
+- **Relations**: Normalized structure with foreign key relationships
+- **Initial Data**: Pre-populated with sample pet store data
+
+## Service Layer Architecture
+
+### AccountService
+- **Dependencies**: AccountMapper
+- **Key Operations**:
+  - `getAccount(String username)` - User lookup
+  - `getAccount(String username, String password)` - Authentication
+  - `insertAccount(Account account)` - Transactional registration
+  - `updateAccount(Account account)` - Transactional profile updates
+- **Transaction Management**: @Transactional annotations
+
+### CatalogService
+- **Dependencies**: CategoryMapper, ItemMapper, ProductMapper
+- **Key Operations**:
+  - Category and product browsing
+  - Product search with keyword tokenization
+  - Inventory stock validation
+  - Item availability checking
+
+### OrderService
+- **Dependencies**: ItemMapper, OrderMapper, SequenceMapper, LineItemMapper
+- **Key Operations**:
+  - `insertOrder(Order order)` - Transactional order creation with inventory updates
+  - `getOrder(int orderId)` - Order retrieval with line items
+  - `getOrdersByUsername(String username)` - Order history
+  - Sequence-based order ID generation
+
+## Web Layer & API Endpoints
+
+### Action Beans (Stripes Controllers)
+
+#### AccountActionBean
+- **Endpoints**: 
+  - `/actions/Account.action` (default - signonForm)
+  - `newAccount`, `editAccount`, `signon`, `signoff`
+- **Session Scope**: Maintains authenticated state
+- **Validation**: Client-side validation via Stripes annotations
+- **Integration**: Coordinates with CatalogService for personalized content
+
+#### CatalogActionBean
+- **Endpoints**: Catalog browsing, product search, item viewing
+- **Navigation Flow**: Main → Category → Product → Item
+- **Search Functionality**: Keyword-based product search
+
+#### CartActionBean
+- **Endpoints**: Cart management, quantity updates, checkout initiation
+- **Session Management**: Cart persists in user session
+- **Inventory Integration**: Real-time stock validation
+
+#### OrderActionBean
+- **Endpoints**: Order creation, confirmation, order history viewing
+- **Workflow**: NewOrder → Shipping → Confirm → Submit
+- **Validation**: User authentication and cart validation
+
+### View Layer (JSP)
+- **Templates**: Consistent layout with IncludeTop/IncludeBottom
+- **Module Structure**: Organized by functional area (account, cart, catalog, order)
+- **Internationalization**: Support for multiple languages (es, ja, ko)
+
+## Key Business Logic & Algorithms
+
+### Shopping Cart Management
+- **Thread Safety**: Synchronized map for cart item storage
+- **Price Calculation**: BigDecimal for precise monetary calculations
+- **Inventory Integration**: Real-time stock validation during cart operations
+
+### Order Processing
+- **Transaction Management**: Atomic order creation with inventory updates
+- **Sequence Generation**: Database sequence for order IDs
+- **Cart Conversion**: Transform cart items to order line items
+
+### Search Algorithm
+- **Keyword Processing**: Tokenization and wildcard search
+- **Case Handling**: Case-insensitive search implementation
+- **Result Aggregation**: Combine results from multiple keywords
+
+## Configuration & Deployment
+
+### Spring Configuration
+- **Application Context**: XML-based configuration (applicationContext.xml)
+- **Dependency Injection**: Constructor injection in services
+- **Transaction Management**: Declarative transactions
+
+### Stripes Configuration
+- **Action Resolution**: Convention-based URL mapping
+- **Validation**: Annotated validation rules
+- **Internationalization**: Resource bundle support
+
+### Build & Deployment Profiles
+- **Multiple Containers**: Tomcat 9, WildFly, Jetty, GlassFish, Resin
+- **Docker Support**: Containerized deployment
+- **CI/CD**: GitHub Actions integration
+
+## Service Dependencies & Communication Patterns
+
+### Internal Dependencies
+```
+Web Layer (ActionBeans)
+    ↓
+Service Layer (AccountService, CatalogService, OrderService)
+    ↓
+Data Access Layer (Mappers)
+    ↓
+Database (HSQLDB)
+```
+
+### Data Flow Patterns
+1. **Request → ActionBean → Service → Mapper → Database**
+2. **Session-based state management** (Cart, Authentication)
+3. **Transactional boundaries** at service layer
+4. **Layered validation** (Stripes + Business logic)
+
+## Microservice Decomposition Analysis
+
+### Potential Service Boundaries
+1. **User Service**: Account management, authentication
+2. **Catalog Service**: Product browsing, search, inventory
+3. **Cart Service**: Shopping cart management
+4. **Order Service**: Order processing, order history
+5. **Inventory Service**: Stock management, availability
+
+### Data Ownership Considerations
+- **Account data**: User Service
+- **Product data**: Catalog Service  
+- **Cart data**: Cart Service (session-bound)
+- **Order data**: Order Service
+- **Inventory data**: Inventory Service
+
+### Integration Challenges
+- **Session management** migration from monolithic session
+- **Transaction boundaries** across services
+- **Data consistency** between catalog and inventory
+- **Cart persistence** strategy in distributed environment
+
+This architecture represents a well-structured monolithic application with clear separation of concerns, making it a good candidate for incremental microservice decomposition.

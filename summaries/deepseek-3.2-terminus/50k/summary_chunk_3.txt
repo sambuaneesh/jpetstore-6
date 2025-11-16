@@ -1,0 +1,193 @@
+Based on my analysis of the provided codebase chunk, here is a comprehensive architectural summary for microservice decomposition:
+
+## COMPONENT ARCHITECTURE SUMMARY
+
+### 1. Core Business Services
+
+#### CatalogService
+**Responsibilities:**
+- Product catalog management and search functionality
+- Category, product, and item retrieval
+- Inventory stock checking
+
+**Key Methods:**
+- `searchProductList(String keywords)` - searches products using keyword splitting logic
+- `getCategoryList()` - retrieves all categories
+- `getCategory(String categoryId)` - gets specific category
+- `getProduct(String productId)` - gets specific product
+- `getProductListByCategory(String categoryId)` - gets products by category
+- `getItemListByProduct(String productId)` - gets items for a product
+- `getItem(String itemCode)` - gets specific item
+- `isItemInStock(String itemCode)` - checks inventory availability
+
+**Business Logic:**
+- Search splits keywords by space and performs multiple searches (e.g., "a b" → "%a%" and "%b%")
+- Stock checking based on inventory quantity (> 0 = in stock)
+
+#### OrderService
+**Responsibilities:**
+- Order lifecycle management
+- Order creation and retrieval
+- Sequence generation for order IDs
+- Inventory updates during order placement
+
+**Key Methods:**
+- `getOrder(int orderId)` - retrieves order with populated line items
+- `getOrdersByUsername(String username)` - gets user's order history
+- `getNextId(String sequenceName)` - generates unique sequence IDs
+- `insertOrder(Order order)` - creates new order with inventory updates
+
+**Critical Business Logic:**
+- Order creation involves atomic operations: insert order, insert status, insert line items, update inventory
+- Sequence management with optimistic locking pattern
+- Automatic inventory decrement on order placement
+
+### 2. Web Layer Components (Action Beans)
+
+#### CatalogActionBean
+**Responsibilities:**
+- Web interface for catalog operations
+- Product browsing and search
+- Category and product navigation
+
+**Exposed Properties:**
+- `categoryList`, `productList`, `itemList`
+- `category`, `product`, `item`
+- `categoryId`, `productId`, `itemId`, `keyword`
+
+#### OrderActionBean  
+**Responsibilities:**
+- Order management web interface
+- Order history viewing
+- Order confirmation workflow
+
+**Exposed Properties:**
+- `orderList` - user's order history
+- `shippingAddressRequired` - shipping validation flag
+- `confirmed` - order confirmation status
+
+#### AccountActionBean
+**Responsibilities:**
+- User account management
+- Authentication state management
+- User preferences
+
+**Exposed Properties:**
+- `account` - user account details
+- `username`, `password` - credentials
+- `authenticated` - login status
+- `myList` - user's favorite items
+
+### 3. Data Access Layer
+
+**Mappers (Data Access Objects):**
+- `CategoryMapper` - category CRUD operations
+- `ProductMapper` - product search and retrieval
+- `ItemMapper` - item management and inventory
+- `OrderMapper` - order persistence
+- `LineItemMapper` - order line items
+- `SequenceMapper` - ID sequence generation
+
+**Key Database Operations:**
+- Inventory quantity checks and updates
+- Sequence generation with update
+- Product search with LIKE patterns
+- Order-line item relationship loading
+
+### 4. Domain Models
+
+**Data Schema:**
+- `Category` - product categories
+- `Product` - product information  
+- `Item` - individual sellable items with inventory
+- `Order` - order header information
+- `LineItem` - order line items with quantities
+- `Account` - user accounts with preferences
+- `Sequence` - ID sequence tracking
+
+**Key Relationships:**
+- Category → Product (one-to-many)
+- Product → Item (one-to-many)  
+- Order → LineItem (one-to-many)
+- LineItem → Item (many-to-one)
+
+### 5. Service Dependencies
+
+```
+CatalogService ────┬─── CategoryMapper
+                   ├─── ProductMapper  
+                   └─── ItemMapper
+
+OrderService ──────┬─── OrderMapper
+                   ├─── LineItemMapper
+                   ├─── ItemMapper (for inventory)
+                   └─── SequenceMapper
+
+Web Actions ───────┼─── CatalogService
+                   ├─── OrderService
+                   └─── AccountService (implied)
+```
+
+### 6. Architectural Patterns & Frameworks
+
+**Testing Framework:**
+- JUnit 5 with Mockito extension
+- Mockito for dependency mocking
+- AssertJ for fluent assertions
+
+**Build & CI/CD:**
+- Maven-based build system
+- GitHub Actions for CI/CD pipelines
+- Multi-platform testing (Linux, macOS, Windows)
+- Multi-JDK version support (17, 21, 24, 25-ea)
+
+**Quality Gates:**
+- SonarCloud integration
+- CodeQL security scanning
+- Coveralls test coverage
+- JaCoCo coverage reporting
+
+### 7. Deployment & Configuration
+
+**Container Support:**
+- Multiple application server testing profiles:
+  - `tomcat9`, `tomee80`, `wildfly26`
+  - `liberty-ee8`, `jetty`, `glassfish5`, `resin`
+
+**Maven Configuration:**
+- Maven Wrapper for build consistency
+- Custom settings for deployment
+- Profiler integration for build optimization
+- Checksum verification configuration
+
+### 8. Critical Integration Points
+
+**Inventory Management:**
+- Cross-service dependency: OrderService → ItemMapper
+- Inventory updates must be atomic with order creation
+- Stock checking required before order completion
+
+**Sequence Generation:**
+- Database-level sequence management
+- Required for order ID generation
+- Thread-safe ID allocation
+
+**Search Functionality:**
+- Keyword parsing and multiple search execution
+- Result aggregation from multiple queries
+
+## MICROSERVICE DECOMPOSITION INSIGHTS
+
+**Potential Service Boundaries:**
+1. **Catalog Service** - Product, category, item management + search
+2. **Order Service** - Order processing, sequence generation
+3. **Inventory Service** - Stock management (currently coupled with catalog)
+4. **Account Service** - User management and authentication
+5. **Web Gateway** - Action beans as API endpoints
+
+**Critical Dependencies to Address:**
+- Order service's direct dependency on item/inventory data
+- Shared sequence management between services
+- Inventory update coordination during order placement
+
+This architecture shows a typical layered monolith with clear separation of concerns that can be decomposed into microservices following domain boundaries.

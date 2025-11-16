@@ -1,0 +1,201 @@
+Based on my analysis of the provided codebase chunk, here is a comprehensive architectural summary for microservice decomposition analysis:
+
+## 1. Component Architecture
+
+### Frontend Components
+**Presentation Layer (JSP Views):**
+- **Cart Management**: `Cart.jsp`, `Checkout.jsp`, `IncludeMyList.jsp`
+- **Catalog Management**: `Category.jsp`, `Item.jsp`, `Main.jsp`, `Product.jsp`, `SearchProducts.jsp`
+- **Order Management**: `ConfirmOrder.jsp`, `ListOrders.jsp`, `NewOrderForm.jsp`, `ShippingForm.jsp`, `ViewOrder.jsp`
+- **Common Components**: `IncludeTop.jsp`, `IncludeBottom.jsp`, `Error.jsp`
+
+**UI Framework Integration:**
+- Uses Stripes Framework for MVC pattern
+- JSTL tags for server-side rendering
+- CSS styling with `jpetstore.css`
+- Image resources for product categories and UI elements
+
+### Backend Action Components (Referenced)
+- `CartActionBean` - Shopping cart operations
+- `CatalogActionBean` - Product catalog browsing
+- `OrderActionBean` - Order processing
+- `AccountActionBean` - User authentication and management
+
+## 2. API Endpoints and Interfaces
+
+### Web Interface Endpoints
+```
+GET/POST  /cart/*.action           - Cart operations
+GET/POST  /catalog/*.action        - Product browsing
+GET/POST  /order/*.action          - Order management
+GET/POST  /account/*.action        - User account operations
+```
+
+### Key Form Actions
+- `addItemToCart` - Add items to shopping cart
+- `removeItemFromCart` - Remove cart items
+- `updateCartQuantities` - Modify item quantities
+- `viewCart` - Display shopping cart
+- `newOrderForm` - Initiate checkout process
+- `searchProducts` - Product search functionality
+- `viewCategory` - Browse products by category
+
+## 3. Data Models and Database Schema
+
+### Core Domain Models
+**Shopping Cart:**
+```java
+Cart {
+  List<CartItem> cartItems
+  int numberOfItems
+  BigDecimal subTotal
+  // Operations: addItem, removeItem, updateQuantities
+}
+
+CartItem {
+  Item item
+  int quantity
+  boolean inStock
+  BigDecimal total
+}
+```
+
+**Order Domain:**
+```java
+Order {
+  int orderId
+  Date orderDate
+  String username
+  Address billingAddress
+  Address shippingAddress
+  List<LineItem> lineItems
+  BigDecimal totalPrice
+  PaymentInfo paymentDetails
+  String status
+}
+
+LineItem {
+  String itemId
+  int quantity
+  BigDecimal unitPrice
+  BigDecimal total
+}
+```
+
+**Product Catalog:**
+```java
+Category {
+  String categoryId
+  String name
+  String description
+}
+
+Product {
+  String productId
+  String categoryId
+  String name
+  String description
+}
+
+Item {
+  String itemId
+  String productId
+  BigDecimal listPrice
+  String attribute1-5
+  int quantity
+  // Inventory status
+}
+```
+
+## 4. Service Dependencies and Communication Patterns
+
+### Frontend-Backend Communication
+- **Synchronous HTTP Requests** via Stripes ActionBeans
+- **Session Management** for user state (cart, authentication)
+- **Form-based Data Submission** for order processing
+
+### Key Data Flows
+1. **Catalog Browsing**: Category → Product → Item hierarchy
+2. **Cart Management**: Add/remove items with quantity updates
+3. **Order Processing**: Multi-step checkout workflow
+4. **User Authentication**: Session-based authentication flow
+
+## 5. Business Logic and Key Algorithms
+
+### Shopping Cart Logic
+- Real-time inventory checking (`inStock` status)
+- Quantity validation and updates
+- Subtotal calculation with currency formatting
+- Cart persistence across user sessions
+
+### Order Processing Workflow
+1. Cart review and quantity confirmation
+2. Payment information collection
+3. Billing/shipping address management
+4. Order confirmation and submission
+5. Order status tracking
+
+### Catalog Browsing
+- Hierarchical navigation: Main → Category → Product → Item
+- Product search with keyword matching
+- Category-based product filtering
+
+## 6. Configuration and Deployment Details
+
+### Framework Configuration
+- **Stripes Framework**: Action resolution, form binding
+- **Spring Integration**: Dependency injection (@SpringBean)
+- **MyBatis**: Data access layer (referenced in documentation)
+- **JSTL**: Server-side templating
+
+### Web Application Structure
+```
+/WEB-INF/
+  /jsp/
+    /cart/      - Shopping cart views
+    /catalog/   - Product browsing views  
+    /order/     - Order management views
+    /common/    - Shared templates
+  web.xml       - Servlet configuration
+  applicationContext.xml - Spring configuration
+```
+
+### Internationalization
+- Multi-language documentation (English, Spanish, Japanese, Korean)
+- Locale-based content rendering
+
+## 7. Architectural Patterns and Technologies
+
+### Design Patterns
+- **MVC Pattern**: Stripes ActionBeans (Controller), JSPs (View), Domain Models (Model)
+- **Session Facade**: Cart and Order management through session beans
+- **Template Method**: Common page includes for consistent layout
+
+### Technology Stack
+- **Web Framework**: Stripes MVC
+- **View Layer**: JSP 2.1 with JSTL
+- **Data Access**: MyBatis 3 with Spring integration
+- **Dependency Injection**: Spring Framework
+- **Testing**: JUnit 5, Selenide for UI testing, Mockito
+- **Build Tool**: Maven
+
+## 8. Key Integration Points for Microservice Decomposition
+
+### Potential Service Boundaries
+1. **Catalog Service** - Product and category management
+2. **Cart Service** - Shopping cart operations
+3. **Order Service** - Order processing and management
+4. **User Service** - Authentication and account management
+5. **Inventory Service** - Stock management and validation
+
+### Data Consistency Requirements
+- Cart items must validate against inventory
+- Order creation requires atomic cart checkout
+- User session data spans multiple service interactions
+
+### Session Management Challenges
+- Shopping cart state maintenance
+- User authentication state
+- Order progress tracking across service boundaries
+
+This architecture represents a traditional monolithic web application with clear separation of concerns that can be decomposed into microservices around business domains (catalog, cart, orders, users). The existing MVC structure and domain models provide a solid foundation for service extraction.
