@@ -1,0 +1,860 @@
+=== summary_chunk_1.txt ===
+
+# MyBatis JPetStore - Architectural Summary (Part 1/4)
+
+## Overview
+MyBatis JPetStore is a full-stack web application built on **MyBatis 3**, **Spring 5**, and **Stripes MVC framework**. This is a traditional monolithic e-commerce application for pet supplies with comprehensive shopping cart and order management functionality.
+
+## Application Architecture
+
+### Core Technologies Stack
+- **Framework**: Stripes MVC (Web), Spring 5 (DI, Transactions), MyBatis 3 (ORM)
+- **Database**: HSQLDB (in-memory database)
+- **Build Tool**: Maven
+- **Java Version**: 17
+- **Packaging**: WAR
+- **Container**: Multiple support (Tomcat 9, WildFly, Jetty, GlassFish, etc.)
+
+## Domain Model Components
+
+### Core Domain Entities
+
+#### Account
+- **Purpose**: User account management
+- **Key Fields**: username, password, email, personal info, preferences
+- **Validation**: Stripes validation for required fields on forms
+- **Relations**: Links to orders and shopping cart
+
+#### Cart & CartItem
+- **Purpose**: Shopping cart management
+- **Key Features**: 
+  - Thread-safe cart operations using synchronized maps
+  - Quantity management with BigDecimal calculations
+  - Subtotal calculation using stream reduction
+- **Business Logic**: Inventory stock validation during cart operations
+
+#### Product Catalog Hierarchy
+1. **Category** → **Product** → **Item**
+   - **Category**: Classification (FISH, DOGS, REPTILES, CATS, BIRDS)
+   - **Product**: General product information
+   - **Item**: Specific inventory items with pricing and attributes
+
+#### Order & LineItem
+- **Purpose**: Order processing and management
+- **Key Features**:
+  - Order initialization from cart and account data
+  - Line item creation from cart items
+  - Total price calculation
+  - Order status tracking
+
+## Data Access Layer
+
+### Mapper Interfaces & Responsibilities
+
+#### AccountMapper
+- `getAccountByUsername(String username)`
+- `getAccountByUsernameAndPassword(String username, String password)`
+- `insertAccount(Account account)`, `insertProfile(Account account)`, `insertSignon(Account account)`
+- Corresponding update operations
+
+#### Catalog Mappers
+- **CategoryMapper**: Category listing and retrieval
+- **ProductMapper**: Product search, category-based listing, keyword search
+- **ItemMapper**: Inventory management, stock queries, item retrieval
+
+#### Order Processing Mappers
+- **OrderMapper**: Order CRUD operations, user order history
+- **LineItemMapper**: Order line item management
+- **SequenceMapper**: ID sequence generation for orders
+
+### Database Schema (HSQLDB)
+- **Tables**: account, profile, signon, category, product, item, inventory, order, lineitem, sequence
+- **Relations**: Normalized structure with foreign key relationships
+- **Initial Data**: Pre-populated with sample pet store data
+
+## Service Layer Architecture
+
+### AccountService
+- **Dependencies**: AccountMapper
+- **Key Operations**:
+  - `getAccount(String username)` - User lookup
+  - `getAccount(String username, String password)` - Authentication
+  - `insertAccount(Account account)` - Transactional registration
+  - `updateAccount(Account account)` - Transactional profile updates
+- **Transaction Management**: @Transactional annotations
+
+### CatalogService
+- **Dependencies**: CategoryMapper, ItemMapper, ProductMapper
+- **Key Operations**:
+  - Category and product browsing
+  - Product search with keyword tokenization
+  - Inventory stock validation
+  - Item availability checking
+
+### OrderService
+- **Dependencies**: ItemMapper, OrderMapper, SequenceMapper, LineItemMapper
+- **Key Operations**:
+  - `insertOrder(Order order)` - Transactional order creation with inventory updates
+  - `getOrder(int orderId)` - Order retrieval with line items
+  - `getOrdersByUsername(String username)` - Order history
+  - Sequence-based order ID generation
+
+## Web Layer & API Endpoints
+
+### Action Beans (Stripes Controllers)
+
+#### AccountActionBean
+- **Endpoints**: 
+  - `/actions/Account.action` (default - signonForm)
+  - `newAccount`, `editAccount`, `signon`, `signoff`
+- **Session Scope**: Maintains authenticated state
+- **Validation**: Client-side validation via Stripes annotations
+- **Integration**: Coordinates with CatalogService for personalized content
+
+#### CatalogActionBean
+- **Endpoints**: Catalog browsing, product search, item viewing
+- **Navigation Flow**: Main → Category → Product → Item
+- **Search Functionality**: Keyword-based product search
+
+#### CartActionBean
+- **Endpoints**: Cart management, quantity updates, checkout initiation
+- **Session Management**: Cart persists in user session
+- **Inventory Integration**: Real-time stock validation
+
+#### OrderActionBean
+- **Endpoints**: Order creation, confirmation, order history viewing
+- **Workflow**: NewOrder → Shipping → Confirm → Submit
+- **Validation**: User authentication and cart validation
+
+### View Layer (JSP)
+- **Templates**: Consistent layout with IncludeTop/IncludeBottom
+- **Module Structure**: Organized by functional area (account, cart, catalog, order)
+- **Internationalization**: Support for multiple languages (es, ja, ko)
+
+## Key Business Logic & Algorithms
+
+### Shopping Cart Management
+- **Thread Safety**: Synchronized map for cart item storage
+- **Price Calculation**: BigDecimal for precise monetary calculations
+- **Inventory Integration**: Real-time stock validation during cart operations
+
+### Order Processing
+- **Transaction Management**: Atomic order creation with inventory updates
+- **Sequence Generation**: Database sequence for order IDs
+- **Cart Conversion**: Transform cart items to order line items
+
+### Search Algorithm
+- **Keyword Processing**: Tokenization and wildcard search
+- **Case Handling**: Case-insensitive search implementation
+- **Result Aggregation**: Combine results from multiple keywords
+
+## Configuration & Deployment
+
+### Spring Configuration
+- **Application Context**: XML-based configuration (applicationContext.xml)
+- **Dependency Injection**: Constructor injection in services
+- **Transaction Management**: Declarative transactions
+
+### Stripes Configuration
+- **Action Resolution**: Convention-based URL mapping
+- **Validation**: Annotated validation rules
+- **Internationalization**: Resource bundle support
+
+### Build & Deployment Profiles
+- **Multiple Containers**: Tomcat 9, WildFly, Jetty, GlassFish, Resin
+- **Docker Support**: Containerized deployment
+- **CI/CD**: GitHub Actions integration
+
+## Service Dependencies & Communication Patterns
+
+### Internal Dependencies
+```
+Web Layer (ActionBeans)
+    ↓
+Service Layer (AccountService, CatalogService, OrderService)
+    ↓
+Data Access Layer (Mappers)
+    ↓
+Database (HSQLDB)
+```
+
+### Data Flow Patterns
+1. **Request → ActionBean → Service → Mapper → Database**
+2. **Session-based state management** (Cart, Authentication)
+3. **Transactional boundaries** at service layer
+4. **Layered validation** (Stripes + Business logic)
+
+## Microservice Decomposition Analysis
+
+### Potential Service Boundaries
+1. **User Service**: Account management, authentication
+2. **Catalog Service**: Product browsing, search, inventory
+3. **Cart Service**: Shopping cart management
+4. **Order Service**: Order processing, order history
+5. **Inventory Service**: Stock management, availability
+
+### Data Ownership Considerations
+- **Account data**: User Service
+- **Product data**: Catalog Service  
+- **Cart data**: Cart Service (session-bound)
+- **Order data**: Order Service
+- **Inventory data**: Inventory Service
+
+### Integration Challenges
+- **Session management** migration from monolithic session
+- **Transaction boundaries** across services
+- **Data consistency** between catalog and inventory
+- **Cart persistence** strategy in distributed environment
+
+This architecture represents a well-structured monolithic application with clear separation of concerns, making it a good candidate for incremental microservice decomposition.
+
+=== summary_chunk_2.txt ===
+
+# JPetStore - Codebase Chunk 2 Architectural Summary
+
+## Overview
+This chunk represents a comprehensive e-commerce pet store application built with Java/Spring/MyBatis stack, featuring user management, product catalog, shopping cart, and order processing capabilities.
+
+## Core Components & Responsibilities
+
+### 1. Database Layer
+**Primary Tables:**
+- **SUPPLIER**: Vendor information (supplier ID, contact details, status)
+- **SIGNON**: User authentication (username, password)
+- **ACCOUNT**: User profile and contact information
+- **PROFILE**: User preferences (language, favorite category, display options)
+- **BANNERDATA**: Category-based banner content
+- **CATEGORY**: Product categories (pets by type: FISH, DOGS, CATS, etc.)
+- **PRODUCT**: Product master data within categories
+- **ITEM**: Individual sellable items with variants/attributes
+- **INVENTORY**: Stock quantity tracking
+- **ORDERS**: Order headers with billing/shipping info
+- **ORDERSTATUS**: Order lifecycle tracking
+- **LINEITEM**: Order line items
+- **SEQUENCE**: ID generation for orders
+
+### 2. Data Access Layer (MyBatis Mappers)
+
+#### AccountMapper
+- `getAccountByUsername()` - Retrieve complete user account with profile
+- `getAccountByUsernameAndPassword()` - Authentication
+- `updateAccount()`, `insertAccount()` - CRUD operations
+- `updateProfile()`, `insertProfile()` - User preference management
+- `updateSignon()`, `insertSignon()` - Password management
+
+#### CategoryMapper
+- `getCategory()` - Single category by ID
+- `getCategoryList()` - All categories
+
+#### ProductMapper  
+- `getProduct()` - Single product details
+- `getProductListByCategory()` - Category-based product listing
+- `searchProductList()` - Product search by name
+
+#### ItemMapper
+- `getItemListByProduct()` - Items for a product
+- `getItem()` - Item details with inventory
+- `getInventoryQuantity()` - Stock level check
+- `updateInventoryQuantity()` - Stock management
+
+#### OrderMapper
+- `getOrder()` - Order details with status
+- `getOrdersByUsername()` - User order history
+- `insertOrder()`, `insertOrderStatus()` - Order creation
+
+#### LineItemMapper
+- `getLineItemsByOrderId()` - Order line items
+- `insertLineItem()` - Add items to orders
+
+#### SequenceMapper
+- `getSequence()`, `updateSequence()` - Order ID generation
+
+### 3. Web Interface Layer (JSP Views)
+
+#### User Management
+- **SignonForm.jsp** - Login page
+- **NewAccountForm.jsp** - User registration
+- **EditAccountForm.jsp** - Profile management
+- **IncludeAccountFields.jsp** - Reusable account form fields
+
+#### Product Catalog
+- **Main.jsp** - Homepage with category navigation
+- **Category.jsp** - Products by category
+- **Product.jsp** - Product details with items
+- **Item.jsp** - Individual item view
+- **SearchProducts.jsp** - Search results
+
+#### Shopping Cart
+- **Cart.jsp** - Shopping cart management
+- **Checkout.jsp** - Order summary
+- **IncludeMyList.jsp** - User favorites
+
+#### Order Processing
+- **NewOrderForm.jsp** - Billing/shipping information
+- **ShippingForm.jsp** - Separate shipping address
+- **ConfirmOrder.jsp** - Order confirmation
+- **ListOrders.jsp** - Order history
+
+#### Common Components
+- **IncludeTop.jsp** - Header with navigation, search, user menu
+- **IncludeBottom.jsp** - Footer with banner display
+- **Error.jsp** - Error handling
+
+### 4. Configuration & Framework
+
+#### Application Context (applicationContext.xml)
+- **Embedded HSQLDB** with schema and data initialization
+- **Spring Transaction Management** with DataSourceTransactionManager
+- **MyBatis Integration** with SqlSessionFactory and mapper scanning
+- **Component Scanning** for services in `org.mybatis.jpetstore.service`
+
+#### Web Configuration (web.xml)
+- **Stripes Framework** MVC configuration
+- **Spring ContextLoaderListener** for DI
+- **JSTL** for internationalization
+- URL pattern: `*.action` routed through StripesDispatcher
+
+#### Presentation Layer
+- **CSS**: jpetstore.css - Comprehensive styling for e-commerce layout
+- **Static Pages**: help.html (user guide), index.html (entry point)
+
+## Key Business Logic Areas
+
+### User Management
+- Complete registration flow with account/profile/signon tables
+- Password management and authentication
+- User preferences (language, favorite categories, display options)
+
+### Product Catalog
+- Hierarchical organization: Categories → Products → Items
+- Inventory management with stock tracking
+- Product search functionality
+- Attribute-based item variations
+
+### Shopping Experience
+- Session-based shopping cart
+- Real-time inventory checks
+- Category-based banner personalization
+- Favorites list (MyList) functionality
+
+### Order Processing
+- Multi-step checkout process
+- Separate billing/shipping addresses
+- Order status tracking
+- Order history per user
+
+## Data Models & Relationships
+
+### Primary Entity Relationships:
+```
+User (ACCOUNT) ←→ PROFILE ←→ BANNERDATA (by favorite category)
+CATEGORY ← PRODUCT ← ITEM ← INVENTORY
+    ↑
+    └── SUPPLIER
+USER → ORDERS → ORDERSTATUS
+    ↓
+LINEITEM → ITEM
+```
+
+### Key Foreign Keys:
+- PRODUCT.category → CATEGORY.catid
+- ITEM.productid → PRODUCT.productid  
+- ITEM.supplier → SUPPLIER.suppid
+- ORDERS.userid → ACCOUNT.userid
+- LINEITEM.orderid → ORDERS.orderid
+- LINEITEM.itemid → ITEM.itemid
+
+## Service Dependencies & Communication
+
+### Internal Dependencies:
+- **Web Layer** → **Service Layer** → **Data Access Layer**
+- All database access through MyBatis mappers
+- Spring-managed transaction boundaries
+- Session-based user state management
+
+### External Integration Points:
+- Credit card processing (placeholder - uses fake numbers)
+- Potential email confirmation system (configurable)
+
+## Configuration & Deployment
+
+### Database:
+- **HSQLDB** embedded database
+- Schema auto-creation on startup
+- Sample data pre-loaded for demonstration
+
+### Frameworks & Technologies:
+- **Spring Framework** - DI and transaction management
+- **MyBatis** - ORM and data access
+- **Stripes** - MVC web framework
+- **JSP/JSTL** - View templating
+- **HSQLDB** - Database engine
+
+### Deployment Characteristics:
+- Traditional WAR deployment to servlet container
+- Embedded database (suitable for development/demo)
+- Session-based authentication
+- No external service dependencies in current configuration
+
+## Microservice Decomposition Insights
+
+### Potential Service Boundaries:
+1. **User Service** - Authentication, profiles, preferences
+2. **Catalog Service** - Categories, products, items, search
+3. **Inventory Service** - Stock management, availability
+4. **Order Service** - Order processing, status tracking
+5. **Shopping Cart Service** - Session cart management
+
+### Data Ownership Patterns:
+- Clear domain boundaries between user, catalog, and order data
+- Inventory as separate concern from product catalog
+- Shopping cart as ephemeral vs. orders as persistent
+
+### Integration Points:
+- User context needed across multiple services
+- Inventory checks during cart operations
+- Order creation spanning user, cart, and inventory domains
+
+=== summary_chunk_3.txt ===
+
+Based on my analysis of Codebase Chunk 3, here is a comprehensive architectural summary for microservice decomposition analysis:
+
+## ARCHITECTURAL SUMMARY - CHUNK 3
+
+### 1. COMPONENTS AND RESPONSIBILITIES
+
+**Frontend Components:**
+- **ViewOrder.jsp**: Order display component showing complete order details including payment information, billing/shipping addresses, and line items
+- **CatalogActionBean**: Stripes action bean for catalog operations and navigation
+- **OrderActionBean**: Stripes action bean for order management operations
+
+**Domain Components:**
+- **Cart/CartItem**: Shopping cart domain model with quantity management and pricing calculations
+- **Order**: Complete order domain model with line items, addresses, and payment details
+- **LineItem**: Individual order line items with product details and pricing
+- **Item**: Product item domain model with attributes and pricing
+
+**Test Components:**
+- **ScreenTransitionIT**: End-to-end integration tests for UI workflows
+- **CartTest**: Unit tests for cart domain logic and calculations
+
+### 2. API ENDPOINTS AND INTERFACES
+
+**Web Interface Endpoints:**
+- `/order/ViewOrder.jsp` - Order details display
+- `*.action` - Stripes action endpoints pattern
+- Catalog navigation links for item details
+
+**Service Interfaces (from documentation):**
+- **OrderService**: Order creation and management
+- **CatalogService**: Product catalog operations
+- **Mapper Interfaces**: Data access layer contracts
+
+### 3. DATABASE SCHEMAS AND DATA MODELS
+
+**Order Data Model:**
+```sql
+ORDERS Table:
+- ORDERID (PK)
+- USERID (username)
+- ORDERDATE
+- SHIPADDR1, SHIPADDR2, SHIPCITY, SHIPSTATE, SHIPZIP, SHIPCOUNTRY
+- BILLADDR1, BILLADDR2, BILLCITY, BILLSTATE, BILLZIP, BILLCOUNTRY
+- COURIER, TOTALPRICE, BILLTOFIRSTNAME, BILLTOLASTNAME
+- SHIPTOFIRSTNAME, SHIPTOLASTNAME, CREDITCARD, EXPRDATE, CARDTYPE, LOCALE
+
+ORDERSTATUS Table:
+- ORDERID (FK)
+- STATUS
+- LINENUM
+
+LINEITEM Table:
+- ORDERID (FK)
+- LINENUM
+- ITEMID, QUANTITY, UNITPRICE
+```
+
+**Domain Object Relationships:**
+- Order 1→N LineItem
+- LineItem 1→1 Item
+- Item 1→1 Product
+
+### 4. SERVICE DEPENDENCIES AND COMMUNICATION PATTERNS
+
+**Layer Dependencies:**
+- Presentation → Service Layer → Mapper Layer → Database
+- Stripes ActionBeans → Spring Services → MyBatis Mappers
+
+**Key Service Dependencies:**
+- OrderService depends on: ItemMapper, OrderMapper, LineItemMapper
+- Transactional boundaries managed at service layer
+
+**Communication Patterns:**
+- Synchronous in-process calls between layers
+- Declarative transaction management via Spring @Transactional
+- Dependency injection via Spring @Autowired and Stripes @SpringBean
+
+### 5. KEY BUSINESS LOGIC AND ALGORITHMS
+
+**Order Processing Logic:**
+- Sequential order ID generation using `getNextId("ordernum")`
+- Inventory quantity updates during order placement
+- Order total calculation from line items
+- Order status management
+
+**Cart Management Logic:**
+- Quantity-based pricing calculations
+- Subtotal aggregation across multiple items
+- Stock availability tracking (inStock flag)
+- Item addition/removal with quantity updates
+
+**Pricing Calculations:**
+```java
+// Line item total calculation
+BigDecimal total = unitPrice.multiply(new BigDecimal(quantity));
+// Cart subtotal aggregation
+BigDecimal subTotal = sum(lineItem.getTotal())
+```
+
+### 6. CONFIGURATION AND DEPLOYMENT DETAILS
+
+**Framework Configuration:**
+- **Stripes**: Action resolver packages, Spring interceptor
+- **Spring**: Component scanning, transaction management, data source
+- **MyBatis**: SqlSessionFactory, mapper scanning, type aliases
+
+**Database Configuration:**
+- Embedded HSQL database for development
+- Schema initialization via SQL scripts:
+  - `jpetstore-hsqldb-schema.sql`
+  - `jpetstore-hsqldb-dataload.sql`
+
+**Test Configuration:**
+- Selenide for UI testing with Chrome browser
+- Headless mode for CI/CD
+- Base URL: `http://localhost:8080/jpetstore`
+- 10-second timeout configuration
+
+### 7. ARCHITECTURAL PATTERNS AND FRAMEWORKS
+
+**Primary Frameworks:**
+- **Stripes**: MVC web framework
+- **Spring 4**: Dependency injection and transaction management
+- **MyBatis 3**: ORM and data access
+- **JSP/JSTL**: View templating
+
+**Architectural Patterns:**
+- **Layered Architecture**: Presentation → Business Logic → Data Access
+- **Dependency Injection**: Spring-managed beans throughout
+- **Declarative Transactions**: @Transactional annotations
+- **Mapper Pattern**: MyBatis interfaces for data access
+
+**Integration Patterns:**
+- Stripes-Spring integration via SpringInterceptor
+- MyBatis-Spring integration via SqlSessionFactoryBean
+- Component scanning for automatic bean discovery
+
+### 8. TESTING STRATEGY
+
+**Integration Tests (ScreenTransitionIT):**
+- Full user workflow testing (login → browse → cart → checkout)
+- Multi-language support verification
+- Navigation flow validation
+- Order creation and verification
+
+**Unit Tests (CartTest):**
+- Domain logic validation
+- Pricing calculation accuracy
+- Cart state management
+- Boundary condition testing
+
+### 9. INTERNATIONALIZATION SUPPORT
+
+**Multi-language Documentation:**
+- English, Spanish, Japanese, Korean documentation
+- Country flag icons for language selection
+- Localized site configurations
+
+### MICROSERVICE DECOMPOSITION INSIGHTS
+
+**Potential Service Boundaries:**
+1. **Order Service**: Order management, payment processing, status tracking
+2. **Cart Service**: Shopping cart operations, pricing calculations
+3. **Catalog Service**: Product information, inventory management
+4. **User Service**: Authentication, profile management
+
+**Data Ownership:**
+- Orders and LineItems belong to Order Service domain
+- Cart and CartItems belong to Cart Service domain  
+- Items and Products belong to Catalog Service domain
+
+**Integration Points:**
+- Cart → Catalog for item validation and pricing
+- Order → Cart for order creation from cart
+- Order → Catalog for inventory updates
+- All services → User for authentication
+
+This architecture demonstrates a well-structured monolithic application that can be decomposed into domain-based microservices with clear boundaries and well-defined integration patterns.
+
+=== summary_chunk_4.txt ===
+
+# JPetStore Application - Architectural Summary (Part 4/4)
+
+## Overview
+This final chunk contains comprehensive test suites and CI/CD configuration for the JPetStore application, providing critical insights into the system's architecture, data models, and deployment patterns.
+
+## Test Architecture & Patterns
+
+### Testing Framework Stack
+- **JUnit 5** - Primary testing framework
+- **Mockito** - Mocking framework for service layer tests
+- **AssertJ** - Fluent assertions library
+- **Spring Test Context** - Integration testing support
+- **HSQLDB** - In-memory database for testing
+
+### Test Configuration (`MapperTestContext.java`)
+```java
+@Configuration
+@MapperScan("org.mybatis.jpetstore.mapper")
+public class MapperTestContext {
+    @Bean
+    DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("database/jpetstore-hsqldb-schema.sql")
+            .addScript("database/jpetstore-hsqldb-dataload.sql")
+            .build();
+    }
+    
+    @Bean
+    SqlSessionFactoryBean sqlSessionFactory() {
+        factoryBean.setTypeAliasesPackage("org.mybatis.jpetstore.domain");
+    }
+}
+```
+
+## Domain Model Test Coverage
+
+### Order Domain (`OrderTest.java`)
+**Key Business Logic:**
+- `Order.initOrder(Account, Cart)` - Initializes order from account and cart
+- Copies shipping/billing addresses from account
+- Calculates total price from cart items
+- Sets default values: credit card, courier (UPS), locale (CA), status (P)
+
+### Database Schema (Inferred from Tests)
+
+#### Account Tables:
+```sql
+ACCOUNT: (USERID, EMAIL, FIRSTNAME, LASTNAME, STATUS, ADDR1, ADDR2, CITY, STATE, ZIP, COUNTRY, PHONE)
+PROFILE: (USERID, LANGPREF, FAVCATEGORY, MYLISTOPT, BANNEROPT)  
+SIGNON: (USERNAME, PASSWORD)
+```
+
+#### Catalog Tables:
+```sql
+CATEGORY: (CATID, NAME, DESCN)
+PRODUCT: (PRODUCTID, CATEGORY, NAME, DESCN)  
+ITEM: (ITEMID, PRODUCTID, LISTPRICE, UNITCOST, SUPPLIERID, STATUS, ATTR1-ATTR5)
+INVENTORY: (ITEMID, QTY)
+```
+
+#### Order Tables:
+```sql
+ORDERS: (ORDERID, USERID, ORDERDATE, SHIPADDR1, SHIPADDR2, SHIPCITY, SHIPSTATE, 
+         SHIPZIP, SHIPCOUNTRY, BILLADDR1, BILLADDR2, BILLCITY, BILLSTATE, 
+         BILLZIP, BILLCOUNTRY, COURIER, TOTALPRICE, BILLTOFIRSTNAME, 
+         BILLTOLASTNAME, SHIPTOFIRSTNAME, SHIPTOLASTNAME, CREDITCARD, 
+         EXPRDATE, CARDTYPE, LOCALE)
+ORDERSTATUS: (ORDERID, LINENUM, TIMESTAMP, STATUS)
+LINEITEM: (ORDERID, LINENUM, ITEMID, QUANTITY, UNITPRICE)
+SEQUENCE: (NAME, NEXTID)
+```
+
+## Service Layer Architecture
+
+### Account Service (`AccountServiceTest.java`)
+**Responsibilities:**
+- User account management (create, update, authenticate)
+- Profile and preference management
+
+**Service Methods:**
+- `insertAccount(Account)` - Creates new account with profile and credentials
+- `updateAccount(Account)` - Updates account, profile, and password
+- `getAccount(username)` - Retrieves account by username
+- `getAccount(username, password)` - Authenticates and retrieves account
+
+### Catalog Service (`CatalogServiceTest.java`)
+**Responsibilities:**
+- Product catalog browsing and search
+- Inventory management
+- Category and product hierarchy
+
+**Service Methods:**
+- `searchProductList(keywords)` - Searches across multiple keywords
+- `getCategoryList()` - Returns all product categories
+- `getProductListByCategory(categoryId)` - Products by category
+- `getItemListByProduct(productId)` - Items/variants for a product
+- `isItemInStock(itemId)` - Inventory availability check
+
+### Order Service (`OrderServiceTest.java`)
+**Responsibilities:**
+- Order lifecycle management
+- Inventory updates during order creation
+- Sequence generation for order IDs
+
+**Key Business Logic:**
+```java
+// Order creation sequence
+int orderId = getNextId("ordernum");
+order.setOrderId(orderId);
+orderMapper.insertOrder(order);
+orderMapper.insertOrderStatus(order);
+
+for (LineItem item : order.getLineItems()) {
+    lineItemMapper.insertLineItem(item);
+    // Update inventory
+    Map<String, Object> param = new HashMap<>();
+    param.put("itemId", item.getItemId());
+    param.put("increment", item.getQuantity());
+    itemMapper.updateInventoryQuantity(param);
+}
+```
+
+## Data Access Layer (Mapper Tests)
+
+### Mapper Contracts:
+
+#### AccountMapper
+- `getAccountByUsername(username)`
+- `getAccountByUsernameAndPassword(username, password)`
+- `insertAccount(account)`, `insertProfile(account)`, `insertSignon(account)`
+- Corresponding update methods
+
+#### CategoryMapper
+- `getCategoryList()` - Returns all categories
+- `getCategory(categoryId)` - Single category with description
+
+#### ProductMapper  
+- `getProductListByCategory(categoryId)`
+- `getProduct(productId)`
+- `searchProductList(keywordPattern)` - SQL LIKE pattern matching
+
+#### ItemMapper
+- `getItemListByProduct(productId)` - Items with product details
+- `getItem(itemId)` - Item with full product hierarchy
+- `getInventoryQuantity(itemId)`
+- `updateInventoryQuantity(params)` - params: {itemId, increment}
+
+#### OrderMapper
+- `insertOrder(order)` - Full order creation
+- `insertOrderStatus(order)` - Status tracking
+- `getOrdersByUsername(username)` - User order history
+- `getOrder(orderId)` - Order with details
+
+#### LineItemMapper
+- `insertLineItem(lineItem)`
+- `getLineItemsByOrderId(orderId)`
+
+#### SequenceMapper
+- `getSequence(sequence)` - For ID generation
+- `updateSequence(sequence)` - Increment sequence
+
+## Web Layer Architecture
+
+### Action Beans (MVC Pattern)
+
+#### AccountActionBean
+- Manages user authentication state
+- Handles login/logout workflows
+- User registration and profile management
+
+#### CatalogActionBean  
+- Product browsing and search functionality
+- Category navigation
+- Item detail views
+
+#### OrderActionBean
+- Shopping cart management
+- Order creation and confirmation
+- Order history viewing
+
+## CI/CD & Deployment Configuration
+
+### GitHub Actions Workflows:
+
+#### 1. Java CI (`ci.yaml`)
+- **Matrix Strategy:** Tests across multiple OS (Ubuntu, macOS, Windows), Java versions (17, 21, 24, 25-ea)
+- **Cache Strategy:** Maven dependency caching
+- **Build Command:** `./mvnw test -B -V --no-transfer-progress`
+
+#### 2. Security Scanning (`codeql.yml`)
+- CodeQL analysis for Java/Kotlin
+- Scheduled weekly security scanning
+- Automated security vulnerability detection
+
+#### 3. Coverage Reporting (`coveralls.yaml`)
+- JaCoCo test coverage analysis
+- Coveralls integration for PR and push events
+- Coverage reporting to GitHub
+
+#### 4. Site Deployment (`site.yaml`)
+- Maven site generation and staging
+- Automated deployment to GitHub Pages
+- Triggered on pushes to 'site' branch
+
+#### 5. SonarCloud Analysis (`sonar.yaml`)
+- SonarQube quality gate enforcement
+- Code quality and security metrics
+- JaCoCo integration for coverage
+
+#### 6. Sonatype Deployment (`sonatype.yaml`)
+- Automated deployment to Maven Central
+- Release management for master branch
+- Secure credential management
+
+#### 7. Container Support Testing (`support.yaml`)
+- Multi-container testing across application servers:
+  - Tomcat 9, TomEE 8.0, WildFly 26
+  - Liberty EE8, Jetty, GlassFish 5, Resin
+- Cross-platform compatibility validation
+
+### Maven Configuration
+
+#### Build Extensions:
+- **Maven Profiler** - Build performance monitoring
+
+#### Security Settings:
+- Checksum verification for dependencies
+- Secure artifact downloading
+
+#### Deployment Configuration:
+- Sonatype deployment credentials
+- GitHub Pages deployment
+- NVD API access for vulnerability scanning
+
+## Microservice Decomposition Insights
+
+### Potential Service Boundaries:
+
+1. **User Service** - Account management, authentication, profiles
+2. **Catalog Service** - Products, categories, search, inventory
+3. **Order Service** - Order processing, status tracking, line items
+4. **Sequence Service** - Distributed ID generation
+
+### Data Consistency Patterns:
+- Inventory updates during order creation require transactional consistency
+- Order status tracking with timeline
+- User session management across services
+
+### Integration Points:
+- Catalog service provides product data to Order service
+- User service provides account data to Order service  
+- Shared sequence generation for order IDs
+
+### Deployment Considerations:
+- Multi-container support tested across major application servers
+- Database migration strategies with HSQLDB for testing
+- Secure credential management for deployments
+
+This comprehensive test suite and CI/CD configuration provides strong foundations for microservice decomposition with clear service boundaries, well-defined data models, and robust deployment patterns.

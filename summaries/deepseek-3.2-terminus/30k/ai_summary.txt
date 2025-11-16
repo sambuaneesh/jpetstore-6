@@ -1,0 +1,578 @@
+# MyBatis JPetStore - Comprehensive Architectural Summary
+
+## Overview
+MyBatis JPetStore is a full-stack monolithic e-commerce application for pet supplies built on **MyBatis 3**, **Spring 5**, and **Stripes MVC framework**. The application provides comprehensive shopping cart functionality, order management, and user account management with clear separation of concerns across presentation, business logic, and data access layers.
+
+## Application Architecture
+
+### Core Technologies Stack
+- **Web Framework**: Stripes MVC (Action-based controllers)
+- **DI & Transactions**: Spring 5 (Dependency Injection, Declarative Transactions)
+- **ORM**: MyBatis 3 (SQL mapping, Mapper interfaces)
+- **Database**: HSQLDB (embedded in-memory database)
+- **View Layer**: JSP/JSTL with internationalization support
+- **Build Tool**: Maven with comprehensive build profiles
+- **Java Version**: 17+
+- **Packaging**: WAR deployment
+- **Container Support**: Tomcat 9, WildFly, Jetty, GlassFish, Resin, Liberty EE8
+
+### Architectural Patterns & Frameworks
+- **Layered Architecture**: Presentation → Business Logic → Data Access → Database
+- **Dependency Injection**: Spring-managed beans throughout application
+- **Declarative Transactions**: @Transactional annotations at service layer
+- **Mapper Pattern**: MyBatis interfaces for data access
+- **MVC Pattern**: Stripes ActionBeans as controllers
+
+## Domain Model Components
+
+### Core Domain Entities
+
+#### Account Management Domain
+- **Account**: User account management (username, password, email, personal info)
+- **Profile**: User preferences (language, favorite category, display options)
+- **Signon**: Authentication credentials (username, password)
+- **BannerData**: Category-based personalized banner content
+
+#### Shopping Cart Domain
+- **Cart**: Thread-safe shopping cart management using synchronized maps
+- **CartItem**: Individual cart items with quantity and pricing
+- **Key Features**:
+  - BigDecimal calculations for precise monetary operations
+  - Stream reduction for subtotal aggregation
+  - Real-time inventory stock validation
+  - Session-based persistence
+
+#### Product Catalog Hierarchy
+```
+Category → Product → Item
+```
+- **Category**: Product classification (FISH, DOGS, REPTILES, CATS, BIRDS)
+- **Product**: General product information and descriptions
+- **Item**: Specific inventory items with pricing, attributes, and supplier information
+
+#### Order Processing Domain
+- **Order**: Complete order with billing/shipping addresses, payment details
+- **LineItem**: Individual order line items with product details and pricing
+- **OrderStatus**: Order lifecycle tracking (timestamps, status changes)
+- **Sequence**: Distributed ID generation for orders
+
+### Database Schema & Data Models
+
+#### Account Tables
+```sql
+ACCOUNT: (USERID, EMAIL, FIRSTNAME, LASTNAME, STATUS, ADDR1, ADDR2, CITY, STATE, ZIP, COUNTRY, PHONE)
+PROFILE: (USERID, LANGPREF, FAVCATEGORY, MYLISTOPT, BANNEROPT)  
+SIGNON: (USERNAME, PASSWORD)
+BANNERDATA: (FAVCATEGORY, BANNERNAME)
+```
+
+#### Catalog Tables
+```sql
+CATEGORY: (CATID, NAME, DESCN)
+PRODUCT: (PRODUCTID, CATEGORY, NAME, DESCN)  
+ITEM: (ITEMID, PRODUCTID, LISTPRICE, UNITCOST, SUPPLIERID, STATUS, ATTR1-ATTR5)
+INVENTORY: (ITEMID, QTY)
+SUPPLIER: (SUPPID, NAME, STATUS, ADDR1, ADDR2, CITY, STATE, ZIP, PHONE)
+```
+
+#### Order Tables
+```sql
+ORDERS: (ORDERID, USERID, ORDERDATE, SHIPADDR1, SHIPADDR2, SHIPCITY, SHIPSTATE, 
+         SHIPZIP, SHIPCOUNTRY, BILLADDR1, BILLADDR2, BILLCITY, BILLSTATE, 
+         BILLZIP, BILLCOUNTRY, COURIER, TOTALPRICE, BILLTOFIRSTNAME, 
+         BILLTOLASTNAME, SHIPTOFIRSTNAME, SHIPTOLASTNAME, CREDITCARD, 
+         EXPRDATE, CARDTYPE, LOCALE)
+ORDERSTATUS: (ORDERID, LINENUM, TIMESTAMP, STATUS)
+LINEITEM: (ORDERID, LINENUM, ITEMID, QUANTITY, UNITPRICE)
+SEQUENCE: (NAME, NEXTID)
+```
+
+### Entity Relationships
+```
+User (ACCOUNT) ←→ PROFILE ←→ BANNERDATA (by favorite category)
+CATEGORY ← PRODUCT ← ITEM ← INVENTORY
+    ↑
+    └── SUPPLIER
+USER → ORDERS → ORDERSTATUS
+    ↓
+LINEITEM → ITEM
+```
+
+## Data Access Layer
+
+### Mapper Interfaces & Contracts
+
+#### AccountMapper
+- `getAccountByUsername(String username)` - Complete user account with profile
+- `getAccountByUsernameAndPassword(String username, String password)` - Authentication
+- `insertAccount(Account account)`, `updateAccount(Account account)` - CRUD operations
+- `insertProfile(Account account)`, `updateProfile(Account account)` - Preference management
+- `insertSignon(Account account)`, `updateSignon(Account account)` - Password management
+
+#### Catalog Mappers
+- **CategoryMapper**: 
+  - `getCategoryList()` - All categories
+  - `getCategory(String categoryId)` - Single category with description
+- **ProductMapper**:
+  - `getProductListByCategory(String categoryId)` - Category-based listing
+  - `getProduct(String productId)` - Product details
+  - `searchProductList(String keywordPattern)` - SQL LIKE pattern matching
+- **ItemMapper**:
+  - `getItemListByProduct(String productId)` - Items with product details
+  - `getItem(String itemId)` - Item with full product hierarchy
+  - `getInventoryQuantity(String itemId)` - Stock level check
+  - `updateInventoryQuantity(Map<String, Object> param)` - Stock management (params: {itemId, increment})
+
+#### Order Processing Mappers
+- **OrderMapper**:
+  - `insertOrder(Order order)` - Full order creation
+  - `insertOrderStatus(Order order)` - Status tracking
+  - `getOrdersByUsername(String username)` - User order history
+  - `getOrder(int orderId)` - Order with details
+- **LineItemMapper**:
+  - `insertLineItem(LineItem lineItem)` - Add items to orders
+  - `getLineItemsByOrderId(int orderId)` - Order line items
+- **SequenceMapper**:
+  - `getSequence(Sequence sequence)` - For ID generation
+  - `updateSequence(Sequence sequence)` - Increment sequence
+
+## Service Layer Architecture
+
+### AccountService
+**Dependencies**: AccountMapper
+**Key Operations**:
+- `getAccount(String username)` - User lookup with profile
+- `getAccount(String username, String password)` - Authentication
+- `insertAccount(Account account)` - Transactional registration (account + profile + signon)
+- `updateAccount(Account account)` - Transactional profile updates
+**Transaction Management**: @Transactional annotations
+
+### CatalogService
+**Dependencies**: CategoryMapper, ItemMapper, ProductMapper
+**Key Operations**:
+- `getCategoryList()` - All product categories
+- `getProductListByCategory(String categoryId)` - Products by category
+- `getItemListByProduct(String productId)` - Items for a product
+- `searchProductList(String keywords)` - Product search with keyword tokenization
+- `isItemInStock(String itemId)` - Inventory availability checking
+- `getItem(String itemId)` - Item details with inventory
+
+### OrderService
+**Dependencies**: ItemMapper, OrderMapper, SequenceMapper, LineItemMapper
+**Key Operations**:
+- `insertOrder(Order order)` - Transactional order creation with inventory updates
+- `getOrder(int orderId)` - Order retrieval with line items
+- `getOrdersByUsername(String username)` - User order history
+**Key Business Logic**:
+```java
+// Order creation sequence
+int orderId = getNextId("ordernum");
+order.setOrderId(orderId);
+orderMapper.insertOrder(order);
+orderMapper.insertOrderStatus(order);
+
+for (LineItem item : order.getLineItems()) {
+    lineItemMapper.insertLineItem(item);
+    // Update inventory
+    Map<String, Object> param = new HashMap<>();
+    param.put("itemId", item.getItemId());
+    param.put("increment", item.getQuantity());
+    itemMapper.updateInventoryQuantity(param);
+}
+```
+
+## Web Layer & API Endpoints
+
+### Action Beans (Stripes Controllers)
+
+#### AccountActionBean
+- **Scope**: Session scope for authenticated state management
+- **Endpoints**: 
+  - `/actions/Account.action` (default - signonForm)
+  - `newAccount`, `editAccount`, `signon`, `signoff`
+- **Validation**: Stripes annotations for client-side validation
+- **Integration**: Coordinates with CatalogService for personalized content
+
+#### CatalogActionBean
+- **Endpoints**: Catalog browsing, product search, item viewing
+- **Navigation Flow**: Main → Category → Product → Item
+- **Search Functionality**: Keyword-based product search with tokenization
+- **Session Management**: Maintains browsing state
+
+#### CartActionBean
+- **Endpoints**: Cart management, quantity updates, checkout initiation
+- **Session Management**: Cart persists in user session
+- **Inventory Integration**: Real-time stock validation during operations
+- **Thread Safety**: Synchronized cart operations
+
+#### OrderActionBean
+- **Endpoints**: Order creation, confirmation, order history viewing
+- **Workflow**: NewOrder → Shipping → Confirm → Submit
+- **Validation**: User authentication and cart validation
+- **Transaction Management**: Coordinates with OrderService for atomic operations
+
+### View Layer (JSP)
+
+#### User Management Views
+- **SignonForm.jsp** - Login page with authentication
+- **NewAccountForm.jsp** - User registration form
+- **EditAccountForm.jsp** - Profile management
+- **IncludeAccountFields.jsp** - Reusable account form fields
+
+#### Product Catalog Views
+- **Main.jsp** - Homepage with category navigation and banners
+- **Category.jsp** - Products by category listing
+- **Product.jsp** - Product details page
+- **Item.jsp** - Individual item view with attributes
+- **SearchProducts.jsp** - Search results display
+
+#### Shopping Cart Views
+- **Cart.jsp** - Shopping cart management with quantity updates
+- **Checkout.jsp** - Order summary before payment
+- **IncludeMyList.jsp** - User favorites list component
+
+#### Order Processing Views
+- **NewOrderForm.jsp** - Billing/shipping information collection
+- **ShippingForm.jsp** - Separate shipping address management
+- **ConfirmOrder.jsp** - Order confirmation with final review
+- **ViewOrder.jsp** - Order details display
+- **ListOrders.jsp** - Order history listing
+
+#### Common Components
+- **IncludeTop.jsp** - Header with navigation, search, user menu
+- **IncludeBottom.jsp** - Footer with banner display
+- **Error.jsp** - Centralized error handling
+
+### Presentation Configuration
+- **CSS**: jpetstore.css - Comprehensive e-commerce styling
+- **Internationalization**: Multi-language support (English, Spanish, Japanese, Korean)
+- **Static Content**: help.html (user guide), index.html (application entry point)
+
+## Key Business Logic & Algorithms
+
+### Shopping Cart Management
+- **Thread Safety**: Synchronized ConcurrentHashMap for cart item storage
+- **Price Calculation**: BigDecimal for precise monetary calculations
+- **Inventory Integration**: Real-time stock validation during add/update operations
+- **Subtotal Aggregation**: Stream reduction across cart items
+
+### Order Processing Logic
+- **Transaction Management**: Atomic order creation with inventory updates
+- **Sequence Generation**: Database sequence for order ID generation
+- **Cart Conversion**: Transform cart items to order line items with pricing
+- **Address Management**: Separate billing/shipping address support
+- **Status Tracking**: Order lifecycle management with timestamps
+
+### Search Algorithm
+- **Keyword Processing**: Tokenization and wildcard search implementation
+- **Case Handling**: Case-insensitive SQL LIKE pattern matching
+- **Result Aggregation**: Combine results from multiple search terms
+- **Performance**: Optimized database queries with proper indexing
+
+### Inventory Management
+- **Stock Validation**: Real-time availability checks during cart operations
+- **Atomic Updates**: Transactional inventory reduction during order placement
+- **Low Stock Handling**: Business logic for out-of-stock scenarios
+
+## Configuration & Deployment
+
+### Spring Configuration (`applicationContext.xml`)
+- **Data Source**: Embedded HSQLDB with schema and data initialization
+- **Transaction Management**: DataSourceTransactionManager with @Transactional
+- **MyBatis Integration**: SqlSessionFactoryBean with type aliases and mapper scanning
+- **Component Scanning**: Services in `org.mybatis.jpetstore.service` package
+- **Database Initialization**: SQL scripts for schema and sample data
+
+### Stripes Configuration (`web.xml`)
+- **Action Resolution**: Convention-based URL mapping (`*.action`)
+- **Spring Integration**: SpringInterceptor for dependency injection
+- **Internationalization**: Resource bundle support
+- **Dispatcher**: StripesDispatcher for request routing
+
+### Test Configuration (`MapperTestContext.java`)
+```java
+@Configuration
+@MapperScan("org.mybatis.jpetstore.mapper")
+public class MapperTestContext {
+    @Bean
+    DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("database/jpetstore-hsqldb-schema.sql")
+            .addScript("database/jpetstore-hsqldb-dataload.sql")
+            .build();
+    }
+}
+```
+
+## Testing Strategy & Architecture
+
+### Testing Framework Stack
+- **JUnit 5** - Primary testing framework
+- **Mockito** - Mocking framework for service layer tests
+- **AssertJ** - Fluent assertions library
+- **Spring Test Context** - Integration testing support
+- **Selenide** - UI testing with Chrome browser
+- **HSQLDB** - In-memory database for testing
+
+### Test Coverage Areas
+
+#### Domain Model Tests (`OrderTest.java`, `CartTest.java`)
+- **Order Initialization**: `Order.initOrder(Account, Cart)` - copies addresses, calculates totals
+- **Cart Calculations**: Quantity-based pricing, subtotal aggregation
+- **Business Logic**: Stock availability tracking, boundary conditions
+
+#### Service Layer Tests
+- **AccountServiceTest**: User management, authentication, profile updates
+- **CatalogServiceTest**: Product search, category browsing, inventory checks
+- **OrderServiceTest**: Order lifecycle, inventory updates, sequence generation
+
+#### Integration Tests (`ScreenTransitionIT.java`)
+- **End-to-End Workflows**: Login → Browse → Cart → Checkout → Order
+- **Multi-language Verification**: Internationalization support testing
+- **Navigation Flow**: User journey validation across application
+- **Configuration**: Base URL `http://localhost:8080/jpetstore`, 10-second timeouts
+
+#### Data Access Tests
+- **Mapper Contracts**: All CRUD operations validation
+- **Query Validation**: SQL mapping and result transformation
+- **Transaction Boundaries**: Data consistency across operations
+
+## CI/CD & Deployment Configuration
+
+### GitHub Actions Workflows
+
+#### 1. Java CI (`ci.yaml`)
+- **Matrix Strategy**: Tests across multiple OS (Ubuntu, macOS, Windows), Java versions (17, 21, 24, 25-ea)
+- **Cache Strategy**: Maven dependency caching for performance
+- **Build Command**: `./mvnw test -B -V --no-transfer-progress`
+
+#### 2. Security Scanning (`codeql.yml`)
+- **CodeQL Analysis**: Automated security vulnerability detection for Java/Kotlin
+- **Schedule**: Weekly security scanning
+- **Quality Gates**: Security enforcement in CI pipeline
+
+#### 3. Coverage Reporting (`coveralls.yaml`)
+- **JaCoCo Integration**: Test coverage analysis and reporting
+- **Coveralls**: PR and push event coverage reporting
+- **Quality Metrics**: Coverage thresholds enforcement
+
+#### 4. Site Deployment (`site.yaml`)
+- **Maven Site**: Documentation generation and staging
+- **GitHub Pages**: Automated deployment to GitHub Pages
+- **Trigger**: Pushes to 'site' branch
+
+#### 5. SonarCloud Analysis (`sonar.yaml`)
+- **SonarQube Integration**: Code quality and security metrics
+- **JaCoCo**: Test coverage integration
+- **Quality Gates**: Code quality enforcement
+
+#### 6. Sonatype Deployment (`sonatype.yaml`)
+- **Maven Central**: Automated deployment to central repository
+- **Release Management**: Master branch deployment automation
+- **Credential Security**: Secure credential management
+
+#### 7. Container Support Testing (`support.yaml`)
+- **Multi-container Testing**: Validation across application servers
+- **Supported Containers**: Tomcat 9, TomEE 8.0, WildFly 26, Liberty EE8, Jetty, GlassFish 5, Resin
+- **Cross-platform**: Compatibility validation across environments
+
+### Maven Configuration
+- **Build Extensions**: Maven Profiler for build performance monitoring
+- **Security**: Checksum verification for dependencies, secure artifact downloading
+- **Deployment**: Sonatype deployment credentials, GitHub Pages deployment
+- **Vulnerability Scanning**: NVD API access for dependency scanning
+
+## Service Dependencies & Communication Patterns
+
+### Internal Dependencies Architecture
+```
+Web Layer (Stripes ActionBeans)
+    ↓ @SpringBean
+Service Layer (AccountService, CatalogService, OrderService)
+    ↓ @Autowired  
+Data Access Layer (MyBatis Mappers)
+    ↓ SqlSession
+Database (HSQLDB)
+```
+
+### Data Flow Patterns
+1. **Request Processing**: HTTP Request → ActionBean → Service → Mapper → Database
+2. **Session Management**: User session persistence for cart and authentication state
+3. **Transaction Boundaries**: Declarative transactions at service layer with @Transactional
+4. **Validation Layers**: Stripes client-side validation + Business logic validation
+
+### Integration Points
+- **Credit Card Processing**: Placeholder implementation with fake number validation
+- **Email Confirmation**: Configurable but not implemented in current version
+- **External Services**: Minimal external dependencies in current monolithic architecture
+
+## Microservice Decomposition Analysis
+
+### Potential Service Boundaries
+
+#### 1. User Service
+**Responsibilities**:
+- Account management (create, update, delete)
+- Authentication and authorization
+- User profile and preference management
+- Session management
+
+**Data Ownership**:
+- ACCOUNT, PROFILE, SIGNON, BANNERDATA tables
+- User authentication state
+- Personalization preferences
+
+**APIs**:
+- `POST /users/authenticate` - User login
+- `POST /users` - User registration
+- `GET /users/{username}` - User profile retrieval
+- `PUT /users/{username}` - Profile updates
+
+#### 2. Catalog Service
+**Responsibilities**:
+- Product catalog management
+- Category hierarchy maintenance
+- Product search and browsing
+- Inventory visibility (read-only)
+
+**Data Ownership**:
+- CATEGORY, PRODUCT, ITEM, SUPPLIER tables
+- Product descriptions and attributes
+- Category relationships
+
+**APIs**:
+- `GET /categories` - All categories
+- `GET /categories/{id}/products` - Products by category
+- `GET /products/search?q={keywords}` - Product search
+- `GET /items/{id}` - Item details with availability
+
+#### 3. Inventory Service
+**Responsibilities**:
+- Stock level management
+- Inventory updates and reservations
+- Availability checking
+- Low stock alerts
+
+**Data Ownership**:
+- INVENTORY table (separated from ITEM)
+- Stock quantity data
+- Reservation states
+
+**APIs**:
+- `GET /inventory/{itemId}` - Stock level check
+- `PUT /inventory/{itemId}/reserve` - Reserve stock
+- `PUT /inventory/{itemId}/release` - Release reservation
+- `PUT /inventory/{itemId}/update` - Stock level updates
+
+#### 4. Cart Service
+**Responsibilities**:
+- Shopping cart management
+- Cart item operations (add, update, remove)
+- Price calculations
+- Cart persistence
+
+**Data Ownership**:
+- Session-based cart data (initially)
+- Potential cart persistence database
+- Pricing calculations
+
+**APIs**:
+- `GET /cart` - Retrieve user cart
+- `POST /cart/items` - Add item to cart
+- `PUT /cart/items/{itemId}` - Update item quantity
+- `DELETE /cart/items/{itemId}` - Remove item from cart
+
+#### 5. Order Service
+**Responsibilities**:
+- Order creation and management
+- Order status tracking
+- Payment processing integration
+- Order history
+
+**Data Ownership**:
+- ORDERS, ORDERSTATUS, LINEITEM tables
+- Order sequence generation
+- Payment information
+
+**APIs**:
+- `POST /orders` - Create new order from cart
+- `GET /orders/{orderId}` - Order details
+- `GET /users/{username}/orders` - User order history
+- `PUT /orders/{orderId}/status` - Update order status
+
+#### 6. Sequence Service
+**Responsibilities**:
+- Distributed ID generation
+- Sequence management across services
+- ID uniqueness guarantees
+
+**Data Ownership**:
+- SEQUENCE table
+- Sequence state management
+
+**APIs**:
+- `POST /sequences/{name}/next` - Get next ID in sequence
+- `GET /sequences/{name}` - Get current sequence state
+
+### Data Ownership Considerations
+
+#### Cross-Service Data Dependencies
+- **Catalog ↔ Inventory**: Item information vs. stock levels
+- **Cart ↔ Catalog**: Product details for cart items
+- **Cart ↔ Inventory**: Real-time stock validation
+- **Order ↔ Cart**: Order creation from cart contents
+- **Order ↔ User**: User information for orders
+- **Order ↔ Catalog**: Product information for order line items
+- **All Services ↔ User**: Authentication and authorization
+
+#### Data Consistency Challenges
+- **Inventory Updates**: Require transactional consistency during order creation
+- **Cart Persistence**: Session-based vs. database persistence strategies
+- **Order Status**: Distributed transaction management for order lifecycle
+- **User Context**: Propagation across service boundaries
+
+### Integration Challenges & Patterns
+
+#### Session Management Migration
+- **Current**: Monolithic session with cart and authentication state
+- **Target**: Stateless services with JWT tokens
+- **Challenge**: Cart persistence across service boundaries
+- **Solution**: Database-backed cart with user session correlation
+
+#### Transaction Boundaries
+- **Current**: Database-level transactions across multiple tables
+- **Target**: Distributed transactions or eventual consistency
+- **Challenge**: Order creation spanning user, cart, inventory domains
+- **Patterns**: Saga pattern for distributed transactions
+
+#### Service Communication
+- **Synchronous**: REST APIs for immediate responses
+- **Asynchronous**: Message queues for eventual consistency
+- **Caching**: Redis for session state and frequently accessed data
+- **API Gateway**: Centralized routing and authentication
+
+#### Data Consistency Strategies
+- **Immediate Consistency**: Required for inventory updates
+- **Eventual Consistency**: Acceptable for order status propagation
+- **Compensation Actions**: For rollback in distributed transactions
+- **Event Sourcing**: For audit trails and state reconstruction
+
+### Deployment Architecture for Microservices
+
+#### Containerization Strategy
+- **Docker Support**: Existing container testing provides foundation
+- **Orchestration**: Kubernetes for service management
+- **Service Mesh**: Istio for service communication and observability
+
+#### Database Decomposition
+- **Database-per-Service**: Each service owns its database
+- **Shared Database**: Initial transition strategy
+- **Data Synchronization**: CDC for cross-service data needs
+
+#### Monitoring & Observability
+- **Centralized Logging**: ELK stack for log aggregation
+- **Metrics Collection**: Prometheus with Grafana dashboards
+- **Distributed Tracing**: Jaeger for request correlation across services
+
+This comprehensive architecture provides a solid foundation for incremental microservice decomposition with clear domain boundaries, well-defined data ownership, and established patterns for distributed system challenges. The existing layered architecture and clear separation of concerns make this application an excellent candidate for modern cloud-native deployment.

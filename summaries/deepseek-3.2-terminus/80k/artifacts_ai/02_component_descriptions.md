@@ -1,0 +1,19 @@
+| Component Name | Responsibility | Interfaces (key endpoints or methods) | Depends On | Technologies |
+|----------------|----------------|--------------------------------------|------------|--------------|
+| AccountActionBean | User authentication, registration, profile management | `/actions/Account.action` (login, logout, register, update profile) | AccountService, HTTP Session | Stripes MVC, Spring DI, JSP |
+| CartActionBean | Shopping cart operations and management | `/actions/Cart.action` (addItem, removeItem, updateCartQuantities) | CatalogService, HTTP Session | Stripes MVC, Spring DI, Session Scope |
+| CatalogActionBean | Product browsing, searching, category navigation | `/actions/Catalog.action` (viewCategory, viewProduct, searchProducts) | CatalogService | Stripes MVC, Spring DI, JSP |
+| OrderActionBean | Order creation, processing, and management | `/actions/Order.action` (newOrder, confirmOrder, listOrders) | OrderService, AccountService | Stripes MVC, Spring DI, JSP |
+| AccountService | User registration, authentication, profile management | `getAccount(String username)`, `insertAccount(Account account)`, `updateAccount(Account account)` | AccountMapper, ProfileMapper, SignonMapper | Spring Service, Transaction Management |
+| CatalogService | Product catalog browsing, search, inventory checking | `getCategoryList()`, `searchProductList(String keywords)`, `isItemInStock(String itemId)` | CategoryMapper, ProductMapper, ItemMapper, InventoryMapper | Spring Service, MyBatis |
+| OrderService | Order creation, processing, transaction management | `insertOrder(Order order)`, `getOrder(int orderId)`, `getOrdersByUsername(String username)` | OrderMapper, LineItemMapper, SequenceMapper, ItemMapper | Spring Service, @Transactional, MyBatis |
+| AccountMapper | User account CRUD operations | `getAccountByUsername(String username)`, `insertAccount(Account account)`, `updateAccount(Account account)` | ACCOUNT, PROFILE, SIGNON tables | MyBatis, HSQLDB, XML SQL mapping |
+| CategoryMapper | Product category management | `getCategoryList()`, `getCategory(String categoryId)` | CATEGORY table | MyBatis, HSQLDB, XML SQL mapping |
+| ProductMapper | Product information and search functionality | `getProductListByCategory(String categoryId)`, `searchProductList(String keywords)` | PRODUCT table | MyBatis, HSQLDB, XML SQL mapping |
+| ItemMapper | Inventory management and item details | `getItemListByProduct(String productId)`, `getItem(String itemId)`, `updateInventory(Item item)` | ITEM, INVENTORY tables | MyBatis, HSQLDB, XML SQL mapping |
+| OrderMapper | Order creation and retrieval | `insertOrder(Order order)`, `getOrder(int orderId)`, `getOrdersByUsername(String username)` | ORDERS, ORDERSTATUS tables | MyBatis, HSQLDB, XML SQL mapping |
+| LineItemMapper | Order line item management | `insertLineItem(LineItem lineItem)`, `getLineItemsByOrderId(int orderId)` | LINEITEM table | MyBatis, HSQLDB, XML SQL mapping |
+| SequenceMapper | ID sequence generation | `getSequence(Sequence sequence)`, `updateSequence(Sequence sequence)` | SEQUENCE table | MyBatis, HSQLDB, XML SQL mapping |
+| BannerDataMapper | UI customization data | `getBannerData(String favcategory)` | BANNERDATA table | MyBatis, HSQLDB, XML SQL mapping |
+| Cart Domain Model | Shopping cart functionality with quantity management | `addItem(Item item, int quantity)`, `removeItemById(String itemId)`, `getSubTotal()` | Item domain model | Java Collections, BigDecimal, Session management |
+| Order Domain Model | Order management and line items | Order processing logic, price calculations | LineItem, Account, Item domain models | Java Collections, BigDecimal, Transaction management |

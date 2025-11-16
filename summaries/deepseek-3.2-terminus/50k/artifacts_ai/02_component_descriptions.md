@@ -1,0 +1,12 @@
+```markdown
+| Component Name | Responsibility | Interfaces | Depends On | Technologies |
+|---------------|----------------|------------|------------|--------------|
+| Account Management | User authentication, account creation, profile management | `getAccount(username)`, `getAccount(username, password)`, `insertAccount(account)`, `updateAccount(account)` | Database (ACCOUNT, PROFILE, SIGNON tables), Session Management | Spring 5, MyBatis 3, Stripes ActionBean, HSQLDB |
+| Catalog Management | Product catalog browsing, category/product hierarchy, search functionality | `getCategoryList()`, `getCategory(categoryId)`, `getProductListByCategory(categoryId)`, `searchProductList(keywords)`, `getItem(itemId)`, `isItemInStock(itemId)` | Database (CATEGORY, PRODUCT, ITEM, SUPPLIER tables) | Spring 5, MyBatis 3, Stripes ActionBean, JSP/JSTL |
+| Shopping Cart | Cart operations, item management, pricing calculations | `addItemToCart(itemId)`, `removeItemFromCart(itemId)`, `updateCartQuantities()`, `viewCart()`, `getSubTotal()` | Catalog Service (for item details), Inventory Service (stock checks) | Stripes ActionBean, Session Management, JSP |
+| Order Processing | Order creation, inventory management, order history | `insertOrder(order)`, `getOrder(orderId)`, `getOrdersByUsername(username)`, `getNextId(sequenceName)` | Account Service, Cart Service, Inventory Service, Database (ORDERS, LINEITEM, SEQUENCE tables) | Spring 5 (@Transactional), MyBatis 3, Stripes ActionBean |
+| Inventory Management | Stock level tracking, availability checking | `getInventoryQuantity(itemId)`, `updateInventoryQuantity(itemId, quantity)` | Database (INVENTORY table) | MyBatis 3, Spring Transactions |
+| Web Presentation | User interface rendering, request handling | `/actions/Catalog.action`, `/actions/Cart.action`, `/actions/Order.action`, `/actions/Account.action` | All service components, Session Management | Stripes MVC, JSP 2.1, JSTL, CSS |
+| Database Layer | Data persistence, relationships, transactions | SQL schema: ACCOUNT, CATEGORY, PRODUCT, ITEM, ORDERS, INVENTORY, etc. | HSQLDB engine | HSQLDB 2.7.4, MyBatis 3, Spring JDBC |
+| Session Management | User state, authentication, cart persistence | HTTP session management, @SessionScope beans | Web container, Application context | Stripes SessionScope, HTTP Session |
+```

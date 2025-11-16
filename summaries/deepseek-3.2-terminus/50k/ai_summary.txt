@@ -1,0 +1,683 @@
+# MyBatis JPetStore 6 - Comprehensive Architectural Summary
+
+## 1. System Overview & Technology Stack
+
+**JPetStore 6** is a monolithic Java web application for an online pet store e-commerce platform, built on:
+
+- **Core Framework**: Spring 5 (Dependency Injection/Transaction Management)
+- **Persistence**: MyBatis 3 (ORM/SQL Mapping)
+- **Web Framework**: Stripes (MVC Framework)
+- **Database**: HSQLDB (Embedded Database)
+- **View Layer**: JSP 2.1 with JSTL
+- **Java Version**: 17
+- **Build Tool**: Maven with Wrapper
+
+### Technology Stack Versions
+- Spring 5.3.39 / 6.2.10
+- MyBatis 3.5.19
+- Stripes 1.6.0
+- HSQLDB 2.7.4
+- JUnit 5, Mockito, AssertJ for testing
+- Selenide for UI testing
+
+## 2. Core Business Domain Models
+
+### 2.1 User & Account Management
+```java
+Account {
+    String username, password, email, firstName, lastName
+    String address, phone, status
+}
+
+Profile {
+    String userid, langpref, favcategory
+    boolean mylistopt, banneropt
+}
+
+Signon {
+    String username, password
+}
+```
+
+### 2.2 Shopping Cart & Order Management
+```java
+Cart {
+    List<CartItem> cartItems
+    int numberOfItems
+    BigDecimal subTotal
+    // Operations: addItem, removeItem, updateQuantities
+}
+
+CartItem {
+    Item item
+    int quantity
+    boolean inStock
+    BigDecimal total
+}
+
+Order {
+    int orderId
+    Date orderDate
+    String username
+    Address billingAddress, shippingAddress
+    List<LineItem> lineItems
+    BigDecimal totalPrice
+    PaymentInfo paymentDetails
+    String status
+}
+
+LineItem {
+    String itemId
+    int quantity
+    BigDecimal unitPrice
+    BigDecimal total
+}
+
+Sequence {
+    String name
+    int nextid  // For order ID generation
+}
+```
+
+### 2.3 Product Catalog & Inventory
+```java
+Category {
+    String categoryId, name, description
+}
+
+Product {
+    String productId, categoryId, name, description
+}
+
+Item {
+    String itemId, productId
+    BigDecimal listPrice, unitCost
+    String supplier, status
+    String attribute1-5  // Product attributes
+}
+
+Inventory {
+    String itemId
+    int quantity
+}
+
+Supplier {
+    String suppid, name, address, phone
+}
+
+BannerData {
+    String favcategory, bannername
+}
+```
+
+## 3. Service Layer Architecture
+
+### 3.1 AccountService
+**Responsibilities:**
+- User authentication (signon/signoff)
+- Account creation and profile management
+- Password updates with conditional logic
+- User preference management
+
+**Key Methods:**
+```java
+Account getAccount(String username)
+Account getAccount(String username, String password)
+void insertAccount(Account account)
+void updateAccount(Account account)
+```
+
+**Key Logic:** Transactional operations across account, profile, and signon tables
+
+### 3.2 CatalogService
+**Responsibilities:**
+- Product catalog browsing and searching
+- Category and product hierarchy management
+- Inventory status checking
+- Product search functionality
+
+**Key Methods:**
+```java
+List<Category> getCategoryList()
+Category getCategory(String categoryId)
+List<Product> getProductListByCategory(String categoryId)
+Product getProduct(String productId)
+List<Item> getItemListByProduct(String productId)
+Item getItem(String itemCode)
+List<Product> searchProductList(String keywords)
+boolean isItemInStock(String itemCode)
+```
+
+**Key Algorithm:** Product search with keyword tokenization and wildcard matching
+```java
+// Multi-keyword search with wildcards
+public List<Product> searchProductList(String keywords) {
+    List<Product> products = new ArrayList<>();
+    for (String keyword : keywords.split("\\s+")) {
+        products.addAll(productMapper.searchProductList("%" + keyword.toLowerCase() + "%"));
+    }
+    return products;
+}
+```
+
+### 3.3 OrderService
+**Responsibilities:**
+- Order creation and processing
+- Inventory management during order placement
+- Order history and retrieval
+- Sequence generation for order IDs
+
+**Key Methods:**
+```java
+void insertOrder(Order order)
+Order getOrder(int orderId)
+List<Order> getOrdersByUsername(String username)
+int getNextId(String sequenceName)  // Sequence generation
+```
+
+**Critical Business Logic:**
+- Order creation involves atomic operations: insert order, insert status, insert line items, update inventory
+- Sequence management with optimistic locking pattern
+- Automatic inventory decrement on order placement
+
+## 4. Data Access Layer (MyBatis Mappers)
+
+### 4.1 Account Management Mappers
+**AccountMapper:**
+- `getAccountByUsername()`, `getAccountByUsernameAndPassword()`
+- `insertAccount()`, `updateAccount()`
+- Profile and signon table management
+
+### 4.2 Catalog Management Mappers
+**CategoryMapper:**
+- `getCategoryList()`, `getCategory()`
+
+**ProductMapper:**
+- `getProductListByCategory()`, `searchProductList()`
+- `getProduct()`
+
+**ItemMapper:**
+- `getItemListByProduct()`, `getItem()`
+- Inventory status checks
+
+### 4.3 Order Management Mappers
+**OrderMapper:**
+- `insertOrder()`, `getOrder()`, `getOrdersByUsername()`
+
+**LineItemMapper:**
+- Line item persistence and retrieval
+
+**SequenceMapper:**
+- `getNextId()`, `updateSequence()` - Thread-safe ID generation
+
+**InventoryMapper:**
+- `updateInventoryQuantity()`, `getInventoryQuantity()`
+- Real-time stock management
+
+## 5. Web Layer (Stripes Action Beans)
+
+### 5.1 CatalogActionBean
+**Endpoints:** `/actions/Catalog.action`
+**Operations:** `viewCategory`, `viewProduct`, `viewItem`, `searchProducts`
+**Session Management:** Catalog navigation state
+**Exposed Properties:** `categoryList`, `productList`, `itemList`, `categoryId`, `productId`, `itemId`, `keyword`
+
+### 5.2 CartActionBean
+**Endpoints:** `/actions/Cart.action`
+**Operations:** `addItemToCart`, `removeItemFromCart`, `updateCartQuantities`, `viewCart`
+**Session Storage:** Cart maintained in user session
+**Key Logic:** Real-time inventory checking, quantity validation, pricing calculations
+
+### 5.3 OrderActionBean
+**Endpoints:** `/actions/Order.action`
+**Operations:** `newOrderForm`, `newOrder`, `listOrders`, `viewOrder`
+**Checkout Process:** Multi-step order confirmation workflow
+**Exposed Properties:** `orderList`, `shippingAddressRequired`, `confirmed`
+
+### 5.4 AccountActionBean
+**Endpoints:** `/actions/Account.action`
+**Operations:** `signon`, `signoff`, `newAccount`, `editAccount`
+**Session Management:** User authentication state
+**Exposed Properties:** `account`, `username`, `password`, `authenticated`, `myList`
+
+## 6. Database Schema & Data Models
+
+### 6.1 Complete Database Schema
+```sql
+-- User Management Tables
+ACCOUNT (userid, email, firstname, lastname, address, phone, status)
+PROFILE (userid, langpref, favcategory, mylistopt, banneropt)
+SIGNON (username, password)
+
+-- Catalog Structure Tables
+CATEGORY (catid, name, descn)
+PRODUCT (productid, category, name, descn)
+ITEM (itemid, productid, listprice, unitcost, supplier, status, attributes)
+INVENTORY (itemid, qty)
+SUPPLIER (suppid, name, address, phone)
+
+-- Order Management Tables
+ORDERS (orderid, userid, orderdate, shipaddr1, shipaddr2, shipcity, shipstate, 
+        shipzip, shipcountry, billaddr1, billaddr2, billcity, billstate, 
+        billzip, billcountry, courier, totalprice, billtofirstname, billtolastname, 
+        shiptofirstname, shiptolastname, creditcard, exprdate, cardtype, locale)
+LINEITEM (orderid, linenum, itemid, quantity, unitprice)
+ORDERSTATUS (orderid, linenum, timestamp, status)
+
+-- System Tables
+SEQUENCE (name, nextid)  -- For order ID generation
+BANNERDATA (favcategory, bannername)
+```
+
+### 6.2 Key Database Relationships
+- **Category** ← (1:N) → **Product** ← (1:N) → **Item** ← (1:1) → **Inventory**
+- **Account** ← (1:N) → **Orders** ← (1:N) → **LineItem** ← (N:1) → **Item**
+- **Supplier** ← (1:N) → **Item**
+- **Sequence** → (1:1) → **Orders** (for ID generation)
+
+## 7. API Endpoints & Web Interfaces
+
+### 7.1 Complete Web Interface URLs
+```
+/actions/Catalog.action?viewCategory&categoryId=FISH
+/actions/Catalog.action?viewProduct&productId=FI-SW-01  
+/actions/Catalog.action?viewItem&itemId=EST-1
+/actions/Catalog.action?searchProducts&keyword=fish
+
+/actions/Cart.action?addItemToCart&workingItemId=EST-1
+/actions/Cart.action?removeItemFromCart&workingItemId=EST-1
+/actions/Cart.action?updateCartQuantities
+/actions/Cart.action?viewCart
+
+/actions/Account.action?signon
+/actions/Account.action?signoff
+/actions/Account.action?newAccount
+/actions/Account.action?editAccount
+
+/actions/Order.action?newOrderForm
+/actions/Order.action?newOrder
+/actions/Order.action?listOrders
+/actions/Order.action?viewOrder
+```
+
+### 7.2 Service Layer Interfaces
+```java
+// Account Service Interface
+Account getAccount(String username)
+Account getAccount(String username, String password)
+void insertAccount(Account account)
+void updateAccount(Account account)
+
+// Catalog Service Interface
+List<Category> getCategoryList()
+Category getCategory(String categoryId)
+List<Product> getProductListByCategory(String categoryId)
+Product getProduct(String productId)
+List<Item> getItemListByProduct(String productId)
+Item getItem(String itemId)
+List<Product> searchProductList(String keywords)
+boolean isItemInStock(String itemId)
+
+// Order Service Interface
+void insertOrder(Order order)
+Order getOrder(int orderId)
+List<Order> getOrdersByUsername(String username)
+int getNextId(String sequenceName)
+```
+
+## 8. Service Dependencies & Communication Patterns
+
+### 8.1 Complete Dependency Graph
+```
+AccountActionBean → AccountService → AccountMapper
+                ↘ CatalogService → CategoryMapper, ProductMapper, ItemMapper
+
+CatalogActionBean → CatalogService → CategoryMapper, ProductMapper, ItemMapper
+
+CartActionBean → CatalogService → ItemMapper, Inventory checks
+
+OrderActionBean → OrderService → OrderMapper, LineItemMapper, ItemMapper, SequenceMapper
+               ↘ AccountActionBean (for user context)
+               ↘ CartActionBean (for cart data)
+```
+
+### 8.2 Communication Patterns
+- **Synchronous In-Process**: All service calls are local method invocations within the same JVM
+- **Session-Based State Management**: User state (cart, authentication) stored in HTTP session
+- **Transactional Boundaries**: Order processing uses Spring `@Transactional` for ACID properties
+- **Request-Response MVC**: Traditional web MVC pattern with JSP rendering
+- **Database-Level Sequencing**: Order ID generation via sequence table with optimistic locking
+
+## 9. Key Business Logic & Algorithms
+
+### 9.1 Shopping Cart Management
+**Cart Pricing Calculation:**
+```java
+BigDecimal getSubTotal() {
+    return itemList.stream()
+        .map(cartItem -> cartItem.getItem().getListPrice()
+                       .multiply(new BigDecimal(cartItem.getQuantity())))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+}
+```
+
+**Inventory Validation:**
+- Real-time stock checking via `isItemInStock()` before cart operations
+- Quantity validation against available inventory
+- Session cart synchronization with actual stock levels
+
+### 9.2 Order Processing Algorithm
+1. **ID Generation**: Generate unique order ID using sequence table with optimistic locking
+2. **Inventory Validation**: Validate and reserve inventory for all line items
+3. **Order Creation**: Create order record with user, payment, and shipping information
+4. **Line Item Creation**: Create line item records for each cart item
+5. **Status Update**: Update order status to confirmed
+6. **Inventory Update**: Deduct purchased quantities from inventory
+7. **Cart Clearance**: Clear shopping cart upon successful order completion
+
+### 9.3 Product Search Algorithm
+```java
+// Multi-keyword search with wildcards and result aggregation
+public List<Product> searchProductList(String keywords) {
+    List<Product> products = new ArrayList<>();
+    for (String keyword : keywords.split("\\s+")) {
+        if (!keyword.trim().isEmpty()) {
+            products.addAll(productMapper.searchProductList("%" + keyword.toLowerCase() + "%"));
+        }
+    }
+    return products.stream().distinct().collect(Collectors.toList());
+}
+```
+
+### 9.4 Inventory Management Logic
+- Real-time stock checking via `isItemInStock()` method
+- Inventory deduction during order processing as part of transactional boundary
+- Backorder handling for out-of-stock items (status-based)
+- Quantity validation throughout purchase workflow
+
+## 10. Configuration & Deployment Architecture
+
+### 10.1 Spring Configuration (`applicationContext.xml`)
+- **DataSource Configuration**: Embedded HSQLDB with schema/data loading
+- **Transaction Management**: JDBC transactions with `@Transactional` annotations
+- **Component Scanning**: Auto-wiring for services and mappers
+- **MyBatis Integration**: SqlSessionFactory with type aliases and mapper scanning
+- **Bean Definitions**: Explicit service and mapper bean configurations
+
+### 10.2 Web Application Configuration (`web.xml`)
+- **Stripes Filter**: Action resolution and Spring integration
+- **Servlet Mapping**: `*.action` URLs to Stripes dispatcher
+- **JSTL Configuration**: Localization and formatting support
+- **Spring Context**: ContextLoaderListener for dependency injection
+- **Session Configuration**: HTTP session management and timeout settings
+
+### 10.3 Application Structure
+```
+/WEB-INF/
+  /jsp/
+    /cart/          - Cart.jsp, Checkout.jsp, IncludeMyList.jsp
+    /catalog/       - Category.jsp, Item.jsp, Main.jsp, Product.jsp, SearchProducts.jsp
+    /order/         - ConfirmOrder.jsp, ListOrders.jsp, NewOrderForm.jsp, ShippingForm.jsp, ViewOrder.jsp
+    /common/        - IncludeTop.jsp, IncludeBottom.jsp, Error.jsp
+  web.xml           - Servlet configuration
+  applicationContext.xml - Spring configuration
+```
+
+### 10.4 Build & Deployment Infrastructure
+**Maven Configuration:**
+- Maven Wrapper for build consistency
+- Multiple application server profiles:
+  - `tomcat9`, `tomee80`, `wildfly26`
+  - `liberty-ee8`, `jetty`, `glassfish5`, `resin`
+- Custom settings for deployment
+- Profiler integration for build optimization
+
+**CI/CD Pipeline:**
+- GitHub Actions for continuous integration
+- Multi-platform testing (Linux, macOS, Windows)
+- Multi-JDK version support (17, 21, 24, 25-ea)
+- Quality gates with SonarCloud integration
+- CodeQL security scanning
+- Coveralls test coverage with JaCoCo reporting
+
+**Container Support:**
+- Docker and Docker Compose configurations
+- Multiple application server testing profiles
+- WAR file packaging for traditional deployment
+
+## 11. Architectural Patterns & Design
+
+### 11.1 MVC Pattern Implementation
+- **Model**: Domain objects (Account, Order, Product, Cart) with business logic
+- **View**: JSP templates with Stripes tags and JSTL for server-side rendering
+- **Controller**: Stripes ActionBeans handling HTTP requests and response coordination
+
+### 11.2 Layered Architecture
+- **Web/Presentation Layer**: Stripes ActionBeans (request handling, session management)
+- **Service/Business Layer**: Business logic, transaction management, service coordination
+- **Data Access Layer**: MyBatis mappers (SQL execution, object-relational mapping)
+- **Domain Layer**: Business entities with state and behavior
+
+### 11.3 Session Management Strategy
+- `@SessionScope` for stateful ActionBeans
+- Shopping cart and user authentication maintained in HTTP session
+- Session cleanup on signoff with explicit invalidation
+- State synchronization across multiple requests
+
+### 11.4 Transaction Management
+- Declarative transactions with Spring `@Transactional` annotations
+- Order processing as atomic unit of work spanning multiple tables
+- Rollback on inventory or order failures to maintain consistency
+- Transaction propagation and isolation level configuration
+
+### 11.5 Testing Architecture
+- **Unit Testing**: JUnit 5 with Mockito for service layer testing
+- **Integration Testing**: Spring test context for data access layer
+- **UI Testing**: Selenide for end-to-end web testing
+- **Mock Strategy**: Dependency mocking with Mockito extension
+- **Assertion Framework**: AssertJ for fluent assertions
+
+## 12. Frontend Architecture & UI Components
+
+### 12.1 View Layer Components
+**Cart Management Views:**
+- `Cart.jsp` - Shopping cart display and management
+- `Checkout.jsp` - Order confirmation and payment
+- `IncludeMyList.jsp` - User preference integration
+
+**Catalog Management Views:**
+- `Category.jsp` - Category-based product listing
+- `Product.jsp` - Product details and item selection
+- `Item.jsp` - Individual item details and purchase
+- `SearchProducts.jsp` - Search results display
+
+**Order Management Views:**
+- `ConfirmOrder.jsp` - Order review and confirmation
+- `ListOrders.jsp` - Order history display
+- `NewOrderForm.jsp` - Order creation form
+- `ShippingForm.jsp` - Address information collection
+- `ViewOrder.jsp` - Individual order details
+
+**Common Components:**
+- `IncludeTop.jsp` - Header and navigation
+- `IncludeBottom.jsp` - Footer and common scripts
+- `Error.jsp` - Error handling and user feedback
+- `Main.jsp` - Homepage and category navigation
+
+### 12.2 UI Framework Integration
+- **Stripes Framework**: Form binding, action resolution, validation
+- **JSTL Tags**: Server-side rendering, iteration, formatting
+- **CSS Styling**: `jpetstore.css` for consistent visual design
+- **Image Resources**: Product categories and UI elements
+- **Internationalization**: Multi-language support (English, Spanish, Japanese, Korean)
+
+## 13. Critical Integration Points & Data Flows
+
+### 13.1 Key Data Flows
+1. **Catalog Browsing Flow**: Main → Category → Product → Item hierarchy navigation
+2. **Cart Management Flow**: Add/remove items → Quantity updates → Pricing recalculation
+3. **Order Processing Flow**: Cart review → Address collection → Payment → Confirmation → Inventory update
+4. **User Authentication Flow**: Signon → Session creation → Authorization checks → Signoff cleanup
+
+### 13.2 State Management
+- **User Session**: Authentication state, shopping cart, user preferences
+- **Database State**: Inventory levels, order status, user accounts
+- **Application State**: Catalog data, product information, supplier details
+
+### 13.3 Consistency Requirements
+- Cart items must validate against current inventory levels
+- Order creation requires atomic cart checkout and inventory reservation
+- User session data must remain consistent across service interactions
+- Sequence generation must be thread-safe for order ID creation
+
+## 14. Microservice Decomposition Analysis
+
+### 14.1 Potential Service Boundaries
+
+#### User Service
+**Responsibilities:**
+- User authentication and authorization
+- Account management and profile updates
+- User preference storage
+- Session management
+
+**Data Ownership:**
+- ACCOUNT, PROFILE, SIGNON tables
+- User session data
+- Authentication tokens
+
+**Key Interfaces:**
+```java
+User authenticate(String username, String password)
+User createAccount(User user)
+User updateProfile(String username, Profile profile)
+void invalidateSession(String sessionId)
+```
+
+#### Catalog Service
+**Responsibilities:**
+- Product catalog management
+- Category and product hierarchy
+- Product search and browsing
+- Product information management
+
+**Data Ownership:**
+- CATEGORY, PRODUCT, ITEM, SUPPLIER tables
+- Product attributes and descriptions
+- Category relationships
+
+**Key Interfaces:**
+```java
+List<Category> getCategories()
+List<Product> getProductsByCategory(String categoryId)
+List<Product> searchProducts(String keywords)
+ProductDetail getProductDetail(String productId)
+Item getItem(String itemId)
+```
+
+#### Inventory Service
+**Responsibilities:**
+- Stock level management
+- Inventory reservations
+- Stock availability checking
+- Inventory updates and tracking
+
+**Data Ownership:**
+- INVENTORY table
+- Stock level information
+- Reservation records
+
+**Key Interfaces:**
+```java
+boolean isItemInStock(String itemId)
+InventoryStatus checkInventory(String itemId)
+Reservation reserveItems(Map<String, Integer> items)
+void updateInventory(String itemId, int quantity)
+```
+
+#### Cart Service
+**Responsibilities:**
+- Shopping cart management
+- Cart item operations
+- Pricing calculations
+- Cart persistence
+
+**Data Ownership:**
+- Cart session data (initially session-based, could move to database)
+- Cart item relationships
+- Temporary pricing information
+
+**Key Interfaces:**
+```java
+Cart getCart(String sessionId)
+Cart addItemToCart(String sessionId, String itemId, int quantity)
+Cart updateCartItem(String sessionId, String itemId, int quantity)
+Cart removeItemFromCart(String sessionId, String itemId)
+BigDecimal calculateTotal(Cart cart)
+```
+
+#### Order Service
+**Responsibilities:**
+- Order creation and processing
+- Order history management
+- Order status tracking
+- Payment processing coordination
+
+**Data Ownership:**
+- ORDERS, LINEITEM, ORDERSTATUS tables
+- Order sequence generation (SEQUENCE table)
+- Order payment information
+
+**Key Interfaces:**
+```java
+Order createOrder(OrderRequest orderRequest)
+Order getOrder(int orderId)
+List<Order> getOrdersByUser(String username)
+OrderStatus getOrderStatus(int orderId)
+```
+
+### 14.2 Integration Challenges & Solutions
+
+#### Cross-Service Dependencies
+1. **Order Service → Inventory Service**: Synchronous communication for stock reservation
+2. **Cart Service → Catalog Service**: Product information and pricing data
+3. **Cart Service → Inventory Service**: Real-time stock availability
+4. **All Services → User Service**: Authentication and authorization
+
+#### Data Consistency Requirements
+- **Eventual Consistency**: Catalog updates can be eventually consistent
+- **Strong Consistency**: Inventory updates during checkout require strong consistency
+- **Transactional Boundaries**: Order creation spans multiple services requiring distributed transactions or saga pattern
+
+#### Session Management Migration
+- **Stateless Authentication**: JWT tokens replacing session-based authentication
+- **Externalized Session Storage**: Redis or database for cart and session data
+- **Service-Specific State**: Each service manages its own state with clear ownership
+
+### 14.3 API Gateway & Communication Patterns
+
+#### API Gateway Responsibilities
+- Request routing and composition
+- Authentication and authorization
+- Rate limiting and throttling
+- API version management
+
+#### Inter-Service Communication
+- **Synchronous REST/HTTP**: For real-time inventory checks and order validation
+- **Asynchronous Messaging**: For order status updates and inventory notifications
+- **Event Sourcing**: For catalog updates and price changes
+
+### 14.4 Deployment & Operational Considerations
+
+#### Database Decomposition
+- **Database-per-Service**: Each service owns its database schema
+- **Shared Database Initial Phase**: Gradual migration from monolithic database
+- **Data Synchronization**: CDC (Change Data Capture) for shared reference data
+
+#### Monitoring & Observability
+- Distributed tracing across service boundaries
+- Centralized logging and monitoring
+- Health checks and circuit breakers
+- Performance metrics aggregation
+
+This comprehensive architecture provides a solid foundation for both understanding the current monolithic implementation and planning a strategic decomposition into microservices while maintaining clear boundaries and data consistency requirements.
