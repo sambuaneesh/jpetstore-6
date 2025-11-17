@@ -1,0 +1,8 @@
+| Component Name | Language | Frameworks | Database | Communication | Patterns |
+|---|---|---|---|---|---|
+| Web/MVC Layer (org.mybatis.jpetstore.web.actions) | Java | Stripes MVC, JSP/Servlet, Spring (DI) | None | HTTP (browser↔server), JSP forwards, in-process calls to services | MVC (ActionBean), Front Controller, Session-scoped state, Layered Architecture |
+| Service Layer (org.mybatis.jpetstore.service) | Java | Spring (Core, Beans, Transactions) | None (delegates to persistence) | In-process calls to mappers, transactional boundaries | Service Façade, Application Service/Transaction Script, Aggregate assembly, Sequence-based ID generation |
+| Persistence Layer (org.mybatis.jpetstore.mapper) | Java | MyBatis, MyBatis-Spring, Spring JDBC/Tx | Relational DB (DB-agnostic; HSQLDB embedded for tests) | JDBC via MyBatis | Data Mapper (DAO), Table-backed ID Sequence, SQL mapping, Layered Architecture |
+| Domain Model (org.mybatis.jpetstore.domain) | Java | Java SE (POJOs, Serializable) | None | In-process object passing, Java serialization (session) | Anemic Domain Model (POJOs), Aggregates (Order–LineItem, Cart–CartItem), BigDecimal monetary calculations, Serializable DTOs |
+| UI Integration Tests (org.mybatis.jpetstore) | Java | Selenide, Selenium WebDriver, JUnit 5, AssertJ, Headless Chrome | N/A (drives app via UI; app uses RDBMS, HSQLDB in CI) | WebDriver over HTTP to running app | End-to-end/Acceptance Testing, Scenario-driven tests |
+| Build/Bootstrap (Maven Wrapper) | Java | Apache Maven Wrapper | None | HTTPS download, filesystem I/O | Self-bootstrap, Reproducible builds, Environment-driven configuration |
