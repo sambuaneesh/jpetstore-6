@@ -1,0 +1,125 @@
+
+## Architectural Summary: JPetStore 6 - Part 3
+
+### **Core Components & Responsibilities**
+1. **Presentation Layer**
+   - **ViewOrder.jsp**: Displays comprehensive order details (payment info, billing/shipping addresses, line items, status)
+   - Uses JSTL/Stripes tags for data rendering and navigation
+   - Directly accesses `Order` domain object attributes via `${actionBean.order.*}`
+   - Supports navigation to catalog via `Stripes:link`
+
+2. **Internationalization (i18n) Layer**
+   - **site.xml** (English) + localized variants: 
+     - `site_es.xml` (Spanish)
+     - `site_ja.xml` (Japanese) 
+     - `site_ko.xml` (Korean)
+   - Configures Maven site documentation structure
+   - Defines language-specific navigation menus
+
+3. **Documentation Subsystem**
+   - Multilingual `index.xml` files (ES/JA/KO/EN)
+   - Describes architecture: Stripes (web) + Spring (DI) + MyBatis (persistence)
+   - **Key architectural highlights**:
+     - 24 Java classes total (20% smaller than predecessor)
+     - Zero MyBatis API calls (uses DI/mappers)
+     - Declarative transactions via `@Transactional`
+
+### **Data Models & APIs**
+```java
+// Core domain objects (referenced in ViewOrder.jsp)
+Order {
+  orderId, orderDate, cardType, creditCard, expiryDate
+  billToFirstName, billToLastName, billAddress1, billAddress2
+  billCity, billState, billZip, billCountry
+  shipToFirstName, shipToLastName, shipAddress1, shipAddress2
+  shipCity, shipState, shipZip, shipCountry
+  courier, status, lineItems, totalPrice
+}
+
+LineItem {
+  item.itemId, item.attribute1-5, item.product.name
+  quantity, unitPrice, total
+}
+```
+
+### **Service Dependencies**
+1. **Order Flow**:
+   ```mermaid
+   sequenceDiagram
+   JSP->>CatalogActionBean: viewItem(itemId)
+   CatalogActionBean->>CatalogService: getItem(itemId)
+   ```
+
+2. **Configuration Stack**:
+   - **web.xml**: Stripes filter/servlet + Spring context loader
+   - **applicationContext.xml**: 
+     - Component scan (`org.mybatis.jpetstore.service`)
+     - MyBatis scanner (`org.mybatis.jpetstore.mapper`)
+     - Embedded HSQLDB with schema/data scripts
+
+### **Architectural Patterns**
+1. **MVC Architecture**:
+   - **Presentation**: JSP + Stripes ActionBeans
+   - **Logic**: Spring `@Service` components
+   - **Persistence**: MyBatis mapper interfaces
+
+2. **Dependency Injection**:
+   - Spring auto-injects services into ActionBeans via `@SpringBean`
+   - MyBatis mappers injected into services via `@Autowired`
+
+3. **Transaction Management**:
+   - Declarative via Spring `@Transactional`
+   - Example: `OrderService.insertOrder()` updates inventory + creates order atomically
+
+### **Testing Architecture**
+1. **ScreenTransitionIT** (Selenium/Selenide):
+   - Full UI flow testing: cart → checkout → order confirmation
+   - Validates: item search, cart management, user registration
+   - Uses headless Chrome with timeouts
+
+2. **CartTest** (Unit):
+   - Domain logic validation: item addition/removal, quantity updates
+   - Tests cart calculations (subtotal, item totals)
+   - Asserts inventory status handling
+
+### **Key Business Logic**
+1. **Cart Management**:
+   - Item addition/removal with stock checking
+   - Quantity-based price calculations
+   - Subtotal aggregation (`BigDecimal` arithmetic)
+
+2. **Order Processing**:
+   - Inventory decrement on order creation
+   - Order status tracking
+   - Multi-step checkout with address validation
+
+### **Microservice Decomposition Insights**
+| **Bounded Context** | **Indicators** | **Potential Service** |
+|---------------------|-----------------|----------------------|
+| Order Management | ViewOrder.jsp, OrderMapper | Order Service |
+| Cart Operations | CartTest, Cart domain | Cart Service |
+| Catalog Browsing | CatalogActionBean links | Catalog Service |
+| User Accounts | Registration flow tests | User Service |
+| Inventory | ItemMapper.updateInventory() | Inventory Service |
+
+### **Technical Debt & Decoupling Needs**
+1. **Tight Coupling**:
+   - JSP directly accesses nested domain properties (`order.billAddress1`)
+   - Requires DTOs for microservice APIs
+
+2. **Database Coupling**:
+   - Embedded HSQL with hardcoded scripts
+   - Needs service-owned databases
+
+3. **Transaction Boundaries**:
+   - Current cross-service `insertOrder()` transaction needs refactoring
+   - Implement saga pattern for distributed transactions
+
+### **Configuration Details**
+- **Database**: HSQL in-memory (dev), loaded via:
+  - `jpetstore-hsqldb-schema.sql`
+  - `jpetstore-hsqldb-dataload.sql`
+- **Frameworks**: Stripes 1.x, Spring 4, MyBatis 3
+- **Build**: Maven-based with site generation
+
+This architecture presents clear microservice boundaries around core domains (Orders, Cart, Catalog, Users) but requires refactoring of presentation layer coupling and transaction management for distributed deployment.

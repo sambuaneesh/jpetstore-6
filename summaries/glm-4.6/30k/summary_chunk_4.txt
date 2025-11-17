@@ -1,0 +1,135 @@
+
+## Architectural Summary: JPetstore Test Infrastructure & CI/CD (Part 4/4)
+
+### 1. **Core Domain Components**
+- **Order** (`OrderTest.java`)
+  - **Responsibilities**: Order lifecycle management, cart-to-order conversion
+  - **Key Logic**: `initOrder()` populates shipping/billing addresses from Account, calculates totals, and initializes line items
+  - **Default Values**: Visa credit card, UPS courier, CA locale, "P" status
+
+- **Account** (`AccountServiceTest.java`, `AccountMapperTest.java`)
+  - **Responsibilities**: User authentication, profile management, address handling
+  - **Data Model**: Username, email, password, addresses, language preference, favorite category
+
+- **Catalog Entities** (`CategoryMapperTest`, `ProductMapperTest`, `ItemMapperTest`)
+  - **Category**: Product grouping (BIRDS, CATS, DOGS, FISH, REPTILES)
+  - **Product**: Items within categories (e.g., Angelfish, Koi)
+  - **Item**: Specific inventory with pricing/supplier attributes
+  - **Search**: Keyword-based product search (`%keyword%` pattern)
+
+### 2. **Service Layer & Business Logic**
+- **AccountService** (`AccountServiceTest.java`)
+  - **Operations**: Account CRUD (insert/update), authentication (username/password)
+  - **Dependencies**: `AccountMapper`
+  - **Transaction Pattern**: Atomic updates across account/profile/signon tables
+
+- **CatalogService** (`CatalogServiceTest.java`)
+  - **Operations**: Product/category browsing, inventory checks
+  - **Dependencies**: `ProductMapper`, `CategoryMapper`, `ItemMapper`
+  - **Search Logic**: Multi-keyword support with deduplication
+
+- **OrderService** (`OrderServiceTest.java`)
+  - **Operations**: Order processing, inventory updates, sequence generation
+  - **Dependencies**: `OrderMapper`, `ItemMapper`, `LineItemMapper`, `SequenceMapper`
+  - **ID Generation**: Centralized sequences via `getNextId("ordernum")`
+
+### 3. **Data Persistence Layer**
+- **Mappers** (`*MapperTest.java`)
+  - **Account**: `account`, `profile`, `signon` tables
+  - **Catalog**: `category`, `product`, `item`, `inventory` tables
+  - **Order**: `orders`, `lineitem`, `orderstatus` tables
+  - **Sequence**: `sequence` table for ID generation
+  - **Test DB**: HSQL in-memory (`MapperTestContext.java`)
+
+#### **Key Schemas**:
+```sql
+account (userid, email, firstname, lastname, status, addr1, addr2, city, state, zip, country, phone)
+signon (username, password)
+profile (userid, langpref, favcategory, mylistopt, banneropt)
+orders (orderid, userid, orderdate, courier, totalprice, bill/ship addresses...)
+lineitem (orderid, linenum, itemid, quantity, unitprice)
+inventory (itemid, qty)
+sequence (name, nextid)
+```
+
+### 4. **API Interfaces & Communication**
+- **Service APIs**:
+  - `AccountService`: `insertAccount()`, `getAccount()`, `updateAccount()`
+  - `CatalogService`: `searchProductList()`, `getProductListByCategory()`, `isItemInStock()`
+  - `OrderService`: `insertOrder()`, `getOrder()`, `getOrdersByUsername()`
+- **Data Flow**:
+  - Order processing triggers inventory updates
+  - Account changes require synchronized profile/signon updates
+
+### 5. **Configuration & Deployment**
+- **Testing Infrastructure**:
+  - Spring Test Context (`MapperTestContext.java`)
+  - Embedded HSQL DB with schema/data scripts
+  - Mockito for service layer testing
+- **CI/CD Pipeline** (`.github/workflows/`):
+  - **Matrix Testing**: Java 17/21/24/25 on Ubuntu/macOS/Windows
+  - **Quality Gates**: CodeQL analysis, SonarCloud scanning
+  - **Deployment**: Sonatype releases, GitHub Pages site
+  - **Container Support**: Tomcat, WildFly, Jetty, Liberty
+
+### 6. **Architectural Patterns & Frameworks**
+- **Patterns**:
+  - **Repository Pattern**: MyBatis mappers abstract data access
+  - **Service Layer**: Business logic encapsulation
+  - **Unit of Work**: Transactional operations in mappers
+- **Frameworks**:
+  - MyBatis-Spring integration
+  - Spring Test for transaction rollback
+  - JUnit 5 + AssertJ for testing
+  - Maven with CI plugins (Jacoco, Coveralls)
+
+### 7. **Microservice Decomposition Insights**
+- **Service Boundaries**:
+  1. **Account Service**: Authentication/profiles
+  2. **Catalog Service**: Products/inventory
+  3. **Order Service**: Order processing/fulfillment
+- **Critical Dependencies**:
+  - Order Service → Inventory Service (stock checks)
+  - Account Service → Shared Authentication DB
+- **Data Ownership**:
+  - Each service owns its domain tables
+  - Sequences require distributed ID generation
+- **Deployment**:
+  - Containerizable (multi-server support matrix)
+  - Health checks via service-specific endpoints
+
+### 8. **Key Business Algorithms**
+- **Inventory Management**:
+  - Atomic decrement: `UPDATE inventory SET qty = qty - ?`
+  - Stock validation in checkout flow
+- **Order Totals**:
+  - `totalPrice = SUM(lineitem.quantity * lineitem.unitprice)`
+  - Default shipping/billing from account
+- **Sequence Generation**:
+  - Optimistic locking: `UPDATE sequence SET nextid = ? WHERE name = ?`
+
+### 9. **Testing Strategy**
+- **Unit Tests**:
+  - Mapper layer: Direct SQL verification
+  - Service layer: Mocked dependencies
+  - Domain models: State validation
+- **Integration**:
+  - Embedded DB schema validation
+  - Transaction rollback testing
+- **CI Requirements**:
+  - Cross-platform compatibility (OS/Java matrix)
+  - Security scanning (CodeQL, NVD checks)
+  - Coverage thresholds (Jacoco)
+
+---
+
+**Summary for Microservice Architecture**:  
+This codebase reveals a clear 3-tier monolith with service boundaries around **Account**, **Catalog**, and **Order** domains. Each domain has dedicated persistence, services, and validation logic. The test infrastructure emphasizes:
+1. **Service Isolation** (mocks for dependency testing)
+2. **Data Consistency** (transactional mapper operations)
+3. **Deployment Flexibility** (multi-container support)
+Decomposition should prioritize:
+- Event-driven inventory updates
+- Centralized authentication via Account Service
+- Distributed sequence generators
+- API contracts for Order→Inventory communication

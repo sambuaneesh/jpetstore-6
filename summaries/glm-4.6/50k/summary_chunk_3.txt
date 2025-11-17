@@ -1,0 +1,156 @@
+
+## Architectural Summary: JPetStore Test & Deployment Infrastructure (Part 3/3)
+
+### 1. **Service Layer Components & Responsibilities**
+#### **CatalogService**
+* **Core Responsibilities**:
+  - Product search by keywords (splits keywords and queries multiple times)
+  - Category/Product/Item retrieval
+  - Inventory stock checks
+* **Key Methods**:
+  - `searchProductList(String keywords)`
+  - `getCategoryList()`, `getCategory(String id)`
+  - `getProduct(String id)`, `getProductListByCategory(String catId)`
+  - `getItem(String id)`, `getItemListByProduct(String prodId)`
+  - `isItemInStock(String itemId)`
+
+#### **OrderService**
+* **Core Responsibilities**:
+  - Order lifecycle management (creation/retrieval)
+  - Sequence ID generation for orders
+  - Inventory decrement on order placement
+  - Order history retrieval per user
+* **Key Methods**:
+  - `getOrder(int orderId)` (populates with line items)
+  - `getOrdersByUsername(String username)`
+  - `insertOrder(Order order)` (updates inventory)
+  - `getNextId(String sequenceName)`
+
+---
+
+### 2. **Web Layer Components (ActionBeans)**
+#### **AccountActionBean**
+* Manages user account state (authentication status, user credentials)
+* Holds account details (`Account` domain object)
+* Key properties: `username`, `password`, `authenticated`, `myList`
+
+#### **CatalogActionBean**
+* Exposes catalog data to web layer
+* Key properties: 
+  - `categoryId`, `productId`, `itemId`
+  - `keyword` (for search)
+  - `category`, `product`, `item` (current selections)
+  - `categoryList`, `productList`, `itemList` (collections)
+
+#### **OrderActionBean**
+* Manages order workflow state
+* Key properties:
+  - `orderList`, `confirmed`, `shippingAddressRequired`
+
+---
+
+### 3. **Data Models & Dependencies**
+#### **Domain Objects**
+```java
+Category { id, name, description }
+Product { id, categoryId, name, description }
+Item { id, productId, listPrice, unitCost, supplier, quantity }
+Order { orderId, username, orderDate, shipDate, status, lineItems[] }
+LineItem { orderId, itemId, quantity, unitPrice }
+Sequence { name, nextId }
+Account { username, password, email, address details }
+```
+
+#### **Service Dependencies**
+* **CatalogService** depends on:
+  - `ProductMapper`, `CategoryMapper`, `ItemMapper`
+* **OrderService** depends on:
+  - `OrderMapper`, `LineItemMapper`, `ItemMapper`, `SequenceMapper`
+
+---
+
+### 4. **Build & Deployment Configuration**
+#### **Maven Configuration**
+* **Build Tools**:
+  - Maven Wrapper (3.3.3) with source distribution
+  - Maven Profiler Extension (fr.jcgay.maven:maven-profiler:3.3)
+  - Checksums: SHA-512, SHA-256, SHA-1, MD5
+* **Authentication**:
+  - CI Deploy (Sonatype Nexus)
+  - GitHub Pages (site deployment)
+  - NVD API (dependency checks)
+
+#### **CI/CD Pipelines (GitHub Actions)**
+1. **CI Workflow** (`ci.yaml`):
+   - Matrix tests: Java 17/21/24/25-ea on Ubuntu/macOS/Windows
+   - Maven test execution
+   
+2. **Quality Gates**:
+   - **CodeQL** (weekly + PRs): Security/quality analysis
+   - **SonarCloud** (master branch): Code quality with Jacoco coverage
+   - **Coveralls** (PRs/pushes): Coverage reporting
+
+3. **Deployment**:
+   - **Site** (`site.yaml`): Documentation to gh-pages
+   - **Sonatype** (`sonatype.yaml`): Artifact deployment
+   - **Support** (`support.yaml`): Container testing (Tomcat/TomEE/WildFly/Jetty/GlassFish/Resin)
+
+---
+
+### 5. **Key Business Logic & Algorithms**
+#### **Product Search Algorithm**
+```java
+// Splits keywords, queries per term, concatenates results
+String[] keywords = keywords.split(" ");
+for (String keyword : keywords) {
+  List<Product> results = productMapper.searchProductList("%" + keyword + "%");
+  // Merge deduped results
+}
+```
+
+#### **Order ID Generation**
+```java
+// Atomic sequence update
+Sequence seq = sequenceMapper.getSequence("ordernum");
+sequenceMapper.updateSequence(seq.getName(), seq.getNextId() + 1);
+return seq.getNextId();
+```
+
+#### **Inventory Management**
+```java
+// Inventory decrement on order placement
+Map<String, Object> params = Map.of(
+  "itemId", itemId,
+  "increment", -lineItem.getQuantity()
+);
+itemMapper.updateInventoryQuantity(params);
+```
+
+---
+
+### 6. **Microservice Decomposition Insights**
+1. **Service Boundaries**:
+   - **Catalog Service** (product search, item details)
+   - **Order Service** (order processing, workflow)
+   - **Account Service** (user management)
+   
+2. **Data Dependencies**:
+   - Order Service tightly coupled to Inventory (requires eventual consistency)
+   - Catalog Service is read-heavy (candidate for caching)
+
+3. **API Design Implications**:
+   - Search endpoints must handle multi-keyword queries
+   - Order API requires transactional inventory updates
+   - Account API needs secure credential handling
+
+4. **Deployment Considerations**:
+   - Container compatibility (tested against Tomcat/TomEE/WildFly)
+   - Language support: Java 17+ LTS required
+   - Observability: Built-in coverage/quality gates
+
+5. **Integration Points**:
+   - Sequence generation requires centralized DB
+   - Account data flows through Order Service
+   - Inventory is a cross-cutting concern between Catalog/Order
+
+This architecture suggests a **domain-driven decomposition** with careful attention to inventory consistency and order transactionality. The web layer (ActionBeans) would require re-architecting into API gateways or BFFs for microservices.

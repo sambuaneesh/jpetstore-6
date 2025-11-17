@@ -1,0 +1,132 @@
+
+### **Architectural Summary: JPetStore 6 (Part 1 of 3)**
+
+---
+
+#### **1. Component Responsibilities**
+| **Component** | **Responsibility** |
+|----------------|-------------------|
+| **AccountActionBean** | Handles user account operations: registration, login, profile updates, and session management. |
+| **CartActionBean** | Manages shopping cart operations: add/remove items, update quantities, checkout initiation. |
+| **CatalogActionBean** | Manages product catalog browsing: categories, products, item details, and search functionality. |
+| **OrderActionBean** | Handles order lifecycle: creation, confirmation, shipping, and order history retrieval. |
+| **AccountService** | Business logic for account operations: authentication, profile management, and data persistence. |
+| **CatalogService** | Business logic for catalog operations: fetching categories, products, items, and inventory checks. |
+| **OrderService** | Business logic for order processing: order creation, inventory updates, and order status management. |
+| **Mappers (MyBatis)** | Data access layer for CRUD operations on domain entities (Account, Product, Order, etc.). |
+| **Domain Models** | Represent core entities: Account, Cart, Item, Order, Product, Category, etc. |
+
+---
+
+#### **2. API Endpoints & Interfaces**
+| **Action Bean** | **URL Pattern** | **Key Methods** |
+|-----------------|------------------|-----------------|
+| **AccountActionBean** | `/actions/Account.action` | `signon`, `signoff`, `newAccount`, `editAccount` |
+| **CartActionBean** | `/actions/Cart.action` | `addItemToCart`, `removeItemFromCart`, `updateCartQuantities`, `checkOut` |
+| **CatalogActionBean** | `/actions/Catalog.action` | `viewCategory`, `viewProduct`, `viewItem`, `searchProducts` |
+| **OrderActionBean** | `/actions/Order.action` | `newOrder`, `listOrders`, `viewOrder` |
+
+- **Validation**: Stripes annotations (`@Validate`) enforce input constraints (e.g., required fields in Account forms).
+- **Session Management**: Session-scoped beans (`@SessionScope`) maintain user state (e.g., cart, authentication).
+
+---
+
+#### **3. Database Schema & Data Models**
+##### **Key Tables**:
+- **ACCOUNT**: User details (email, address, phone).
+- **SIGNON**: Authentication (username, password).
+- **PROFILE**: User preferences (language, favorite category).
+- **CATEGORY**: Product categories (e.g., FISH, DOGS).
+- **PRODUCT**: Product metadata (name, description, linked to CATEGORY).
+- **ITEM**: Product variants (price, attributes, linked to PRODUCT).
+- **INVENTORY**: Stock levels (item ID, quantity).
+- **ORDERS**: Order details (shipping/billing addresses, total price).
+- **LINEITEM**: Line items within orders (quantity, unit price).
+- **SEQUENCE**: ID generation for orders.
+
+##### **Domain Models**:
+- **Account**: Encapsulates user profile, address, and preferences.
+- **Cart/CartItem**: Session-based cart with item quantities and totals.
+- **Product/Item**: Hierarchical product structure with attributes.
+- **Order/LineItem**: Order lifecycle management with status tracking.
+
+---
+
+#### **4. Service Dependencies & Communication**
+- **Service Layer**:
+  - `AccountService` → `AccountMapper` → Database.
+  - `CatalogService` → `ProductMapper`, `ItemMapper`, `CategoryMapper` → Database.
+  - `OrderService` → `OrderMapper`, `ItemMapper`, `SequenceMapper` → Database.
+- **Web Layer**:
+  - ActionBeans inject services via Spring (`@SpringBean`).
+- **Transactionality**:
+  - `@Transactional` in services (e.g., `AccountService.updateAccount()` ensures atomic profile/signon updates).
+- **Inventory Management**:
+  - `OrderService.insertOrder()` reduces inventory via `ItemMapper.updateInventoryQuantity()`.
+
+---
+
+#### **5. Key Business Logic**
+- **Authentication**:
+  - `AccountService.getAccount(username, password)` validates credentials against `SIGNON`.
+- **Cart Operations**:
+  - `Cart.addItem()`: Adds items, increments quantity if exists.
+  - `Cart.getSubTotal()`: Calculates total via `BigDecimal` arithmetic.
+- **Order Processing**:
+  - `Order.initOrder()`: Populates shipping/billing from Account and Cart.
+  - `OrderService.getNextId()`: Uses `SEQUENCE` table for unique order IDs.
+- **Search**:
+  - `CatalogService.searchProductList()`: Splits keywords, queries `PRODUCT` with `LIKE` clauses.
+
+---
+
+#### **6. Configuration & Deployment**
+##### **Spring Configuration** (`applicationContext.xml`):
+- **Datasource**: HSQLDB embedded database.
+- **Transaction Manager**: `DataSourceTransactionManager`.
+- **Component Scanning**: `org.mybatis.jpetstore.service`.
+- **MyBatis**: `SqlSessionFactory` with type aliases for domain models.
+- **Mapper Scanning**: `org.mybatis.jpetstore.mapper`.
+
+##### **Web Configuration** (`web.xml`):
+- **Stripes Framework**: Handles `*.action` URLs via `StripesFilter`.
+- **Spring Integration**: `ContextLoaderListener` loads Spring context.
+- **JSP Views**: Located in `/WEB-INF/jsp/`.
+
+##### **Deployment**:
+- **WAR Packaging**: Deployable to Tomcat/Jetty/GlassFish (Maven profiles).
+- **Docker**: 
+  - `Dockerfile`: Runs Maven build and Tomcat deployment.
+  - `docker-compose.yaml`: Exposes port 8080.
+
+---
+
+#### **7. Architectural Patterns & Frameworks**
+- **Layered Architecture**:
+  - **Web**: Stripes ActionBeans → **Service**: Spring beans → **Data**: MyBatis mappers → **Database**.
+- **Frameworks**:
+  - **Spring 5**: DI, transaction management, and service layer.
+  - **MyBatis 3**: SQL mapping with XML-based mappers.
+  - **Stripes**: MVC web framework (替代 Spring MVC).
+  - **HSQLDB**: In-memory database for demos.
+- **Design Patterns**:
+  - **DAO**: Mappers act as Data Access Objects.
+  - **Session Management**: Session-scoped beans for user state.
+  - **Template Method**: `AbstractActionBean` provides base functionality (e.g., message handling).
+
+---
+
+### **Microservice Decomposition Insights**
+- **Service Boundaries**: 
+  - **Account Service**: User management.
+  - **Catalog Service**: Product/item browsing.
+  - **Order Service**: Order processing.
+  - **Cart Service**: Session-based cart operations (stateless API needed).
+- **Data Isolation**:
+  - Separate databases per service (e.g., `account_db`, `catalog_db`).
+  - Event-driven updates for inventory/order synchronization.
+- **API Gateway**:
+  - Abstract authentication/authorization (currently handled via session).
+- **Challenges**:
+  - Cart state management in distributed systems.
+  - Transactional consistency across services (e.g., order creation + inventory update).

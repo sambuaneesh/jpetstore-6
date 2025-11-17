@@ -1,0 +1,149 @@
+
+## MyBatis JPetStore 6 - Architectural Summary (Part 1 of 4)
+
+### **Application Overview**
+- **Name**: JPetStore 6 (Pet e-commerce application)
+- **Framework Stack**: MyBatis 3.5.19 + Spring 6.2.10 + Stripes 1.6.0
+- **Language**: Java 17
+- **Database**: HSQLDB 2.7.4
+- **Build**: Maven (packaged as WAR)
+- **Deployment**: Supports Tomcat, Jetty, WildFly, GlassFish, Liberty, TomEE (via Maven profiles)
+
+---
+
+### **Domain Models** (Business Entities)
+| Component | Key Fields | Relationships |
+|-----------|------------|---------------|
+| **Account** | username, password, email, firstName, lastName, address, favouriteCategoryId | References Category |
+| **Cart** | synchronized Map<itemId, CartItem> | Session-scoped shopping cart |
+| **CartItem** | Item item, int quantity, boolean inStock | Links to Item |
+| **Category** | categoryId, name, description | Contains Products |
+| **Item** | itemId, productId, listPrice, attributes | Belongs to Product |
+| **LineItem** | orderId, itemId, quantity, unitPrice | Links Order ↔ Item |
+| **Order** | orderId, username, orderDate, totalPrice, addresses | References Account |
+| **Product** | productId, categoryId, name | Belongs to Category |
+| **Sequence** | name, nextId | Auto-increment helper |
+
+---
+
+### **Data Access Layer** (MyBatis Mappers)
+| Mapper | Key Operations | SQL Config |
+|--------|----------------|-------------|
+| **AccountMapper** | CRUD for Account, authentication | `AccountMapper.xml` |
+| **CategoryMapper** | List/get categories | `CategoryMapper.xml` |
+| **ItemMapper** | Inventory mgmt, item CRUD | `ItemMapper.xml` |
+| **LineItemMapper** | Order line items CRUD | `LineItemMapper.xml` |
+| **OrderMapper** | Order CRUD + status | `OrderMapper.xml` |
+| **ProductMapper** | Product CRUD + search | `ProductMapper.xml` |
+| **SequenceMapper** | Sequence generation | `SequenceMapper.xml` |
+
+---
+
+### **Service Layer** (Spring Components)
+| Service | Responsibilities | Transactions |
+|---------|----------------|--------------|
+| **AccountService** | User auth, account/profile CRUD | `@Transactional` on insert/update |
+| **CatalogService** | Product browsing, search, inventory checks | Stateless reads |
+| **OrderService** | Order processing, inventory updates | `@Transactional` for order creation |
+
+---
+
+### **Web Layer** (Stripes MVC)
+| Action Bean | URL Prefix | Scope | Key Workflows |
+|--------------|------------|-------|---------------|
+| **AccountActionBean** | `/actions/Account` | Session | Login/signup, account edit |
+| **CartActionBean** | `/actions/Cart` | Session | Add/remove items, checkout initiation |
+| **CatalogActionBean** | `/actions/Catalog` | Session | Browse categories/products, search |
+| **OrderActionBean** | `/actions/Order` | Session | Order placement, order history |
+
+---
+
+### **Database Schema** (SQL Scripts)
+- **Schema**: `jpetstore-hsqldb-schema.sql`
+- **Data**: `jpetstore-hsqldb-data.sql`
+- **Load**: `jpetstore-hsqldb-dataload.sql`
+- **Tables**: account, signon, profile, category, product, item, inventory, orders, orderstatus, lineitem, sequence
+
+---
+
+### **Key Architectural Patterns**
+1. **3-Tier Architecture**  
+   `Web (Stripes) → Service (Spring) → Data (MyBatis)`
+2. **Session-Scoped State**  
+   Cart & Account data stored in HTTP sessions via Stripes `@SessionScope`
+3. **Transactional Boundaries**  
+   Order creation and account updates in single transactions
+4. **Sequence Generation**  
+   Custom sequence table for order IDs (not DB auto-increment)
+
+---
+
+### **Business Logic & Algorithms**
+- **Cart Management**:
+  - `Cart.addItem()`: Updates quantities or adds new items
+  - `Cart.getSubTotal()`: Stream-based price calculation
+- **Order Processing**:
+  - `Order.initOrder()`: Copies Account data to Order
+  - Inventory decrement in `OrderService.insertOrder()`
+- **Authentication**:
+  - Credentials validated via `AccountMapper.getAccountByUsernameAndPassword()`
+- **Search**:
+  - Keyword split + SQL `LIKE` in `CatalogService.searchProductList()`
+
+---
+
+### **Deployment & Configuration**
+- **Container Support**: Maven profiles for Tomcat/Jetty/WildFly/etc.
+- **Dockerization**:
+  ```dockerfile
+  FROM openjdk:21
+  WORKDIR /usr/src/myapp
+  RUN ./mvnw clean package
+  CMD ./mvnw cargo:run -P tomcat90
+  ```
+- **Key Configs**:
+  - `web.xml`: Stripes filter + Spring context
+  - `applicationContext.xml`: MyBatis-Spring integration
+  - `StripesResources.properties`: Localization
+
+---
+
+### **Microservice Decomposition Insights**
+1. **Domain Boundaries**:
+   - **User Service**: Account/Signon/Profile (AccountService + AccountMapper)
+   - **Catalog Service**: Category/Product/Item (CatalogService + related mappers)
+   - **Order Service**: Order/LineItem (OrderService + OrderMapper/LineItemMapper)
+   - **Cart Service**: Session-scoped cart logic (CartActionBean)
+
+2. **Data Dependencies**:
+   - Order → Account (username foreign key)
+   - Item → Product → Category (hierarchical catalog)
+   - CartItem → Item (real-time inventory checks)
+
+3. **Transaction Boundaries**:
+   - Account updates span `account`, `signon`, `profile` tables
+   - Order creation spans `orders`, `lineitem`, `inventory` tables
+
+4. **Session Dependencies**:
+   - Cart state required for checkout
+   - Account authentication required for order placement
+
+5. **API Groupings**:
+   - `/account/*`: Authentication and profile mgmt
+   - `/catalog/*`: Product browsing/search
+   - `/cart/*`: Cart operations
+   - `/order/*`: Checkout and order history
+
+---
+
+### **External Integrations**
+- **Database**: HSQLDB (configurable via Spring JDBC)
+- **Logging**: SLF4J with Simple binding
+- **Frontend**: JSP views with JSTL/Taglibs
+- **Validation**: Stripes validation annotations
+
+This architecture exhibits **high cohesion** within domains (catalog, orders) but **tight coupling** through:
+1. Session-scoped cart/account state
+2. Cross-domain transactions (e.g., inventory updates during order)
+3. Shared database schema between domains
+Recommended decomposition approach: Start with **Bounded Contexts** (Catalog, Orders, Accounts) while handling state synchronization via events or distributed transactions.

@@ -1,0 +1,131 @@
+
+## Comprehensive Architectural Summary - JPetStore Part 2
+
+### 1. **Presentation Layer Architecture**
+#### JSP Components and Responsibilities
+| **Component** | **Purpose** | **Key Features** |
+|---------------|--------------|------------------|
+| **Cart.jsp** | Shopping cart display/management | Item listings, quantity updates, cart total calculation, checkout initiation |
+| **Checkout.jsp** | Order summary before confirmation | Read-only display of cart contents with pricing |
+| **IncludeMyList.jsp** | User's favorite products | Conditional display based on authentication/listOption |
+| **Category.jsp** | Product category browsing | Product listings with navigation to product details |
+| **Item.jsp** | Individual item details | Attributes, pricing, stock status, "Add to Cart" action |
+| **Main.jsp** | Homepage | Category navigation via image map, welcome message |
+| **Product.jsp** | Product-specific item listings | All items within a product with pricing |
+| **SearchProducts.jsp** | Search results display | Keyword-based product search results |
+| **Order JSPs** | Order management | NewOrderForm (payment), ShippingForm (delivery), ConfirmOrder (review), ViewOrder (details), ListOrders (history) |
+| **Common JSPs** | Shared UI | IncludeTop (header/nav), IncludeBottom (footer), Error (messaging) |
+
+#### Navigation Flow Patterns
+```
+Browsing Flow:
+Category → Product → Item → Cart → Checkout → Order Confirmation
+Search → Product → Item → Cart → Checkout
+```
+
+### 2. **Frontend Framework Integration**
+- **Stripes Framework**:
+  - Form handling with `stripes:form` tags
+  - URL generation via `stripes:link`
+  - ActionBean binding to `beanclass` attributes
+  - Event-driven navigation (`event="viewItem"`)
+- **JSTL Integration**:
+  - Conditional rendering (`c:if`, `c:forEach`)
+  - Session management (`sessionScope.accountBean`)
+  - Message formatting (`fmt:formatNumber`)
+
+### 3. **Internationalization Support**
+#### Site Configuration Structure
+```xml
+src/site/
+├── site.xml (English)
+├── site_es.xml (Spanish)
+├── site_ja.xml (Japanese)
+├── site_ko.xml (Korean)
+└── resources/css/site.css (Language flag styling)
+```
+- **Multi-language Support**: Dedicated site configurations for EN/ES/JA/KO
+- **CSS Flag Icons**: Visual language indicators with `ul.i18n` styling
+
+### 4. **Testing Architecture**
+#### Test Categories and Coverage
+| **Test Type** | **Examples** | **Scope** |
+|----------------|--------------|------------|
+| **Selenium UI Tests** | ScreenTransitionIT | Full user journeys (login → order → logout) |
+| **Domain Unit Tests** | CartTest, OrderTest | Business logic validation |
+| **Mapper Tests** | AccountMapperTest, OrderMapperTest | Data access layer verification |
+| **Service Tests** | AccountServiceTest | Business transaction testing |
+
+#### Key Test Scenarios
+1. **E2E Order Flow** (ScreenTransitionIT):
+   - Authentication → Search → Cart manipulation → Checkout → Order history
+2. **Cart Logic Validation**:
+   - Item addition/removal, quantity updates, subtotal calculations
+3. **Data Integrity**:
+   - Account/order insertion, inventory updates, transaction rollback
+
+### 5. **Microservice Boundary Identification**
+#### Potential Service Decompositions
+| **Domain** | **JSPs** | **Logic** | **DB Tables** |
+|-------------|-----------|-----------|---------------|
+| **Catalog Service** | Category, Product, Item, Search, Main | Browsing/search | CATEGORY, PRODUCT, ITEM, INVENTORY |
+| **Cart Service** | Cart, Checkout | Session state management | (Session) |
+| **Order Service** | Order JSPs | Payment/Shipping, Order lifecycle | ORDERS, ORDERSTATUS, LINEITEM |
+| **Account Service** | *(Referenced)* | Authentication, Profiles | ACCOUNT, SIGNON, PROFILE |
+| **Content Service** | Common includes | Static assets, i18n | (File system) |
+
+#### Communication Patterns
+- **Synchronous**: Stripes ActionBeans → Service Layer → Mappers
+- **Session-Based**: Cart state managed in HTTP session
+- **Form Submission**: ActionBean event handling
+- **Direct DB**: MyBatis mappers (no ORM abstraction)
+
+### 6. **Data Flow Analysis**
+```
+User Request → Stripes Filter → ActionBean → Service → MyBatis Mapper → DB
+Response: DB → Mapper → Service → ActionBean → JSP → Browser
+```
+- **No Direct API Calls**: All data access through MyBatis mappers
+- **Transaction Management**: Spring `@Transactional` at service layer
+- **Session Scoping**: Cart beans (`@SessionScope`)
+
+### 7. **Critical Architectural Decisions**
+1. **Tight UI/Logic Coupling**:
+   - Stripes ActionBeans handle both presentation and business logic
+   - No REST API layer (direct MVC pattern)
+
+2. **Session Reliance**:
+   - Cart state stored in HTTP session
+   - User authentication via session attributes
+
+3. **Data Access**:
+   - MyBatis XML mappers for SQL execution
+   - Type-safe result mapping to domain objects
+
+4. **Testing Strategy**:
+   - Embedded HSQL for unit tests
+   - Selenium for full UI validation
+   - Spring test context configuration
+
+### 8. **Decomposition Readiness Assessment**
+| **Aspect** | **Status** | **Decomposition Impact** |
+|------------|------------|---------------------------|
+| **UI Layer** | Monolithic JSPs | High refactoring needed |
+| **Business Logic** | Service layer exists | Ready for extraction |
+| **Data Access** | MyBatis mappers | Mapper-per-service viable |
+| **State Management** | Session-based | Redis/session store needed |
+| **i18n** | File-based | Content service required |
+
+### 9. **Key Implementation Notes**
+- **No JavaScript**: Pure server-side rendering
+- **Stripes Configuration**:
+  ```xml
+  <init-param>
+    <param-name>Interceptor.Classes</param-name>
+    <param-value>net.sourceforge.stripes.integration.spring.SpringInterceptor</param-value>
+  </init-param>
+  ```
+- **Security**: Basic form-based authentication (no advanced features)
+- **Error Handling**: Centralized via `Error.jsp` with `<stripes:messages>`
+
+This architecture represents a traditional monolithic web application with clear functional domains suitable for microservice extraction, but requires significant refactoring of presentation and state management layers.

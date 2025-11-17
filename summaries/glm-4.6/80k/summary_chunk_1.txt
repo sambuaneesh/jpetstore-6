@@ -1,0 +1,293 @@
+
+<think>This is a comprehensive architectural summary of the JPetStore 6 application. Let me organize this clearly while ensuring all critical information is preserved for microservice decomposition analysis.
+
+The application is a classic 3-tier web application with:
+1. Presentation layer using Stripes MVC framework
+2. Service layer using Spring for business logic
+3. Data access layer using MyBatis for ORM
+
+Key components and their responsibilities:
+- ActionBeans handle web requests and orchestrate flow
+- Service beans contain business logic and transaction boundaries
+- MyBatis mappers handle database operations
+- Domain models represent business entities
+
+The database uses HSQLDB with a well-defined relational schema.
+
+Important for microservice decomposition:
+- Clear service boundaries around business capabilities
+- Database access abstracted through mappers
+- Stateless web controllers with session management
+- Declarative transaction management
+
+Let me structure this comprehensively.</think>
+# MyBatis JPetStore 6 - Architectural Summary
+
+## Overview
+JPetStore 6 is a reference e-commerce pet store application demonstrating integration between MyBatis 3, Spring Framework, and Stripes web framework. It exemplifies a minimal-code approach to building database-backed web applications with clean separation of concerns.
+
+## Component Architecture
+
+### 1. Web Layer (Presentation)
+**Framework:** Stripes MVC (Action-based)
+- **JSP Views** using JSTL, Stripes tags, and custom CSS
+- **ActionBeans** as controllers extending `AbstractActionBean`
+- **Session Management** via `@SessionScope` annotation
+
+**Key ActionBeans:**
+- `AccountActionBean` 
+  - User authentication (signon/signoff)
+  - Account registration and profile management
+  - Session-based state management
+- `CatalogActionBean`
+  - Product catalog browsing (categories/products/items)
+  - Product search functionality
+  - Navigation orchestration
+- `CartActionBean`
+  - Shopping cart operations (add/remove/update items)
+  - Cart state persistence in session
+  - Inventory checking integration
+- `OrderActionBean`
+  - Checkout workflow orchestration
+  - Order submission and confirmation
+  - Order history viewing
+
+### 2. Service Layer (Business Logic)
+**Framework:** Spring IoC Container
+- **Component Scanning** via `@Service` annotation
+- **Declarative Transactions** using `@Transactional`
+- **Dependency Injection** via `@Autowired`
+
+**Key Services:**
+- `AccountService`
+  - User authentication against SIGNON table
+  - Account CRUD across ACCOUNT/PROFILE tables
+  - Multi-table transactional updates
+- `CatalogService`
+  - Product catalog navigation
+  - Keyword-based product search
+  - Real-time inventory checking
+- `OrderService`
+  - Multi-step order processing workflow
+  - Inventory management with atomic updates
+  - Order ID sequence generation
+
+### 3. Data Access Layer (Persistence)
+**Framework:** MyBatis ORM with XML mappers
+- **Mapper Scanning** via Spring's `mybatis:scan`
+- **Type Aliases** auto-configured from domain package
+- **Second-level Caching** enabled in mapper XML
+
+**Key Mappers:**
+- `AccountMapper` - User data aggregation from ACCOUNT/PROFILE/SIGNON/BANNERDATA tables
+- `CategoryMapper` - Product category CRUD
+- `ItemMapper` - Product items with inventory joins
+- `OrderMapper` - Order headers with status tracking
+- `ProductMapper` - Product information with search capability
+- `LineItemMapper` - Order line items management
+- `SequenceMapper` - Database sequence for unique ID generation
+
+## Domain Model
+
+**Core Entities:**
+- `Account` - User credentials, profile, preferences
+- `Category` - Product category with description
+- `Product` - Product details linked to category
+- `Item` - Sellable inventory items with attributes and pricing
+- `Cart`/`CartItem` - Session-based shopping cart with quantity management
+- `Order`/`LineItem` - Order structure with shipping/billing addresses
+- `Sequence` - Database sequence utility for ID generation
+
+## API Interfaces
+
+### Web Endpoints (Stripes Action URLs)
+
+**Catalog Actions:**
+- `GET /actions/Catalog.action` - Main page (viewMain)
+- `GET /actions/Catalog.action?viewCategory=&categoryId=<id>` - Category view
+- `GET /actions/Catalog.action?viewProduct=&productId=<id>` - Product view
+- `GET /actions/Catalog.action?viewItem=&itemId=<id>` - Item details
+- `POST /actions/Catalog.action?searchProducts=&keyword=<text>` - Product search
+
+**Account Actions:**
+- `GET /actions/Account.action?signonForm` - Login page
+- `POST /actions/Account.action?signon` - Authentication
+- `GET /actions/Account.action?signoff` - Logout
+- `GET /actions/Account.action?newAccountForm` - Registration page
+- `POST /actions/Account.action?newAccount` - Create account
+- `GET /actions/Account.action?editAccountForm` - Edit profile
+- `POST /actions/Account.action?editAccount` - Update profile
+
+**Cart Actions:**
+- `GET /actions/Cart.action?viewCart` - View cart
+- `POST /actions/Cart.action?addItemToCart=&workingItemId=<id>` - Add item
+- `POST /actions/Cart.action?removeItemFromCart=&workingItemId=<id>` - Remove item
+- `POST /actions/Cart.action?updateCartQuantities` - Update quantities
+- `GET /actions/Cart.action?checkOut` - Start checkout
+
+**Order Actions:**
+- `GET /actions/Order.action?newOrderForm` - Checkout form
+- `POST /actions/Order.action?newOrder` - Submit order
+- `GET /actions/Order.action?listOrders` - Order history
+- `GET /actions/Order.action?viewOrder=&orderId=<id>` - Order details
+
+## Database Schema
+
+### Core Tables & Relationships
+```
+CATEGORY (1)──<──(N) PRODUCT (1)──<──(N) ITEM (1)──<──(1) INVENTORY
+     │                       │
+     (N)                      (N)
+     │                       │
+ACCOUNT (1)──<──(N) ORDERS (1)──<──(N) LINEITEM
+     │
+SIGNON (1)──<──(1) ACCOUNT
+PROFILE (1)──<──(1) ACCOUNT
+```
+
+**Key Tables:**
+- `SIGNON` - Username/password authentication
+- `ACCOUNT` - User profile with address info
+- `PROFILE` - User preferences (language, favorites, options)
+- `CATEGORY` - Product categories
+- `PRODUCT` - Product catalog with descriptions
+- `ITEM` - Inventory items with attributes and pricing
+- `INVENTORY` - Stock quantities per item
+- `SUPPLIER` - Supplier information
+- `ORDERS` - Order headers with addresses and payment
+- `ORDERSTATUS` - Order tracking with timestamps
+- `LINEITEM` - Order contents with quantities
+- `SEQUENCE` - ID generation utility
+- `BANNERDATA` - UI banner images per category
+
+## Service Dependencies & Communication
+
+### Communication Patterns
+- **Synchronous HTTP Request-Response** via Servlet container
+- **Session-based State** for cart and authentication
+- **Transaction Boundary** at service layer methods
+
+### Dependency Flow
+1. **Client** → **Stripes Filter** → **ActionBean**
+2. **ActionBean** → **Service Bean** (injected via `@SpringBean`)
+3. **Service Bean** → **MyBatis Mapper** (injected via `@Autowired`)
+4. **MyBatis Mapper** → **Database** (via configured DataSource)
+
+### Transaction Management
+- **Declarative Transactions** using Spring's `@Transactional`
+- **Rollback on Runtime Exceptions**
+- **Isolation:** Default database isolation
+- **Propagation:** REQUIRED (default)
+
+## Configuration Details
+
+### Key Configuration Files
+**web.xml:**
+- Stripes filter and servlet configuration
+- ActionResolver package scanning
+- Spring context loader integration
+- URL pattern mapping (`*.action`)
+
+**applicationContext.xml:**
+- Component scanning for `org.mybatis.jpetstore.service`
+- Embedded HSQLDB with schema/data scripts
+- MyBatis SqlSessionFactory configuration
+- Mapper scanning for `org.mybatis.jpetstore.mapper`
+- DataSource transaction manager
+- Type aliases for domain package
+
+**Mapper XMLs:**
+- SQL statements mapped to interface methods
+- Result mapping to domain objects
+- Cache configuration per mapper
+- Parameter binding and type conversion
+
+### Deployment Configuration
+- **WAR packaging** for servlet containers
+- **Maven profiles** for Tomcat, Jetty, WildFly, etc.
+- **Docker support** with multi-stage builds
+- **HSQLDB embedded** for demo (in-memory)
+
+## Business Logic & Algorithms
+
+### Catalog Operations
+- **Category Browsing:** Hierarchical navigation with product listings
+- **Product Search:** Full-text search across product names/descriptions
+- **Inventory Checking:** Real-time stock validation before cart operations
+- **Price Calculation:** Dynamic pricing based on item list price
+
+### Order Processing Workflow
+1. **Order Initialization:** From cart and account data
+2. **Inventory Decrement:** Atomic update per line item
+3. **Order Insertion:** Multi-table transactional commit
+4. **Sequence Generation:** Database-driven unique IDs
+5. **Status Tracking:** Order state progression
+
+### Account Management
+- **Authentication:** Against SIGNON table with username/password
+- **Profile Updates:** Transactional updates across ACCOUNT/PROFILE tables
+- **Password Security:** Separate SIGNON table for credential storage
+
+## Architectural Patterns
+
+### Design Patterns
+- **MVC Pattern:** Clean separation via Stripes framework
+- **DAO Pattern:** MyBatis mappers as data access objects
+- **Dependency Injection:** Throughout via Spring
+- **Template Method:** AbstractActionBean providing common functionality
+- **Unit of Work:** Transaction boundaries at service layer
+
+### Framework Integration
+- **MyBatis-Spring Integration:** Transparent mapper injection
+- **Stripes-Spring Bridge:** `@SpringBean` for service injection
+- **Convention over Configuration:** Automatic mapper scanning
+- **Declarative Services:** `@Service` and `@Transactional` annotations
+
+## Technology Stack
+
+### Core Dependencies
+- **MyBatis 3.5.19** - SQL mapping framework
+- **Spring Framework 6.2.10** - IoC and transaction management
+- **Stripes 1.6.0** - Action-based web framework
+- **HSQLDB 2.7.4** - Embedded Java SQL database
+- **JSP 2.1** - View technology with JSTL
+
+### Build & Runtime
+- **Java 17** - Minimum runtime requirement
+- **Maven 3.x** - Build and dependency management
+- **Servlet 4.0** - Container specification
+- **JUnit 5** - Testing framework with Selenide/Selenium
+
+## Performance & Scalability
+
+### Caching Strategy
+- **MyBatis Second-Level Cache:** Per mapper configuration
+- **Result Set Caching:** For frequently accessed data
+- **Session Cache:** First-level MyBatis caching
+
+### Database Optimization
+- **Connection Pooling:** Via Spring DataSource
+- **Batch Operations:** Supported in mapper configuration
+- **Prepared Statements:** Standard MyBatis feature
+- **Index Strategy:** Defined in schema (PRODUCTCAT, ITEMPROD)
+
+### Session Management
+- **HttpSession Scope:** For user-specific data
+- **Cart Serialization:** State persistence between requests
+- **Authentication Tokens:** Session-based login state
+
+## Security Considerations
+
+### Authentication & Authorization
+- **Form-based Login** via AccountActionBean
+- **Password Hashing:** Plain text in demo (production should hash)
+- **Session Hijacking Protection:** Via Stripes framework
+- **CSRF Prevention:** Built-in Stripes token validation
+
+### Input Validation
+- **Stripes Validation Annotations:** `@Validate` on action properties
+- **SQL Injection Prevention:** MyBatis parameter binding
+- **XSS Protection:** JSTL encoding in views
+- **Business Rule Validation:** In service layer
+
+This architecture provides an excellent foundation for microservice decomposition with clear service boundaries, well-defined interfaces, and separated concerns that can be independently scaled and deployed.

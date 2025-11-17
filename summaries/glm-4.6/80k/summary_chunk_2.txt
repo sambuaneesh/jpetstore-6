@@ -1,0 +1,128 @@
+
+## Architectural Summary: JPetStore 6 (Part 2)
+
+### **Core Architecture**
+- **Framework Stack**: Spring 4 (DI/TX), MyBatis 3 (ORM), Stripes (MVC Web)
+- **Pattern**: 3-tier MVC (Presentation → Service → Persistence)
+- **Key Principle**: Minimal boilerplate via dependency injection and mapper proxies
+- **Database**: HSQL (in-memory) with schema/load scripts
+
+---
+
+### **Component Structure**
+| **Layer**       | **Package**                     | **Responsibilities**                               |
+|-----------------|---------------------------------|--------------------------------------------------|
+| **Domain**      | `org.mybatis.jpetstore.domain`  | POJOs: Account, Cart, Order, Item, Product, Category |
+| **Persistence** | `org.mybatis.jpetstore.mapper`  | MyBatis mappers (XML+Interface) for DB access      |
+| **Service**     | `org.mybatis.jpetstore.service` | Business logic, TX management (@Transactional)     |
+| **Web**         | `org.mybatis.jpetstore.web`     | Stripes ActionBeans (Presentation layer)           |
+
+---
+
+### **API Endpoints & Flows**
+| **Feature**        | **Key Actions**                                                                 | **Service**       | **Mapper**               |
+|--------------------|--------------------------------------------------------------------------------|-------------------|--------------------------|
+| **Account**        | Login, Register, Profile update                                                | AccountService    | AccountMapper            |
+| **Catalog**        | Category view, Product search, Item details                                     | CatalogService   | Category/Product/ItemMapper |
+| **Cart**           | Add/remove items, Quantity updates, View cart                                  | (Embedded in Cart) | N/A                      |
+| **Order**          | Checkout, Order submission, Order history                                     | OrderService      | Order/LineItemMapper     |
+| **Search**          | Product keyword search                                                          | CatalogService   | ProductMapper            |
+
+---
+
+### **Data Models**
+#### **Core Entities**
+- **Account**: `username`, `email`, `password`, `address`, `profile`, `signon`
+- **Cart**: `CartItem` collection (item, quantity, inStock)
+- **Order**: `orderId`, `lineItems`, `shipping/billing address`, `payment`, `status`
+- **Item**: `itemId`, `productId`, `listPrice`, `attributes`, `quantity` (Inventory)
+- **Product**: `productId`, `categoryId`, `name`, `description`
+- **Category**: `categoryId`, `name`, `description`
+
+#### **Key Relationships**
+- `Category` → `Product` (1:N)
+- `Product` → `Item` (1:N)
+- `Order` → `LineItem` (1:N)
+- `LineItem` ↔ `Item` (FK)
+
+---
+
+### **Service Dependencies & Communication**
+```mermaid
+graph LR
+    A[Stripes ActionBeans] --> B[Services]
+    B --> C[MyBatis Mappers]
+    C --> D[HSQL Database]
+    
+    subgraph "Services"
+        B1[AccountService]
+        B2[CatalogService]
+        B3[OrderService]
+    end
+    
+    subgraph "Mappers"
+        C1[AccountMapper]
+        C2[Category/Product/ItemMapper]
+        C3[Order/LineItemMapper]
+    end
+    
+    B1 --> C1
+    B2 --> C2
+    B3 --> C3 + C1
+```
+
+- **Sync Communication**: Direct method calls (Spring DI)
+- **Transaction Boundaries**: `@Transactional` on service methods (e.g., `OrderService.insertOrder`)
+- **Cross-Service Logic**: `OrderService` calls `ItemMapper` for inventory updates
+
+---
+
+### **Key Business Logic**
+1. **Order Processing** (`OrderService.insertOrder`):
+   - Generate `orderId` via `SequenceMapper`
+   - Decrement inventory (`ItemMapper.updateInventoryQuantity`)
+   - Insert order, status, line items (atomic TX)
+2. **Cart Management**:
+   - `addItem()` merges duplicate items
+   - `setQuantityByItemId()` recalculates totals
+3. **Search**: Splits keywords → multiple `ProductMapper.searchProductList()` calls
+
+---
+
+### **Configuration & Deployment**
+- **Spring Config**: `applicationContext.xml`
+  - Component scan: `org.mybatis.jpetstore.service`
+  - Mapper scan: `org.mybatis.jpetstore.mapper`
+  - Embedded DB: `jdbc:embedded-database` (HSQL)
+- **Stripes Config**: `web.xml`
+  - URL pattern: `*.action`
+  - Spring integration: `SpringInterceptor`
+- **Test Support**: `MapperTestContext` (embedded DB + MyBatis setup)
+- **CI/CD**: Multi-JDK (17,21,24,25-ea), multi-OS (Linux/macOS/Windows)
+
+---
+
+### **Architectural Patterns**
+- **DI Framework**: Spring (component/service annotations)
+- **ORM**: MyBatis (mapper XML + dynamic proxies)
+- **MVC**: Stripes (`@SessionScope` ActionBeans)
+- **Transaction**: Declarative (Spring `@Transactional`)
+- **Data Access**: Active Record-like mappers (no DAO layer)
+
+---
+
+### **Critical Insights for Microservice Decomposition**
+1. **Tight Coupling**: Direct service-to-mapper calls → needs API layers for services
+2. **Shared State**: Cart embedded in domain → isolate as separate service
+3. **TX Complexity**: Order service spans inventory/order/lineItems → Saga pattern needed
+4. **Database**: Monolithic schema → requires per-service DB design
+5. **Sequence Table**: Global ID generator → replace with distributed ID generator
+6. **Search Logic**: Keyword splitting → move to dedicated search service
+
+**Recommended Bounded Contexts**:  
+- **User Account Service** (auth, profiles)  
+- **Catalog Service** (products, categories)  
+- **Inventory Service** (stock management)  
+- **Order Service** (checkout, order history)  
+- **Cart Service** (session-based carts)  
+- **Search Service** (product search)
